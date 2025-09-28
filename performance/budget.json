@@ -1,0 +1,38 @@
+{
+  "budgets": [
+    {
+      "type": "bundle",
+      "name": "main",
+      "maximumWarning": "400kb",
+      "maximumError": "500kb"
+    },
+    {
+      "type": "initial",
+      "maximumWarning": "350kb", 
+      "maximumError": "450kb"
+    },
+    {
+      "type": "anyComponentStyle",
+      "maximumWarning": "50kb",
+      "maximumError": "100kb"
+    }
+  ],
+  "performance": {
+    "firstContentfulPaint": {
+      "target": "1.5s",
+      "maximum": "2.0s"
+    },
+    "largestContentfulPaint": {
+      "target": "2.5s",
+      "maximum": "3.0s"
+    },
+    "cumulativeLayoutShift": {
+      "target": "0.1",
+      "maximum": "0.25"
+    },
+    "totalLoadTime": {
+      "target": "2.0s",
+      "maximum": "3.0s"
+    }
+  }
+}
