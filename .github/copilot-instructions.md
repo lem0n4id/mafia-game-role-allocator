@@ -166,7 +166,7 @@ Before creating any new file, ask:
 
 - Documentation scaffold created. Epic PRDs authored for Phases 1–6 and "Alternative / Edge Cases" under `docs/ways-of-work/plan/*/epic.md`.
 - No application code implemented yet (project scaffolding not initialized). Next step: Phase 1 setup & project scaffolding.
-- Architecture specs added for Phase 1 and Phase 2 under `docs/ways-of-work/plan/*/arch.md`.
+- Architecture specs added for Phases 1–3 under `docs/ways-of-work/plan/*/arch.md`.
 
 ## 📋 **Architectural Decisions Log**
 
@@ -187,6 +187,7 @@ Before creating any new file, ask:
 ### Architecture specification added (September 29, 2025)
 - Added `arch.md` for Setup & Project Scaffolding to define the high-level technical approach.
 - Added `arch.md` for Input & Validation defining React hook-based validation architecture.
+- Added `arch.md` for Role Allocation defining confirmation modal and Fisher-Yates shuffle architecture.
 
 ## �📝 **DOCUMENTATION ENFORCEMENT (Detailed Checklist)**
 
