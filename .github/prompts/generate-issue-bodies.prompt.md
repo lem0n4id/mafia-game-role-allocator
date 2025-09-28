@@ -97,13 +97,13 @@ I’ll draft a complete Epic issue body for "{{epic_name}}" that you can paste d
 
 ## References
 
-- Epic PRD: {{file_path}}
-- Architecture: {{dir}}/arch.md (if present; else not found in {{dir}})
+- Epic PRD: ({{file_path}})
+- Architecture: ({{dir}}/arch.md) (or: not found in {{dir}})
 - Sibling docs in same directory:
-  - PRD: {{dir}}/{{exists.PRD.md?PRD.md:not found in {{dir}}}}
-  - Implementation Plan: {{dir}}/{{exists.implementation-plan.md?implementation-plan.md:not found in {{dir}}}}
-  - Project Plan: {{dir}}/{{exists.project-plan.md?project-plan.md:not found in {{dir}}}}
-  - Issues Checklist: {{dir}}/{{exists.issues-checklist.md?issues-checklist.md:not found in {{dir}}}}
+  - PRD: ({{dir}}/{{exists.PRD.md?PRD.md:not found in {{dir}}}})
+  - Implementation Plan: ({{dir}}/{{exists.implementation-plan.md?implementation-plan.md:not found in {{dir}}}})
+  - Project Plan: ({{dir}}/{{exists.project-plan.md?project-plan.md:not found in {{dir}}}})
+  - Issues Checklist: ({{dir}}/{{exists.issues-checklist.md?issues-checklist.md:not found in {{dir}}}})
 - Planning prompts:
   - Implementation plan: .github/prompts/breakdown-feature-implementation.prompt.md
   - Project planning: .github/prompts/breakdown-plan.prompt.md
@@ -172,13 +172,13 @@ I’ll draft a complete Feature issue body for “{{feature_name}}” that you c
 
 ## References
 
-- PRD: {{file_path}}
+- PRD: ({{file_path}})
 - Sibling docs in same directory:
-  - Implementation Plan: {{dir}}/{{exists.implementation-plan.md?implementation-plan.md:not found in {{dir}}}}
-  - Project Plan: {{dir}}/{{exists.project-plan.md?project-plan.md:not found in {{dir}}}}
-  - Issues Checklist: {{dir}}/{{exists.issues-checklist.md?issues-checklist.md:not found in {{dir}}}}
+  - Implementation Plan: ({{dir}}/{{exists.implementation-plan.md?implementation-plan.md:not found in {{dir}}}})
+  - Project Plan: ({{dir}}/{{exists.project-plan.md?project-plan.md:not found in {{dir}}}})
+  - Issues Checklist: ({{dir}}/{{exists.issues-checklist.md?issues-checklist.md:not found in {{dir}}}})
 
 ## Parent
 
-- Epic: {{parent_epic_name}}
+- Epic: {{parent_epic_name}} (#<add issue number here>)
 
