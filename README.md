@@ -64,8 +64,24 @@ The application is optimized for mobile-first development:
 The application uses:
 - **React 18** with functional components and Hooks
 - **Vite** for fast development and optimized builds
-- **ESLint** for code quality
+- **ESLint** with React plugin for comprehensive code quality
+- **Prettier** for consistent code formatting
 - **Mobile-first** responsive design
+
+#### Available Scripts
+
+```bash
+# Development
+npm run dev          # Start development server
+npm run build        # Build for production
+npm run preview      # Preview production build
+
+# Code Quality
+npm run lint         # Run ESLint
+npm run lint:fix     # Fix ESLint issues automatically
+npm run format       # Format code with Prettier
+npm run format:check # Check if code is properly formatted
+```
 
 ### Project Structure
 

@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import eslint from 'vite-plugin-eslint'
 import { visualizer } from 'rollup-plugin-visualizer'
 
 // https://vite.dev/config/
@@ -12,7 +13,12 @@ export default defineConfig({
       open: false,
       gzipSize: true,
       brotliSize: true
-    })
+    }),
+    eslint({
+      cache: false,
+      include: ['src/**/*.{js,jsx}'],
+      exclude: ['node_modules', 'dist'],
+    }),
   ],
   server: {
     host: '0.0.0.0', // Network access for mobile testing

@@ -38,12 +38,33 @@ npm run build
 npm run preview
 ```
 
+## Code Quality Tools
+
+### Linting
+```bash
+npm run lint         # Check for linting errors
+npm run lint:fix     # Automatically fix linting issues
+```
+
+### Formatting
+```bash
+npm run format       # Format all source files
+npm run format:check # Check if files are properly formatted
+```
+
+### Tool Configuration
+- **ESLint**: Configured with React plugin and comprehensive rules
+- **Prettier**: Consistent code formatting with React/JSX support
+- **EditorConfig**: Cross-editor consistency (.editorconfig)
+- **Performance**: Lint (0.7s), Format (0.4s), Dev server (0.3s startup)
+
 ## Documentation Status
 - ✅ **Epic PRDs authored** and added under `docs/ways-of-work/plan/*/epic.md`, including "Alternative / Edge Cases" (covers user stories 25–30). 
 - ✅ **IMPLEMENTATION STARTED** - Vite React Project Initialization complete with working React 18 application foundation
+- ✅ **Development Tooling Setup COMPLETE** - ESLint, Prettier, and enhanced npm scripts implemented
 - ✅ **Architecture specs added** for all phases (1–6) and Alternative / Edge Cases under `docs/ways-of-work/plan/*/arch.md`.
 - ✅ **Feature PRDs created** for ALL epics, broken down into 18 implementable features:
-  - **Setup & Project Scaffolding (4 features)**: Vite React Initialization, Tailwind Integration, Development Tooling, Mobile Optimization
+  - **Setup & Project Scaffolding (4 features)**: ✅ Vite React, ✅ Development Tooling, Tailwind Integration, Mobile Optimization
   - **Input & Validation (3 features)**: Player Count Management, Mafia Count Validation, Player Name Input System  
   - **Role Allocation (3 features)**: Allocation Confirmation Flow, Role Assignment Engine, Re-allocation System
   - **Role Display & Reveal (3 features)**: Card List Interface, Role Reveal Dialog, Sequential Order Enforcement
