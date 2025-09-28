@@ -9,33 +9,44 @@ function App() {
           A minimal, mobile-first role allocation system for Mafia games.
         </p>
       </header>
-      
+
       <main className="flex-1 flex items-center justify-center">
         <div className="max-w-md">
           <h2 className="text-xl font-semibold mb-4 text-gray-700">
             Welcome to the Setup
           </h2>
           <p className="mb-6 text-gray-600">
-            This foundational React 18 + Vite application is ready for feature development.
+            This foundational React 18 + Vite application is ready for feature
+            development.
           </p>
-          
+
           <div className="text-left space-y-2">
-            <p className="text-sm text-green-600">✅ React 18 functional components</p>
+            <p className="text-sm text-green-600">
+              ✅ React 18 functional components
+            </p>
             <p className="text-sm text-green-600">✅ Vite build system</p>
             <p className="text-sm text-green-600">✅ Hot module replacement</p>
-            <p className="text-sm text-green-600">✅ Mobile-first architecture ready</p>
-            <p className="text-sm text-green-600">✅ Tailwind CSS v3.4.17 integrated</p>
-            <p className="text-sm text-green-600">✅ PostCSS + Autoprefixer configured</p>
-            <p className="text-sm text-green-600">✅ Mobile-first breakpoints (sm:640px, md:768px, lg:1024px)</p>
+            <p className="text-sm text-green-600">
+              ✅ Mobile-first architecture ready
+            </p>
+            <p className="text-sm text-green-600">
+              ✅ Tailwind CSS v3.4.17 integrated
+            </p>
+            <p className="text-sm text-green-600">
+              ✅ PostCSS + Autoprefixer configured
+            </p>
+            <p className="text-sm text-green-600">
+              ✅ Mobile-first breakpoints (sm:640px, md:768px, lg:1024px)
+            </p>
           </div>
         </div>
       </main>
-      
+
       <footer className="p-4 text-gray-500 text-sm">
         <p>Ready for feature implementation</p>
       </footer>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;

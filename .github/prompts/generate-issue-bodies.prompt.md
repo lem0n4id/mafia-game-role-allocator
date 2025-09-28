@@ -21,6 +21,8 @@ Follow these rules:
   If a sibling file is missing, note: "not found in <dir>".
 - Build links as repository-relative paths: `<dir>/<file>` (do not invent owner/repo URLs). If you cannot read the directory, still list the expected filenames with the "not found" note.
 - Keep tone concise and actionable. Avoid marketing language.
+ - EXECUTION INTENT: Each generated issue acts as a working prompt for an LLM implementation agent. The agent must follow the steps outlined in the corresponding implementation-plan.md and raise a Pull Request upon completion.
+ - SOURCE ALIGNMENT: The agent must closely examine the PRD at `file_path` and sibling docs in the same directory (implementation-plan.md, project-plan.md, issues-checklist.md) to ensure the work aligns with requirements, plan steps, and tracked tasks.
 
 Input you will be given:
 - file_path: Absolute or repo-relative path to `epic.md` or `PRD.md`. Read and parse this file; then scan the same directory for the sibling docs listed above.
@@ -113,6 +115,7 @@ I’ll draft a complete Epic issue body for "{{epic_name}}" that you can paste d
 - Action: .github/workflows/create-feature-issues.yml
   - Run “Create Feature Issues” to open Feature issues for this Epic
   - Inputs: epic_issue, feature_name, docs_path (optional)
+  - Execution: Each created Feature issue serves as a prompt for an LLM agent to follow the linked implementation-plan.md and raise a PR
 
 ---
 
@@ -125,6 +128,21 @@ I’ll draft a complete Feature issue body for “{{feature_name}}” that you c
 ## Feature Description
 
 {{feature_description_from_prd_or_placeholder}}
+
+## Agent Instructions
+
+This issue is a prompt for an LLM implementation agent. Follow these directives:
+
+- Read and follow the step-by-step instructions in implementation-plan.md (see References)
+- Closely examine these source docs in the same directory and reconcile them:
+  - PRD (requirements and acceptance criteria)
+  - implementation-plan.md (step-by-step execution)
+  - project-plan.md (sequencing/estimates/risks)
+  - issues-checklist.md (task tracking)
+  When conflicts arise, defer to PRD for scope/requirements and note discrepancies in the Pull Request.
+- Implement changes in small, logically grouped commits with clear messages
+- Open a Pull Request linking back to this issue; summarize changes and verification steps
+- Ensure lint/build/preview checks pass before requesting review
 
 ## Business Value
 
@@ -143,9 +161,10 @@ I’ll draft a complete Feature issue body for “{{feature_name}}” that you c
 
 ## Subtasks (suggested)
 
-- [ ] Implementation per plan (see links below)
+- [ ] Follow implementation-plan.md steps end-to-end; commit in small chunks; open and link a PR
 - [ ] Tests (happy path + 1–2 edge cases)
 - [ ] Docs updated (README.md/DEVELOPMENT.md/copilot-instructions.md)
+- [ ] Cross-check deliverables against PRD, project-plan.md, and issues-checklist.md; document any variances in PR
 
 ## Dependencies
 
@@ -157,6 +176,8 @@ I’ll draft a complete Feature issue body for “{{feature_name}}” that you c
 - [ ] Passes lint/build/preview smoke
 - [ ] Performance impact considered
 - [ ] Documentation updated
+ - [ ] Pull Request opened and linked; CI/build checks are green
+ - [ ] Work validated against PRD acceptance criteria and aligned with project-plan.md and issues-checklist.md
 
 ## Labels
 

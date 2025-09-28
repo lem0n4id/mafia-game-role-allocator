@@ -5,9 +5,15 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:mobile": "vite --host",
     "build": "vite build",
+    "build:analyze": "vite build && echo 'Bundle analysis available at dist/bundle-analysis.html'",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "lint:fix": "eslint . --ext js,jsx --fix",
+    "preview": "vite preview",
+    "preview:mobile": "vite preview --host",
+    "format": "prettier --write \"src/**/*.{js,jsx,css,md}\"",
+    "format:check": "prettier --check \"src/**/*.{js,jsx,css,md}\""
   },
   "dependencies": {
     "react": "^18.3.1",
@@ -20,11 +26,16 @@
     "@vitejs/plugin-react": "^5.0.3",
     "autoprefixer": "^10.4.21",
     "eslint": "^9.36.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^16.4.0",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.17",
-    "vite": "^7.1.7"
+    "prettier": "^3.6.2",
+    "rollup-plugin-visualizer": "^6.0.3",
+    "vite": "^7.1.7",
+    "vite-plugin-eslint": "^1.8.1"
   }
 }

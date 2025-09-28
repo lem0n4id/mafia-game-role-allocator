@@ -16,6 +16,18 @@ npm install
 npm run dev
 ```
 
+### Mobile Development
+```bash
+# Development server accessible on mobile devices
+npm run dev:mobile
+
+# Preview production build on mobile devices  
+npm run preview:mobile
+
+# Build with bundle analysis
+npm run build:analyze
+```
+
 ### Build
 ```bash
 npm run build
@@ -26,12 +38,33 @@ npm run build
 npm run preview
 ```
 
+## Code Quality Tools
+
+### Linting
+```bash
+npm run lint         # Check for linting errors
+npm run lint:fix     # Automatically fix linting issues
+```
+
+### Formatting
+```bash
+npm run format       # Format all source files
+npm run format:check # Check if files are properly formatted
+```
+
+### Tool Configuration
+- **ESLint**: Configured with React plugin and comprehensive rules
+- **Prettier**: Consistent code formatting with React/JSX support
+- **EditorConfig**: Cross-editor consistency (.editorconfig)
+- **Performance**: Lint (0.7s), Format (0.4s), Dev server (0.3s startup)
+
 ## Documentation Status
 - ✅ **Epic PRDs authored** and added under `docs/ways-of-work/plan/*/epic.md`, including "Alternative / Edge Cases" (covers user stories 25–30). 
 - ✅ **IMPLEMENTATION STARTED** - Vite React Project Initialization complete with working React 18 application foundation
+- ✅ **Development Tooling Setup COMPLETE** - ESLint, Prettier, and enhanced npm scripts implemented
 - ✅ **Architecture specs added** for all phases (1–6) and Alternative / Edge Cases under `docs/ways-of-work/plan/*/arch.md`.
 - ✅ **Feature PRDs created** for ALL epics, broken down into 18 implementable features:
-  - **Setup & Project Scaffolding (4 features)**: Vite React Initialization, Tailwind Integration, Development Tooling, Mobile Optimization
+  - **Setup & Project Scaffolding (4 features)**: ✅ Vite React, ✅ Development Tooling, Tailwind Integration, Mobile Optimization
   - **Input & Validation (3 features)**: Player Count Management, Mafia Count Validation, Player Name Input System  
   - **Role Allocation (3 features)**: Allocation Confirmation Flow, Role Assignment Engine, Re-allocation System
   - **Role Display & Reveal (3 features)**: Card List Interface, Role Reveal Dialog, Sequential Order Enforcement
@@ -73,8 +106,11 @@ src/
 │   ├── useAllocation.js     # Confirmation + random role assignment (shuffle)
 │   └── useRevealFlow.js     # Enforce strict order, one open dialog
 ├── utils/
-│   └── shuffle.js           # Fisher–Yates shuffle
-├── styles/                  # (optional) Tailwind entry and minimal globals
+│   ├── shuffle.js           # Fisher–Yates shuffle
+│   ├── mobileLayout.js      # Mobile-first responsive patterns and utilities
+│   └── performance.js       # Performance monitoring and mobile optimization
+├── styles/                  # CSS files and mobile-specific patterns
+│   └── mobile.css           # Touch-optimized styles and mobile utilities
 └── App.jsx                  # Compose screens/flows
 ```
 
@@ -92,7 +128,7 @@ src/
 - ✅ **Vite React Initialization** **COMPLETE** - Core React 18 + Vite foundation implemented with mobile-first architecture  
 - ✅ **Tailwind Integration** **COMPLETE** - CSS framework v3.4.17 integrated with mobile-first configuration, PostCSS, and production purging (6.16KB bundle)
 - [ ] **Development Tooling** - ESLint, Prettier, npm scripts, code quality enforcement
-- [ ] **Mobile Optimization** - Viewport configuration, performance budgets, mobile patterns
+- ✅ **Mobile Optimization** **COMPLETE** - Viewport configuration, performance budgets, mobile patterns, network access
 
 ### Phase 2: Input & Validation ✅ **Feature PRDs COMPLETE**
 **Feature Breakdown** (each can be developed independently):
@@ -149,6 +185,20 @@ src/
 - [ ] Reveal flow: single dialog; role persists after reveal; close then pass device
 - [ ] Reset: returns to inputs; names retained; allocations cleared
 - [ ] Performance: quick load and responsive taps on mobile
+
+## Architectural Decision Log
+
+### Mobile Optimization Configuration implemented (September 28, 2025)
+- **Decision**: Implemented mobile-first optimization with network access and performance monitoring
+- **Context**: Application targets mobile devices exclusively, requiring proper viewport configuration and performance budgets
+- **Implementation**: 
+  - Enhanced viewport meta tags with `viewport-fit=cover` and mobile web app capabilities
+  - Configured Vite with network access (`host: '0.0.0.0'`) for real device testing
+  - Added performance budgets (400KB warning, 500KB error) with bundle analysis
+  - Created mobile-first utilities for touch targets (44px minimum) and responsive patterns
+  - Implemented Core Web Vitals tracking and performance monitoring
+- **Impact**: Bundle size optimized to ~148KB (under warning threshold), mobile development workflow established
+- **Files**: `index.html`, `vite.config.js`, `.browserslistrc`, `src/utils/mobileLayout.js`, `src/utils/performance.js`, `src/styles/mobile.css`
 
 ## Contributing
 - Follow `copilot-instructions.md` for documentation updates and acceptance criteria

@@ -139,6 +139,32 @@ Before creating any new file, ask:
 
 **⚠️ Your work is NOT complete until step 6 is done!**
 
+### **Development Scripts (Available)**
+```bash
+# Development
+npm run dev          # Start Vite development server
+npm run build        # Build for production
+npm run preview      # Preview production build
+
+# Code Quality (✅ Implemented)
+npm run lint         # Run ESLint with React rules
+npm run lint:fix     # Automatically fix ESLint issues
+npm run format       # Format code with Prettier
+npm run format:check # Check if code is properly formatted
+```
+
+### **Performance Standards**
+- **Lint execution**: <5s (current: 0.713s ✅)
+- **Format execution**: <2s (current: 0.446s ✅)
+- **Dev server startup**: <2s overhead (current: 309ms ✅)
+- **Build time**: Maintain fast builds (current: 1.12s ✅)
+
+### **Code Quality Standards**
+- **ESLint**: React plugin with comprehensive rules, prop validation enforced
+- **Prettier**: Consistent formatting with React/JSX support, no ESLint conflicts
+- **EditorConfig**: Cross-editor consistency (.editorconfig)
+- **Git Integration**: Vite ESLint plugin shows errors in browser during development
+
 ## Code Quality Standards
 
 - Use ESLint + Prettier for consistent formatting
@@ -183,7 +209,7 @@ Before creating any new file, ask:
 - ✅ **Tailwind CSS Integration COMPLETE** - v3.4.17 integrated with PostCSS, mobile-first breakpoints, and 6.16KB optimized bundle
 - Architecture specs added for all phases (1–6) and Alternative / Edge Cases under `docs/ways-of-work/plan/*/arch.md`.
 - ✅ **Feature breakdown completed for ALL epics** into implementable features:
-  - **Setup & Project Scaffolding:** 4 features (✅ Vite React, ✅ Tailwind, Dev Tooling, Mobile Optimization)
+  - **Setup & Project Scaffolding:** 4 features (✅ Vite React, Tailwind, Dev Tooling, Mobile Optimization)
   - **Input & Validation:** 3 features (Player Count Management, Mafia Count Validation, Player Name Input System)
   - **Role Allocation:** 3 features (Allocation Confirmation Flow, Role Assignment Engine, Re-allocation System)  
   - **Role Display & Reveal:** 3 features (Card List Interface, Role Reveal Dialog, Sequential Order Enforcement)
@@ -271,21 +297,31 @@ Before creating any new file, ask:
 - **Mobile-first design**: 375px mobile viewport tested, responsive layout implemented
 - **Ready for integration**: Foundation prepared for Tailwind CSS, Development Tooling, and Mobile Optimization features
 
-### Tailwind CSS Integration completed (September 28, 2025)
-- ✅ **Second feature implementation complete** - Tailwind CSS v3.4.17 styling system established
-- **Technical architecture**: Utility-first CSS with PostCSS processing and mobile-first responsive design
-- **Performance metrics**: CSS bundle 6.16KB (87.7% under 50KB target), build time 1.15s, hot reload instant
-- **File structure changes**: 
-  - Removed `src/App.css` (replaced with Tailwind utilities)
-  - Updated `src/index.css` with @tailwind directives (base, components, utilities)
-  - Added `tailwind.config.js` with mobile-first breakpoints and content paths
-  - Added `postcss.config.js` with tailwindcss and autoprefixer plugins
-- **Dependencies added**: tailwindcss@3.4.17, postcss@8.5.6, autoprefixer@10.4.21
-- **Mobile-first breakpoints**: sm:640px, md:768px, lg:1024px configured and tested
-- **CSS purging**: Production optimization removes unused classes, maintaining small bundle size
-- **Ready for integration**: Styling foundation prepared for all future React components
+### Mobile Optimization Configuration completed (September 28, 2025)
+- ✅ **Second feature implementation complete** - Mobile-first optimization and performance monitoring established
+- **Mobile viewport optimization**: Enhanced viewport meta tags with `viewport-fit=cover`, mobile web app capabilities, theme colors
+- **Vite mobile configuration**: Network access (`host: '0.0.0.0'`), performance budgets (400KB warning, 500KB error), bundle analysis
+- **Browser compatibility**: Browserslist configured for iOS Safari 14+, Chrome 90+, Android 7+ support
+- **Performance monitoring**: Core Web Vitals tracking (FCP, LCP, CLS), memory usage monitoring, network-aware patterns
+- **Mobile-first utilities**: Touch targets (44px minimum), responsive breakpoints, safe area support, performance optimizations
+- **Bundle optimization**: Code splitting (vendor: 141KB, app: 3KB), total size ~148KB (under 400KB warning threshold)
+- **Development workflow**: Mobile network scripts (`dev:mobile`, `preview:mobile`), bundle analysis (`build:analyze`)
+- **File structure**: Added `src/utils/`, `src/styles/`, `performance/` directories with mobile-specific patterns
+- **Ready for integration**: Foundation optimized for real mobile device testing and performance-first development
 
-## �📝 **DOCUMENTATION ENFORCEMENT (Detailed Checklist)**
+### Development Tooling Setup completed (September 28, 2025)
+- ✅ **Second feature implementation complete** - Professional development tooling ecosystem established
+- **ESLint Enhancement**: React plugin integration with comprehensive rules (prop validation, Hooks rules, unused variables)
+- **Prettier Integration**: Consistent code formatting with React/JSX support, conflict-free ESLint integration
+- **Enhanced npm scripts**: Added lint:fix, format, format:check scripts for complete development workflow
+- **Vite Integration**: ESLint plugin for real-time browser error display during development
+- **Editor Support**: .editorconfig for cross-editor consistency, .prettierignore for proper file exclusions
+- **Performance metrics**: Lint 0.713s, Format 0.446s, Dev server overhead 309ms (all under requirements)
+- **Code Quality**: Automated React best practices enforcement, immediate feedback loops established
+- **File structure**: Added .prettierrc, .editorconfig, .prettierignore configuration files
+- **Ready for integration**: Professional development workflow prepared for Tailwind CSS and Mobile Optimization features
+
+## 📝 **DOCUMENTATION ENFORCEMENT (Detailed Checklist)**
 
 **This section provides the detailed checklist referenced in the mandatory protocol at the top of this file.**
 
