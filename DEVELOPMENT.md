@@ -27,8 +27,13 @@ npm run preview
 ```
 
 ## Documentation Status
-- Epic PRDs authored and added under `docs/ways-of-work/plan/*/epic.md`, including "Alternative / Edge Cases" (covers user stories 25–30). No application code yet; implementation will start with Phase 1 scaffolding.
-- Architecture specs added for all phases (1–6) and Alternative / Edge Cases under `docs/ways-of-work/plan/*/arch.md`.
+- ✅ **Epic PRDs authored** and added under `docs/ways-of-work/plan/*/epic.md`, including "Alternative / Edge Cases" (covers user stories 25–30). No application code yet; implementation will start with Phase 1 scaffolding.
+- ✅ **Architecture specs added** for all phases (1–6) and Alternative / Edge Cases under `docs/ways-of-work/plan/*/arch.md`.
+- ✅ **Feature PRDs created** for Setup & Project Scaffolding epic, broken down into four implementable features:
+  - `vite-react-initialization/prd.md` - Core project setup with React 18 and Vite
+  - `tailwind-integration/prd.md` - CSS framework integration with mobile-first config
+  - `development-tooling/prd.md` - ESLint, Prettier, npm scripts, code quality
+  - `mobile-optimization/prd.md` - Viewport config, performance budgets, mobile patterns
 
 ## Project Structure (suggested)
 
@@ -59,10 +64,12 @@ src/
 
 ## Development Phases (from PRD)
 
-### Phase 1: Setup & Project Scaffolding
-- [ ] Initialize Vite + React 18 project
-- [ ] Integrate Tailwind CSS v3.4.17
-- [ ] Add basic file structure
+### Phase 1: Setup & Project Scaffolding ✅ **Feature PRDs COMPLETE**
+**Feature Breakdown** (each can be developed independently):
+- [ ] **Vite React Initialization** - Core project setup with React 18 and Vite build pipeline
+- [ ] **Tailwind Integration** - CSS framework integration with mobile-first configuration  
+- [ ] **Development Tooling** - ESLint, Prettier, npm scripts, code quality enforcement
+- [ ] **Mobile Optimization** - Viewport configuration, performance budgets, mobile patterns
 
 ### Phase 2: Input & Validation
 - [ ] Number of Players input

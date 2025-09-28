@@ -167,6 +167,12 @@ Before creating any new file, ask:
 - Documentation scaffold created. Epic PRDs authored for Phases 1–6 and "Alternative / Edge Cases" under `docs/ways-of-work/plan/*/epic.md`.
 - No application code implemented yet (project scaffolding not initialized). Next step: Phase 1 setup & project scaffolding.
 - Architecture specs added for all phases (1–6) and Alternative / Edge Cases under `docs/ways-of-work/plan/*/arch.md`.
+- ✅ **Feature breakdown completed** for Setup & Project Scaffolding epic into four implementable features:
+  - Vite React Initialization (`vite-react-initialization/prd.md`)
+  - Tailwind Integration (`tailwind-integration/prd.md`)  
+  - Development Tooling (`development-tooling/prd.md`)
+  - Mobile Optimization (`mobile-optimization/prd.md`)
+- Each feature PRD includes complete user stories, acceptance criteria, and technical requirements for independent development.
 
 ## 📋 **Architectural Decisions Log**
 
@@ -192,6 +198,16 @@ Before creating any new file, ask:
 - Added `arch.md` for Reset & Re-Allocate defining state cleanup and data preservation patterns.
 - Added `arch.md` for Minimal Styling & UI Clarity defining Tailwind v3 utility-first styling system.
 - Added `arch.md` for Alternative / Edge Cases defining idempotency guards and error recovery patterns.
+
+### Feature breakdown completed (September 29, 2025)
+- ✅ **Setup & Project Scaffolding epic broken down** into four independent features with complete PRDs:
+  - **Vite React Initialization**: Core project setup, React 18, Vite configuration, basic file structure
+  - **Tailwind Integration**: CSS framework integration with mobile-first config and utility patterns
+  - **Development Tooling**: ESLint, Prettier, npm scripts, code quality enforcement and automation
+  - **Mobile Optimization**: Viewport configuration, performance budgets, mobile-first development patterns
+- Location: `docs/ways-of-work/plan/setup-project-scaffolding/{feature-name}/prd.md`
+- Each PRD includes user stories, acceptance criteria, functional/non-functional requirements, and scope boundaries
+- Ready for parallel development - features can be implemented independently by different developers
 
 ## �📝 **DOCUMENTATION ENFORCEMENT (Detailed Checklist)**
 
