@@ -176,6 +176,20 @@ npm run format:check # Check if code is properly formatted
 - **Use Tailwind CSS v3.x only** - Do not upgrade to v4+ without compatibility testing
 - **Scope custom CSS** - Avoid universal selectors
 
+### Tailwind CSS Utility Patterns (v3.4.17)
+- **Mobile-first approach**: Use base classes, then add responsive prefixes (sm:, md:, lg:)
+- **Utility-first styling**: Prefer Tailwind utilities over custom CSS classes
+- **Component patterns**:
+  ```jsx
+  // Mobile-first responsive layout
+  <div className="min-h-screen flex flex-col p-4 max-w-2xl mx-auto md:p-8">
+    <header className="py-8">
+      <h1 className="text-2xl md:text-4xl font-bold mb-4 text-gray-800">
+  ```
+- **Available breakpoints**: sm:640px, md:768px, lg:1024px (configured in tailwind.config.js)
+- **Performance**: CSS bundle should remain under 50KB after purging (currently 6.16KB)
+- **Content paths**: Include all JSX files in tailwind.config.js for proper CSS purging
+
 ## When Working on Mafia Game Role Allocator
 
 **🚨 FINAL CHECKPOINT: Before considering ANY work "complete":**
@@ -192,9 +206,10 @@ npm run format:check # Check if code is properly formatted
 
 - Documentation scaffold created. Epic PRDs authored for Phases 1–6 and "Alternative / Edge Cases" under `docs/ways-of-work/plan/*/epic.md`.
 - ✅ **Vite React Project Initialization COMPLETE** - React 18 + Vite foundation implemented with mobile-first architecture
+- ✅ **Tailwind CSS Integration COMPLETE** - v3.4.17 integrated with PostCSS, mobile-first breakpoints, and 6.16KB optimized bundle
 - Architecture specs added for all phases (1–6) and Alternative / Edge Cases under `docs/ways-of-work/plan/*/arch.md`.
 - ✅ **Feature breakdown completed for ALL epics** into implementable features:
-  - **Setup & Project Scaffolding:** 4 features (✅ Vite React, ✅ Development Tooling, Tailwind, Mobile Optimization)
+  - **Setup & Project Scaffolding:** 4 features (✅ Vite React, Tailwind, Dev Tooling, Mobile Optimization)
   - **Input & Validation:** 3 features (Player Count Management, Mafia Count Validation, Player Name Input System)
   - **Role Allocation:** 3 features (Allocation Confirmation Flow, Role Assignment Engine, Re-allocation System)  
   - **Role Display & Reveal:** 3 features (Card List Interface, Role Reveal Dialog, Sequential Order Enforcement)
@@ -223,6 +238,7 @@ npm run format:check # Check if code is properly formatted
   - **Security and performance** optimization guidelines and deployment architecture
   - Used to generate all 18 implementation plans with consistent technical specifications
 - ✅ **IMPLEMENTATION STARTED** - Vite React Project Initialization complete with working React 18 application foundation
+- ✅ **IMPLEMENTATION CONTINUED** - Tailwind CSS Integration complete with utility-first styling and mobile-first responsive design
 
 ## 📋 **Architectural Decisions Log**
 
@@ -305,7 +321,7 @@ npm run format:check # Check if code is properly formatted
 - **File structure**: Added .prettierrc, .editorconfig, .prettierignore configuration files
 - **Ready for integration**: Professional development workflow prepared for Tailwind CSS and Mobile Optimization features
 
-## �📝 **DOCUMENTATION ENFORCEMENT (Detailed Checklist)**
+## 📝 **DOCUMENTATION ENFORCEMENT (Detailed Checklist)**
 
 **This section provides the detailed checklist referenced in the mandatory protocol at the top of this file.**
 
