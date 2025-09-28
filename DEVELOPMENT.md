@@ -26,6 +26,9 @@ npm run build
 npm run preview
 ```
 
+## Documentation Status
+- Epic PRDs authored and added under `docs/ways-of-work/plan/*/epic.md`, including "Alternative / Edge Cases" (covers user stories 25–30). No application code yet; implementation will start with Phase 1 scaffolding.
+
 ## Project Structure (suggested)
 
 ```

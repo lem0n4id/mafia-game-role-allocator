@@ -162,13 +162,26 @@ Before creating any new file, ask:
 
 **If any checkbox above is unchecked, your work is not finished!**
 
-## Current Architecture Status (September 28, 2025):
+## Current Architecture Status (September 29, 2025):
 
-Project yet to be started.
+- Documentation scaffold created. Epic PRDs authored for Phases 1–6 and "Alternative / Edge Cases" under `docs/ways-of-work/plan/*/epic.md`.
+- No application code implemented yet (project scaffolding not initialized). Next step: Phase 1 setup & project scaffolding.
 
 ## 📋 **Architectural Decisions Log**
 
 ### Initial project setup (September 28, 2025)
+
+### Epic documentation authored (September 29, 2025)
+- Added Epic PRDs:
+   - Setup & Project Scaffolding
+   - Input & Validation
+   - Role Allocation
+   - Role Display & Reveal
+   - Reset / Re-Allocate
+   - Minimal Styling & UI Clarity
+   - Alternative / Edge Cases (stories 25–30)
+- Location: `docs/ways-of-work/plan/{epic-name}/epic.md`
+- Note: No code changes yet; these documents guide upcoming implementation.
 
 ## �📝 **DOCUMENTATION ENFORCEMENT (Detailed Checklist)**
 
