@@ -173,13 +173,13 @@ Before creating any new file, ask:
 
 ### Epic documentation authored (September 29, 2025)
 - Added Epic PRDs:
-   - Setup & Project Scaffolding
-   - Input & Validation
-   - Role Allocation
-   - Role Display & Reveal
-   - Reset / Re-Allocate
-   - Minimal Styling & UI Clarity
-   - Alternative / Edge Cases (stories 25–30)
+   1. Setup & Project Scaffolding
+   2. Input & Validation
+   3. Role Allocation
+   4. Role Display & Reveal
+   5. Reset / Re-Allocate
+   6. Minimal Styling & UI Clarity
+   7. Alternative / Edge Cases (stories 25–30)
 - Location: `docs/ways-of-work/plan/{epic-name}/epic.md`
 - Note: No code changes yet; these documents guide upcoming implementation.
 
