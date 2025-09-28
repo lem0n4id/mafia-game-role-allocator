@@ -1,0 +1,192 @@
+name: Create Feature Issues
+
+on:
+  workflow_dispatch:
+    inputs:
+      epic_issue:
+        description: 'Epic issue number to link (e.g., 12)'
+        required: true
+      feature_name:
+        description: 'Feature name (e.g., Player Name Input System)'
+        required: true
+      feature_path:
+        description: 'Docs path: docs/ways-of-work/plan/{epic}/{feature} (optional)'
+        required: false
+      priority:
+        description: 'Priority label mapping'
+        type: choice
+        options: [critical, high, medium, low]
+        default: high
+        required: true
+      value:
+        description: 'Value label mapping'
+        type: choice
+        options: [high, medium, low]
+        default: high
+        required: true
+      labels:
+        description: 'Additional comma-separated labels (optional)'
+        required: false
+      create_children:
+        description: 'Also create child issues (stories/enablers/tests)'
+        type: boolean
+        default: false
+        required: true
+      stories:
+        description: 'Newline-separated story titles (used when create_children=true)'
+        required: false
+      enablers:
+        description: 'Newline-separated enabler titles (used when create_children=true)'
+        required: false
+      tests:
+        description: 'Newline-separated test titles (used when create_children=true)'
+        required: false
+
+permissions:
+  issues: write
+
+jobs:
+  create:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create Feature and optional child issues
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const epicIssueNumber = Number(core.getInput('epic_issue'));
+            const featureName = core.getInput('feature_name');
+            const featurePath = core.getInput('feature_path');
+            const priority = core.getInput('priority');
+            const value = core.getInput('value');
+            const extraLabels = (core.getInput('labels') || '').split(',').map(s => s.trim()).filter(Boolean);
+            const createChildren = (core.getInput('create_children') || 'false') === 'true';
+            const storiesInput = core.getInput('stories') || '';
+            const enablersInput = core.getInput('enablers') || '';
+            const testsInput = core.getInput('tests') || '';
+
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            const priorityLabel = `priority-${priority}`;
+            const valueLabel = `value-${value}`;
+
+            // Build links to docs if provided
+            const docsLinks = [];
+            if (featurePath) {
+              const base = featurePath.replace(/\/+$/,'');
+              docsLinks.push(`- PRD: \`${base}/prd.md\``);
+              docsLinks.push(`- Implementation Plan: \`${base}/implementation-plan.md\``);
+              docsLinks.push(`- Project Plan: \`${base}/project-plan.md\``);
+              docsLinks.push(`- Issues Checklist: \`${base}/issues-checklist.md\``);
+            }
+
+            const featureTitle = `Feature: ${featureName}`;
+            const featureBody = [
+              `# Feature: ${featureName}`,
+              '',
+              `## Epic`,
+              `#${epicIssueNumber}`,
+              '',
+              `## Documentation`,
+              ...(docsLinks.length ? docsLinks : ['- Add feature_path to include auto-links to docs']),
+              '',
+              '## Labels',
+              `- ${priorityLabel}`,
+              `- ${valueLabel}`,
+              ...(extraLabels.length ? extraLabels.map(l => `- ${l}`) : []),
+              '',
+              '## Definition of Done',
+              '- All user stories delivered',
+              '- Technical enablers completed',
+              '- Integration testing passed',
+              '- UX review approved',
+              '- Performance testing completed',
+            ].join('\n');
+
+            // Create Feature issue
+            const { data: feature } = await github.rest.issues.create({
+              owner, repo,
+              title: featureTitle,
+              body: featureBody,
+              labels: ['feature', priorityLabel, valueLabel, ...extraLabels]
+            });
+
+            core.info(`Created Feature issue #${feature.number}`);
+
+            // Comment on Epic with link to Feature
+            await github.rest.issues.createComment({
+              owner, repo,
+              issue_number: epicIssueNumber,
+              body: `Linked feature created: #${feature.number} - ${featureTitle}`,
+            });
+
+            if (!createChildren) {
+              return;
+            }
+
+            function parseList(input) {
+              return input
+                .split(/\r?\n/)
+                .map(s => s.trim())
+                .filter(Boolean);
+            }
+
+            const stories = parseList(storiesInput);
+            const enablers = parseList(enablersInput);
+            const tests = parseList(testsInput);
+
+            const childRefs = [];
+
+            // Create User Stories
+            for (const title of stories) {
+              const { data: issue } = await github.rest.issues.create({
+                owner, repo,
+                title: `User Story: ${title}`,
+                body: `Feature: #${feature.number}`,
+                labels: ['user-story', priorityLabel, valueLabel]
+              });
+              childRefs.push(`- User Story #${issue.number}: ${title}`);
+            }
+
+            // Create Enablers
+            for (const title of enablers) {
+              const { data: issue } = await github.rest.issues.create({
+                owner, repo,
+                title: `Technical Enabler: ${title}`,
+                body: `Feature: #${feature.number}`,
+                labels: ['enabler', priorityLabel, valueLabel]
+              });
+              childRefs.push(`- Enabler #${issue.number}: ${title}`);
+            }
+
+            // Create Tests
+            for (const title of tests) {
+              const { data: issue } = await github.rest.issues.create({
+                owner, repo,
+                title: `Test: ${title}`,
+                body: `Feature: #${feature.number}`,
+                labels: ['test', priorityLabel, valueLabel]
+              });
+              childRefs.push(`- Test #${issue.number}: ${title}`);
+            }
+
+            // Comment on Feature with list of child issues
+            if (childRefs.length) {
+              await github.rest.issues.createComment({
+                owner, repo,
+                issue_number: feature.number,
+                body: ['Child issues created:', ...childRefs].join('\n')
+              });
+            }
+
+            // Comment on Epic summarizing child issues
+            if (childRefs.length) {
+              await github.rest.issues.createComment({
+                owner, repo,
+                issue_number: epicIssueNumber,
+                body: [`Child issues for feature #${feature.number}:`, ...childRefs].join('\n')
+              });
+            }

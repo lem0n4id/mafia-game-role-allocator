@@ -347,6 +347,7 @@ Initial commit. Project setup for Mafia Game Role Allocator. Includes PRD.md, DE
 - ✅ **When adding new patterns or conventions**
 - ✅ **When major file structure changes**
 - ✅ **Before marking any phase as complete**
+ - ✅ When adding automation/workflows that impact planning or issue creation
 
 ## Tech & Tooling Requirements
 - React 18 (functional components + Hooks)
@@ -442,3 +443,9 @@ Testing (minimum)
 - Install Node.js 20; npm install
 - Run dev server; open on mobile viewport; verify flows against Acceptance Criteria
 - If you change behavior, update PRD.md and this file accordingly
+
+## Project Automation (Actions)
+- Workflow: `.github/workflows/create-feature-issues.yml`
+- Purpose: Automate creation of Feature issues (and optional child issues) with labels and documentation links.
+- Inputs: epic_issue, feature_name, feature_path (docs path), priority, value, labels, create_children, stories, enablers, tests.
+- Output: Comments linking created issues on both Epic and Feature, ensuring traceability.

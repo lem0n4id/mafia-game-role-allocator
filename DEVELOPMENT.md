@@ -152,3 +152,11 @@ src/
 ## Contributing
 - Follow `copilot-instructions.md` for documentation updates and acceptance criteria
 - Keep terminology consistent with UI ("Allocate Roles", "Reset", etc.)
+
+## Project Automation
+- GitHub Actions workflow added for automated issue creation:
+  - Location: `.github/workflows/create-feature-issues.yml`
+  - Usage: Run manually from GitHub → Actions → "Create Feature Issues" → Provide inputs:
+    - epic_issue (number), feature_name, optional feature_path (docs folder), priority/value, extra labels
+    - Set `create_children=true` to auto-create User Stories, Enablers, and Tests from newline-separated lists
+  - Outcome: Creates a Feature issue with labels and doc links, comments on Epic, and optionally creates and links child issues
