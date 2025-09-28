@@ -166,6 +166,7 @@ Before creating any new file, ask:
 
 - Documentation scaffold created. Epic PRDs authored for Phases 1–6 and "Alternative / Edge Cases" under `docs/ways-of-work/plan/*/epic.md`.
 - No application code implemented yet (project scaffolding not initialized). Next step: Phase 1 setup & project scaffolding.
+- Architecture spec added for Phase 1 under `docs/ways-of-work/plan/setup-project-scaffolding/arch.md`.
 
 ## 📋 **Architectural Decisions Log**
 
@@ -182,6 +183,9 @@ Before creating any new file, ask:
    7. Alternative / Edge Cases (stories 25–30)
 - Location: `docs/ways-of-work/plan/{epic-name}/epic.md`
 - Note: No code changes yet; these documents guide upcoming implementation.
+
+### Architecture specification added (September 29, 2025)
+- Added `arch.md` for Setup & Project Scaffolding to define the high-level technical approach.
 
 ## �📝 **DOCUMENTATION ENFORCEMENT (Detailed Checklist)**
 

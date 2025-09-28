@@ -28,6 +28,7 @@ npm run preview
 
 ## Documentation Status
 - Epic PRDs authored and added under `docs/ways-of-work/plan/*/epic.md`, including "Alternative / Edge Cases" (covers user stories 25–30). No application code yet; implementation will start with Phase 1 scaffolding.
+- Architecture spec added for Phase 1 under `docs/ways-of-work/plan/setup-project-scaffolding/arch.md`.
 
 ## Project Structure (suggested)
 
@@ -51,7 +52,7 @@ src/
 
 ## Tech Stack
 - React 18 (functional components + Hooks)
-- Vite (build tool and dev server)
+- Vite (dev server + build pipeline)
 - Tailwind CSS v3.4.17 (strictly v3)
 - JavaScript only (no TypeScript)
 - Frontend-only; no backend; no analytics; no persistence
