@@ -16,6 +16,18 @@ npm install
 npm run dev
 ```
 
+### Mobile Development
+```bash
+# Development server accessible on mobile devices
+npm run dev:mobile
+
+# Preview production build on mobile devices  
+npm run preview:mobile
+
+# Build with bundle analysis
+npm run build:analyze
+```
+
 ### Build
 ```bash
 npm run build
@@ -73,8 +85,11 @@ src/
 │   ├── useAllocation.js     # Confirmation + random role assignment (shuffle)
 │   └── useRevealFlow.js     # Enforce strict order, one open dialog
 ├── utils/
-│   └── shuffle.js           # Fisher–Yates shuffle
-├── styles/                  # (optional) Tailwind entry and minimal globals
+│   ├── shuffle.js           # Fisher–Yates shuffle
+│   ├── mobileLayout.js      # Mobile-first responsive patterns and utilities
+│   └── performance.js       # Performance monitoring and mobile optimization
+├── styles/                  # CSS files and mobile-specific patterns
+│   └── mobile.css           # Touch-optimized styles and mobile utilities
 └── App.jsx                  # Compose screens/flows
 ```
 
@@ -92,7 +107,7 @@ src/
 - ✅ **Vite React Initialization** **COMPLETE** - Core React 18 + Vite foundation implemented with mobile-first architecture  
 - [ ] **Tailwind Integration** - CSS framework integration with mobile-first configuration  
 - [ ] **Development Tooling** - ESLint, Prettier, npm scripts, code quality enforcement
-- [ ] **Mobile Optimization** - Viewport configuration, performance budgets, mobile patterns
+- ✅ **Mobile Optimization** **COMPLETE** - Viewport configuration, performance budgets, mobile patterns, network access
 
 ### Phase 2: Input & Validation ✅ **Feature PRDs COMPLETE**
 **Feature Breakdown** (each can be developed independently):
@@ -149,6 +164,20 @@ src/
 - [ ] Reveal flow: single dialog; role persists after reveal; close then pass device
 - [ ] Reset: returns to inputs; names retained; allocations cleared
 - [ ] Performance: quick load and responsive taps on mobile
+
+## Architectural Decision Log
+
+### Mobile Optimization Configuration implemented (September 28, 2025)
+- **Decision**: Implemented mobile-first optimization with network access and performance monitoring
+- **Context**: Application targets mobile devices exclusively, requiring proper viewport configuration and performance budgets
+- **Implementation**: 
+  - Enhanced viewport meta tags with `viewport-fit=cover` and mobile web app capabilities
+  - Configured Vite with network access (`host: '0.0.0.0'`) for real device testing
+  - Added performance budgets (400KB warning, 500KB error) with bundle analysis
+  - Created mobile-first utilities for touch targets (44px minimum) and responsive patterns
+  - Implemented Core Web Vitals tracking and performance monitoring
+- **Impact**: Bundle size optimized to ~148KB (under warning threshold), mobile development workflow established
+- **Files**: `index.html`, `vite.config.js`, `.browserslistrc`, `src/utils/mobileLayout.js`, `src/utils/performance.js`, `src/styles/mobile.css`
 
 ## Contributing
 - Follow `copilot-instructions.md` for documentation updates and acceptance criteria
