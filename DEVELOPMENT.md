@@ -157,6 +157,7 @@ src/
 - GitHub Actions workflow added for automated issue creation:
   - Location: `.github/workflows/create-feature-issues.yml`
   - Usage: Run manually from GitHub → Actions → "Create Feature Issues" → Provide inputs:
-    - epic_issue (number), feature_name, optional feature_path (docs folder), priority/value, extra labels
-    - Set `create_children=true` to auto-create User Stories, Enablers, and Tests from newline-separated lists
-  - Outcome: Creates a Feature issue with labels and doc links, comments on Epic, and optionally creates and links child issues
+    - `feature_name` (required)
+    - `epic_issue` (required number)
+    - `docs_path` (optional docs folder path; e.g., `docs/ways-of-work/plan/<epic>/<feature>`)
+  - Outcome: Creates a Feature issue (inherits Epic milestone if available). If `docs_path` is provided, the issue includes a Docs section that auto-links PRD.md, implementation-plan.md, project-plan.md, and issues-checklist.md when present (case-insensitive). The workflow is intentionally simplified; it no longer auto-creates child issues or comments on the Epic.

@@ -447,5 +447,14 @@ Testing (minimum)
 ## Project Automation (Actions)
 - Workflow: `.github/workflows/create-feature-issues.yml`
 - Purpose: Automate creation of Feature issues (and optional child issues) with labels and documentation links.
-- Inputs: epic_issue, feature_name, feature_path (docs path), priority, value, labels, create_children, stories, enablers, tests.
-- Output: Comments linking created issues on both Epic and Feature, ensuring traceability.
+- Inputs (current simplified workflow):
+   - `feature_name` (required)
+   - `epic_issue` (required): Epic issue number to inherit milestone from
+   - `docs_path` (optional): Path to docs folder for this feature, e.g. `docs/ways-of-work/plan/<epic>/<feature>`
+- Behavior:
+   - Creates a single Feature issue titled `Feature: <feature_name>`.
+   - Attempts to inherit the Epic's milestone if `epic_issue` is valid.
+   - If `docs_path` is provided, auto-inserts a Docs section with links to:
+      - PRD.md, implementation-plan.md, project-plan.md, issues-checklist.md
+      - Matching is case-insensitive; if a file is missing, the issue notes that it was not found.
+- Output: Created Feature issue (with optional Docs links). Previously present Epic/child issue linking has been simplified per current workflow.
