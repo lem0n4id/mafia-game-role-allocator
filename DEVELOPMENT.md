@@ -29,11 +29,21 @@ npm run preview
 ## Documentation Status
 - ✅ **Epic PRDs authored** and added under `docs/ways-of-work/plan/*/epic.md`, including "Alternative / Edge Cases" (covers user stories 25–30). No application code yet; implementation will start with Phase 1 scaffolding.
 - ✅ **Architecture specs added** for all phases (1–6) and Alternative / Edge Cases under `docs/ways-of-work/plan/*/arch.md`.
-- ✅ **Feature PRDs created** for Setup & Project Scaffolding epic, broken down into four implementable features:
-  - `vite-react-initialization/prd.md` - Core project setup with React 18 and Vite
-  - `tailwind-integration/prd.md` - CSS framework integration with mobile-first config
-  - `development-tooling/prd.md` - ESLint, Prettier, npm scripts, code quality
-  - `mobile-optimization/prd.md` - Viewport config, performance budgets, mobile patterns
+- ✅ **Feature PRDs created** for ALL epics, broken down into 18 implementable features:
+  - **Setup & Project Scaffolding (4 features)**: Vite React Initialization, Tailwind Integration, Development Tooling, Mobile Optimization
+  - **Input & Validation (3 features)**: Player Count Management, Mafia Count Validation, Player Name Input System  
+  - **Role Allocation (3 features)**: Allocation Confirmation Flow, Role Assignment Engine, Re-allocation System
+  - **Role Display & Reveal (3 features)**: Card List Interface, Role Reveal Dialog, Sequential Order Enforcement
+  - **Reset & Re-Allocate (1 feature)**: Reset Button System
+  - **Minimal Styling & UI Clarity (2 features)**: Visual Differentiation System, Mobile Layout Optimization
+  - **Alternative & Edge Cases (2 features)**: Edge Case Validation, Error Recovery System
+- ✅ **Implementation plans completed** for ALL 18 features with complete technical specifications:
+  - **React component implementations** with hooks, state management, and prop interfaces
+  - **System architecture diagrams** with mermaid flowcharts showing data flow and integration
+  - **Performance optimization** strategies for mobile-first responsive design
+  - **Accessibility compliance** with WCAG AA standards and mobile screen reader support
+  - **Step-by-step implementation** instructions with clear dependency management
+  - Location: `docs/ways-of-work/plan/{epic-name}/{feature-name}/implementation-plan.md`
 
 ## Project Structure (suggested)
 
