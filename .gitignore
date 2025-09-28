@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Package manager lock files (ignored by project policy)
+package-lock.json
