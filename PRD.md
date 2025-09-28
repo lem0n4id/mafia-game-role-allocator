@@ -371,33 +371,33 @@ Not implemented for MVP.
 
 ## User Stories
 
-- As a host, I can enter the total number of players in an input field.
-- As a host, I can enter the number of Mafia in an input field.
-- As a host, when I change the number of players, the app dynamically adds new empty input fields for player names.
-- As a host, when I decrease the number of players, the extra input fields are removed and their values deleted.
-- As a host, I can enter player names in each input field sequentially.
-- The app prevents submission if any player name field is blank.
-- The app allows duplicate names without errors.
-- The app prevents invalid Mafia counts (≥ number of players) and shows a confirmation/error message.
-- As a host, I can click ‘Allocate Roles’ to start the random assignment.
-- Before shuffling roles, the app shows a confirmation prompt.
-- The app randomly assigns roles based on the number of Mafia; remaining players are Villagers.
-- If ‘Allocate Roles’ is clicked again, the app reshuffles all roles randomly.
-- The app displays each player’s role as a vertical scrolling card list.
-- Only one card can be expanded at a time in a popup dialog.
-- Cards must be revealed in strict order; the current player’s name is visible at the top of the screen.
-- A player taps ‘Reveal Role’ to view their role.
-- After viewing, the ‘Reveal Role’ button changes to ‘Close,’ which the player taps before passing the device.
-- Roles remain visible after reveal; there is no hide-after-view option.
-- After allocation, a Reset button appears at the bottom of the card list screen.
-- Pressing Reset returns to the input screen with all previously entered names prefilled.
-- Previous role allocations are cleared after Reset, ready for a new allocation.
-- All cards and buttons have basic visual differentiation.
-- The layout is mobile-optimized and portrait-only.
-- The current player cue is visible at the top at all times during the reveal phase.
-- The app allows Number of Mafia = 0 or equal to total players, but warns the host via confirmation.
-- Reset during card reveal works and returns to the input screen with names prefilled.
-- Accidental double-tap on buttons (Reveal/Close, Allocate, Reset) does not break the workflow.
-- Invalid inputs (blank names, Mafia ≥ players) block allocation until corrected.
-- No authentication or login is required; all users use the app from a shared device.
-- The host and players share one device sequentially; all interactions follow the same workflow.
+1. As a host, I can enter the total number of players in an input field.
+2. As a host, I can enter the number of Mafia in an input field.
+3. As a host, when I change the number of players, the app dynamically adds new empty input fields for player names.
+4. As a host, when I decrease the number of players, the extra input fields are removed and their values deleted.
+5. As a host, I can enter player names in each input field sequentially.
+6. The app prevents submission if any player name field is blank.
+7. The app allows duplicate names without errors.
+8. The app prevents invalid Mafia counts (≥ number of players) and shows a confirmation/error message.
+9. As a host, I can click ‘Allocate Roles’ to start the random assignment.
+10. Before shuffling roles, the app shows a confirmation prompt.
+11. The app randomly assigns roles based on the number of Mafia; remaining players are Villagers.
+12. If ‘Allocate Roles’ is clicked again, the app reshuffles all roles randomly.
+13. The app displays each player’s role as a vertical scrolling card list.
+14. Only one card can be expanded at a time in a popup dialog.
+15. Cards must be revealed in strict order; the current player’s name is visible at the top of the screen.
+16. A player taps ‘Reveal Role’ to view their role.
+17. After viewing, the ‘Reveal Role’ button changes to ‘Close,’ which the player taps before passing the device.
+18. Roles remain visible after reveal; there is no hide-after-view option.
+19. After allocation, a Reset button appears at the bottom of the card list screen.
+20. Pressing Reset returns to the input screen with all previously entered names prefilled.
+21. Previous role allocations are cleared after Reset, ready for a new allocation.
+22. All cards and buttons have basic visual differentiation.
+23. The layout is mobile-optimized and portrait-only.
+24. The current player cue is visible at the top at all times during the reveal phase.
+25. The app allows Number of Mafia = 0 or equal to total players, but warns the host via confirmation.
+26. Reset during card reveal works and returns to the input screen with names prefilled.
+27. Accidental double-tap on buttons (Reveal/Close, Allocate, Reset) does not break the workflow.
+28. Invalid inputs (blank names, Mafia ≥ players) block allocation until corrected.
+29. No authentication or login is required; all users use the app from a shared device.
+30. The host and players share one device sequentially; all interactions follow the same workflow.
