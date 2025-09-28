@@ -307,67 +307,67 @@ Not implemented for MVP.
   - Duration: 1 day
   - Key Deliverables: Tested MVP with verified functional flow, edge cases handled, ready for internal use
 
-  ## Development Phases & Status
+  ## Development Phases & Status (Not Started/In Progress/Completed)
 
   ### Phase 1: Setup & Project Scaffolding
   #### Status
-  Completed
+  Not Started
   #### Checklist
-  * Initialize Vite + React 18 project
-  * Integrate Tailwind CSS v3.4.17
-  * Configure Node.js/npm
+  - [ ] Initialize Vite + React 18 project
+  - [ ] Integrate Tailwind CSS v3.4.17
+  - [ ] Configure Node.js/npm
 
   ### Phase 2: Input & Validation
   #### Status
   Not Started
   #### Checklist
-  * Number of Players input field
-  * Number of Mafia input field
-  * Dynamic player name fields
-  * Blank name validation
-  * Invalid Mafia count validation
+  - [ ] Number of Players input field
+  - [ ] Number of Mafia input field
+  - [ ] Dynamic player name fields
+  - [ ] Blank name validation
+  - [ ] Invalid Mafia count validation
 
   ### Phase 3: Role Allocation
   #### Status
   Not Started
   #### Checklist
-  * Allocate Roles button
-  * Confirmation prompt
-  * Random role assignment
-  * Re-allocation logic
+  - [ ] Allocate Roles button
+  - [ ] Confirmation prompt
+  - [ ] Random role assignment
+  - [ ] Re-allocation logic
 
   ### Phase 4: Role Reveal & Card Flow
   #### Status
   Not Started
   #### Checklist
-  * Vertical card list layout
-  * Reveal/Close button logic
-  * Strict reveal order enforcement
-  * Current player cue
+  - [ ] Vertical card list layout
+  - [ ] Reveal/Close button logic
+  - [ ] Strict reveal order enforcement
+  - [ ] Current player cue
 
   ### Phase 5: Reset / Re-Allocate
   #### Status
   Not Started
   #### Checklist
-  * Reset button at bottom
-  * Clear previous allocations
-  * Prefill names after reset
+  - [ ] Reset button at bottom
+  - [ ] Clear previous allocations
+  - [ ] Prefill names after reset
 
   ### Phase 6: Minimal Styling & UI Clarity
   #### Status
   Not Started
   #### Checklist
-  * Mobile-optimized portrait layout
-  * Basic card/button styling
-  * Functional clarity check
+  - [ ] Mobile-optimized portrait layout
+  - [ ] Basic card/button styling
+  - [ ] Functional clarity check
 
   ### Phase 7: Testing & QA
   #### Status
   Not Started
   #### Checklist
-  * Manual testing of full workflow on mobile
-  * Unit tests for input validation
-  * Verify edge cases (0/all Mafia, double-tap, blank names)
+  - [ ] Manual testing of full workflow on mobile
+  - [ ] Unit tests for input validation
+  - [ ] Verify edge cases (0/all Mafia, double-tap, blank names)
 
 ## User Stories
 
