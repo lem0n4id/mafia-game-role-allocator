@@ -28,7 +28,7 @@ npm run preview
 
 ## Documentation Status
 - Epic PRDs authored and added under `docs/ways-of-work/plan/*/epic.md`, including "Alternative / Edge Cases" (covers user stories 25–30). No application code yet; implementation will start with Phase 1 scaffolding.
-- Architecture spec added for Phase 1 under `docs/ways-of-work/plan/setup-project-scaffolding/arch.md`.
+- Architecture specs added for Phase 1 and Phase 2 under `docs/ways-of-work/plan/*/arch.md`.
 
 ## Project Structure (suggested)
 
