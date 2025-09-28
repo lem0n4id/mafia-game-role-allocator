@@ -44,6 +44,10 @@ npm run preview
   - **Accessibility compliance** with WCAG AA standards and mobile screen reader support
   - **Step-by-step implementation** instructions with clear dependency management
   - Location: `docs/ways-of-work/plan/{epic-name}/{feature-name}/implementation-plan.md`
+- ✅ **Project plans and issue checklists created** for ALL 18 features:
+  - Project plans at: `docs/ways-of-work/plan/{epic-name}/{feature-name}/project-plan.md`
+  - Issues checklists at: `docs/ways-of-work/plan/{epic-name}/{feature-name}/issues-checklist.md`
+  - Based on prompt: `.github/prompts/breakdown-plan.prompt.md`
 - ✅ **Prompt template created** for consistent implementation plan generation:
   - **Location**: `.github/prompts/breakdown-feature-implementation.prompt.md`
   - **System architecture documentation** with Mermaid diagrams and integration patterns

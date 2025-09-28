@@ -184,6 +184,10 @@ Before creating any new file, ask:
   - **Accessibility compliance** with WCAG AA standards and mobile screen reader support
   - **Step-by-step implementation** instructions with clear dependency management
 - Location: `docs/ways-of-work/plan/{epic-name}/{feature-name}/implementation-plan.md`
+- ✅ **Project plans and issues checklists created** for all features:
+   - Project plans: `docs/ways-of-work/plan/{epic-name}/{feature-name}/project-plan.md`
+   - Issues checklists: `docs/ways-of-work/plan/{epic-name}/{feature-name}/issues-checklist.md`
+   - Generated using `.github/prompts/breakdown-plan.prompt.md` for GitHub project planning
 - ✅ **Implementation plan prompt template created** at `.github/prompts/breakdown-feature-implementation.prompt.md`:
   - **Comprehensive prompt template** for generating consistent technical implementation plans
   - **System architecture documentation** with Mermaid diagrams and integration patterns
