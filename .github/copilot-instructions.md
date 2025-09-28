@@ -458,3 +458,11 @@ Testing (minimum)
       - PRD.md, implementation-plan.md, project-plan.md, issues-checklist.md
       - Matching is case-insensitive; if a file is missing, the issue notes that it was not found.
 - Output: Created Feature issue (with optional Docs links). Previously present Epic/child issue linking has been simplified per current workflow.
+
+## Prompt Library (for planning and issues)
+- `.github/prompts/breakdown-feature-implementation.prompt.md` — Generate detailed technical implementation plans
+- `.github/prompts/breakdown-plan.prompt.md` — Produce project plans and issue checklists
+- `.github/prompts/generate-issue-bodies.prompt.md` — Generate paste-ready Epic/Feature GitHub issue bodies from a single planning doc
+   - Input: `file_path` to `epic.md` or `PRD.md`
+   - Behavior: Auto-detects Epic vs Feature; scans the same directory for sibling docs (PRD.md, implementation-plan.md, project-plan.md, issues-checklist.md) case-insensitively
+   - Output: Strictly formatted Markdown per templates; references include repo-relative paths or "not found in <dir>" when missing

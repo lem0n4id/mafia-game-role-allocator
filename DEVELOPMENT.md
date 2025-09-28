@@ -152,6 +152,10 @@ src/
 ## Contributing
 - Follow `copilot-instructions.md` for documentation updates and acceptance criteria
 - Keep terminology consistent with UI ("Allocate Roles", "Reset", etc.)
+ - Prompt library:
+   - `.github/prompts/breakdown-feature-implementation.prompt.md` — implementation plans
+   - `.github/prompts/breakdown-plan.prompt.md` — project plans & issues checklists
+   - `.github/prompts/generate-issue-bodies.prompt.md` — Epic/Feature issue bodies (paste-ready) from a single `file_path`; scans same directory for sibling docs
 
 ## Project Automation
 - GitHub Actions workflow added for automated issue creation:
