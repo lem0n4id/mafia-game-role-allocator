@@ -150,6 +150,20 @@ Before creating any new file, ask:
 - **Use Tailwind CSS v3.x only** - Do not upgrade to v4+ without compatibility testing
 - **Scope custom CSS** - Avoid universal selectors
 
+### Tailwind CSS Utility Patterns (v3.4.17)
+- **Mobile-first approach**: Use base classes, then add responsive prefixes (sm:, md:, lg:)
+- **Utility-first styling**: Prefer Tailwind utilities over custom CSS classes
+- **Component patterns**:
+  ```jsx
+  // Mobile-first responsive layout
+  <div className="min-h-screen flex flex-col p-4 max-w-2xl mx-auto md:p-8">
+    <header className="py-8">
+      <h1 className="text-2xl md:text-4xl font-bold mb-4 text-gray-800">
+  ```
+- **Available breakpoints**: sm:640px, md:768px, lg:1024px (configured in tailwind.config.js)
+- **Performance**: CSS bundle should remain under 50KB after purging (currently 6.16KB)
+- **Content paths**: Include all JSX files in tailwind.config.js for proper CSS purging
+
 ## When Working on Mafia Game Role Allocator
 
 **🚨 FINAL CHECKPOINT: Before considering ANY work "complete":**
@@ -162,13 +176,14 @@ Before creating any new file, ask:
 
 **If any checkbox above is unchecked, your work is not finished!**
 
-## Current Architecture Status (September 28, 2025):
+## Current Architecture Status (October 8, 2025):
 
 - Documentation scaffold created. Epic PRDs authored for Phases 1–6 and "Alternative / Edge Cases" under `docs/ways-of-work/plan/*/epic.md`.
 - ✅ **Vite React Project Initialization COMPLETE** - React 18 + Vite foundation implemented with mobile-first architecture
+- ✅ **Tailwind CSS Integration COMPLETE** - v3.4.17 integrated with PostCSS, mobile-first breakpoints, and 6.16KB optimized bundle
 - Architecture specs added for all phases (1–6) and Alternative / Edge Cases under `docs/ways-of-work/plan/*/arch.md`.
 - ✅ **Feature breakdown completed for ALL epics** into implementable features:
-  - **Setup & Project Scaffolding:** 4 features (✅ Vite React, Tailwind, Dev Tooling, Mobile Optimization)
+  - **Setup & Project Scaffolding:** 4 features (✅ Vite React, ✅ Tailwind, Dev Tooling, Mobile Optimization)
   - **Input & Validation:** 3 features (Player Count Management, Mafia Count Validation, Player Name Input System)
   - **Role Allocation:** 3 features (Allocation Confirmation Flow, Role Assignment Engine, Re-allocation System)  
   - **Role Display & Reveal:** 3 features (Card List Interface, Role Reveal Dialog, Sequential Order Enforcement)
@@ -197,6 +212,7 @@ Before creating any new file, ask:
   - **Security and performance** optimization guidelines and deployment architecture
   - Used to generate all 18 implementation plans with consistent technical specifications
 - ✅ **IMPLEMENTATION STARTED** - Vite React Project Initialization complete with working React 18 application foundation
+- ✅ **IMPLEMENTATION CONTINUED** - Tailwind CSS Integration complete with utility-first styling and mobile-first responsive design
 
 ## 📋 **Architectural Decisions Log**
 
@@ -254,6 +270,20 @@ Before creating any new file, ask:
 - **Development workflow**: Lint, build, and preview scripts working, ESLint configuration active
 - **Mobile-first design**: 375px mobile viewport tested, responsive layout implemented
 - **Ready for integration**: Foundation prepared for Tailwind CSS, Development Tooling, and Mobile Optimization features
+
+### Tailwind CSS Integration completed (October 8, 2025)
+- ✅ **Second feature implementation complete** - Tailwind CSS v3.4.17 styling system established
+- **Technical architecture**: Utility-first CSS with PostCSS processing and mobile-first responsive design
+- **Performance metrics**: CSS bundle 6.16KB (87.7% under 50KB target), build time 1.15s, hot reload instant
+- **File structure changes**: 
+  - Removed `src/App.css` (replaced with Tailwind utilities)
+  - Updated `src/index.css` with @tailwind directives (base, components, utilities)
+  - Added `tailwind.config.js` with mobile-first breakpoints and content paths
+  - Added `postcss.config.js` with tailwindcss and autoprefixer plugins
+- **Dependencies added**: tailwindcss@3.4.17, postcss@8.5.6, autoprefixer@10.4.21
+- **Mobile-first breakpoints**: sm:640px, md:768px, lg:1024px configured and tested
+- **CSS purging**: Production optimization removes unused classes, maintaining small bundle size
+- **Ready for integration**: Styling foundation prepared for all future React components
 
 ## �📝 **DOCUMENTATION ENFORCEMENT (Detailed Checklist)**
 
