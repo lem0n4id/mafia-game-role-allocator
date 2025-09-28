@@ -71,35 +71,37 @@ src/
 - [ ] **Development Tooling** - ESLint, Prettier, npm scripts, code quality enforcement
 - [ ] **Mobile Optimization** - Viewport configuration, performance budgets, mobile patterns
 
-### Phase 2: Input & Validation
-- [ ] Number of Players input
-- [ ] Number of Mafia input
-- [ ] Dynamic player name fields (add/remove with count)
-- [ ] Block blank names; allow duplicates
-- [ ] Validate mafia < players (warn/confirm for 0 or all)
+### Phase 2: Input & Validation ✅ **Feature PRDs COMPLETE**
+**Feature Breakdown** (each can be developed independently):
+- [ ] **Player Count Management** - Dynamic field generation based on player count input
+- [ ] **Mafia Count Validation** - Ratio validation preventing impossible game configurations
+- [ ] **Player Name Input System** - Name collection with blank prevention and duplicate support
 
-### Phase 3: Role Allocation
-- [ ] "Allocate Roles" button
-- [ ] Confirmation prompt before allocation
-- [ ] Random assignment (exact mafia count; rest villagers)
-- [ ] Re-allocation reshuffles all roles
+### Phase 3: Role Allocation ✅ **Feature PRDs COMPLETE** 
+**Feature Breakdown** (each can be developed independently):
+- [ ] **Allocation Confirmation Flow** - Confirmation gateway with parameter display before allocation
+- [ ] **Role Assignment Engine** - Fisher-Yates shuffle with mathematically fair randomization
+- [ ] **Re-allocation System** - Independent reshuffling with complete state cleanup
 
-### Phase 4: Role Reveal & Card Flow
-- [ ] Vertical card list UI
-- [ ] Single card reveal dialog
-- [ ] Strict reveal order enforcement
-- [ ] Current player cue visible at top
-- [ ] Reveal → Close flow; role remains visible
+### Phase 4: Role Display & Reveal ✅ **Feature PRDs COMPLETE**
+**Feature Breakdown** (each can be developed independently):
+- [ ] **Card List Interface** - Organized player display with mobile-optimized layout
+- [ ] **Role Reveal Dialog** - Private role viewing with secure reveal/close workflow
+- [ ] **Sequential Order Enforcement** - Strict order control with prominent current player cue
 
-### Phase 5: Reset / Re-Allocate
-- [ ] Reset button on cards screen
-- [ ] Return to inputs with names prefilled
-- [ ] Clear previous allocations
+### Phase 5: Reset / Re-Allocate ✅ **Feature PRDs COMPLETE**
+**Feature Breakdown** (each can be developed independently):
+- [ ] **Reset Button System** - State cleanup returning to input with name preservation
 
-### Phase 6: Minimal Styling & UI Clarity
-- [ ] Mobile-first, portrait-only layout
-- [ ] Clear visual differentiation for cards/buttons
-- [ ] Maintain lightweight bundle and responsiveness
+### Phase 6: Minimal Styling & UI Clarity ✅ **Feature PRDs COMPLETE**
+**Feature Breakdown** (each can be developed independently):
+- [ ] **Visual Differentiation System** - Clear element styling using Tailwind utilities
+- [ ] **Mobile Layout Optimization** - Touch-friendly responsive design patterns
+
+### Phase 7: Alternative & Edge Cases ✅ **Feature PRDs COMPLETE**
+**Feature Breakdown** (each can be developed independently):
+- [ ] **Edge Case Validation** - 0/all Mafia handling with appropriate confirmations
+- [ ] **Error Recovery System** - Double-tap protection and workflow continuity
 
 ### Phase 7: Testing & QA
 - [ ] Manual test full workflow on mobile

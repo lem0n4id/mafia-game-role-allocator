@@ -167,12 +167,16 @@ Before creating any new file, ask:
 - Documentation scaffold created. Epic PRDs authored for Phases 1–6 and "Alternative / Edge Cases" under `docs/ways-of-work/plan/*/epic.md`.
 - No application code implemented yet (project scaffolding not initialized). Next step: Phase 1 setup & project scaffolding.
 - Architecture specs added for all phases (1–6) and Alternative / Edge Cases under `docs/ways-of-work/plan/*/arch.md`.
-- ✅ **Feature breakdown completed** for Setup & Project Scaffolding epic into four implementable features:
-  - Vite React Initialization (`vite-react-initialization/prd.md`)
-  - Tailwind Integration (`tailwind-integration/prd.md`)  
-  - Development Tooling (`development-tooling/prd.md`)
-  - Mobile Optimization (`mobile-optimization/prd.md`)
-- Each feature PRD includes complete user stories, acceptance criteria, and technical requirements for independent development.
+- ✅ **Feature breakdown completed for ALL epics** into implementable features:
+  - **Setup & Project Scaffolding:** 4 features (Vite React, Tailwind, Dev Tooling, Mobile Optimization)
+  - **Input & Validation:** 3 features (Player Count Management, Mafia Count Validation, Player Name Input System)
+  - **Role Allocation:** 3 features (Allocation Confirmation Flow, Role Assignment Engine, Re-allocation System)  
+  - **Role Display & Reveal:** 3 features (Card List Interface, Role Reveal Dialog, Sequential Order Enforcement)
+  - **Reset & Re-Allocate:** 1 feature (Reset Button System)
+  - **Minimal Styling & UI Clarity:** 2 features (Visual Differentiation System, Mobile Layout Optimization)
+  - **Alternative & Edge Cases:** 2 features (Edge Case Validation, Error Recovery System)
+- **Total: 18 independent, implementable features** with complete user stories, acceptance criteria, and technical requirements
+- Each feature PRD includes functional/non-functional requirements, integration boundaries, and clear scope definitions
 
 ## 📋 **Architectural Decisions Log**
 
@@ -200,14 +204,17 @@ Before creating any new file, ask:
 - Added `arch.md` for Alternative / Edge Cases defining idempotency guards and error recovery patterns.
 
 ### Feature breakdown completed (September 29, 2025)
-- ✅ **Setup & Project Scaffolding epic broken down** into four independent features with complete PRDs:
-  - **Vite React Initialization**: Core project setup, React 18, Vite configuration, basic file structure
-  - **Tailwind Integration**: CSS framework integration with mobile-first config and utility patterns
-  - **Development Tooling**: ESLint, Prettier, npm scripts, code quality enforcement and automation
-  - **Mobile Optimization**: Viewport configuration, performance budgets, mobile-first development patterns
-- Location: `docs/ways-of-work/plan/setup-project-scaffolding/{feature-name}/prd.md`
-- Each PRD includes user stories, acceptance criteria, functional/non-functional requirements, and scope boundaries
-- Ready for parallel development - features can be implemented independently by different developers
+- ✅ **ALL EPICS broken down** into 18 independent features with complete PRDs:
+  - **Setup & Project Scaffolding (4 features)**: Vite React Initialization, Tailwind Integration, Development Tooling, Mobile Optimization
+  - **Input & Validation (3 features)**: Player Count Management, Mafia Count Validation, Player Name Input System  
+  - **Role Allocation (3 features)**: Allocation Confirmation Flow, Role Assignment Engine, Re-allocation System
+  - **Role Display & Reveal (3 features)**: Card List Interface, Role Reveal Dialog, Sequential Order Enforcement
+  - **Reset & Re-Allocate (1 feature)**: Reset Button System
+  - **Minimal Styling & UI Clarity (2 features)**: Visual Differentiation System, Mobile Layout Optimization
+  - **Alternative & Edge Cases (2 features)**: Edge Case Validation, Error Recovery System
+- Location: `docs/ways-of-work/plan/{epic-name}/{feature-name}/prd.md`
+- Each PRD maps to specific user stories (US 1-30), includes complete acceptance criteria, functional/non-functional requirements, and clear scope boundaries
+- Ready for parallel development - all 18 features can be implemented independently with clear integration boundaries
 
 ## �📝 **DOCUMENTATION ENFORCEMENT (Detailed Checklist)**
 
