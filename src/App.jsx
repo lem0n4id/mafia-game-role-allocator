@@ -21,21 +21,21 @@ function App() {
           </p>
 
           <div className="text-left space-y-2">
-            <p className="text-sm text-green-600">
+            <p className="text-sm text-green-700">
               ✅ React 18 functional components
             </p>
-            <p className="text-sm text-green-600">✅ Vite build system</p>
-            <p className="text-sm text-green-600">✅ Hot module replacement</p>
-            <p className="text-sm text-green-600">
+            <p className="text-sm text-green-700">✅ Vite build system</p>
+            <p className="text-sm text-green-700">✅ Hot module replacement</p>
+            <p className="text-sm text-green-700">
               ✅ Mobile-first architecture ready
             </p>
-            <p className="text-sm text-green-600">
+            <p className="text-sm text-green-700">
               ✅ Tailwind CSS v3.4.17 integrated
             </p>
-            <p className="text-sm text-green-600">
+            <p className="text-sm text-green-700">
               ✅ PostCSS + Autoprefixer configured
             </p>
-            <p className="text-sm text-green-600">
+            <p className="text-sm text-green-700">
               ✅ Mobile-first breakpoints (sm:640px, md:768px, lg:1024px)
             </p>
           </div>
