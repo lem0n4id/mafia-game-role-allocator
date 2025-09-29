@@ -13,6 +13,7 @@ const PlayerCountManager = ({
   onCountChange,
   onNamesChange,
   onValidationChange,
+  mafiaCountSection,
 }) => {
   const {
     playerCount,
@@ -101,6 +102,9 @@ const PlayerCountManager = ({
           </p>
         )}
       </div>
+
+      {/* Mafia Count Section */}
+      {mafiaCountSection && <div>{mafiaCountSection}</div>}
 
       {/* Dynamic Name Fields Section */}
       <div>
@@ -215,6 +219,7 @@ PlayerCountManager.propTypes = {
   onCountChange: PropTypes.func,
   onNamesChange: PropTypes.func,
   onValidationChange: PropTypes.func,
+  mafiaCountSection: PropTypes.node,
 };
 
 export default PlayerCountManager;

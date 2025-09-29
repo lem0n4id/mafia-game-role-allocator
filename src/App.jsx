@@ -7,11 +7,17 @@ function App() {
   const [playerNames, setPlayerNames] = useState([]);
   const [playerValidation, setPlayerValidation] = useState({ isValid: false });
   const [mafiaCount, setMafiaCount] = useState(1);
-  const [mafiaValidation, setMafiaValidation] = useState({ isValid: true, canProceed: true });
+  const [mafiaValidation, setMafiaValidation] = useState({
+    isValid: true,
+    canProceed: true,
+  });
 
   // Combined validation state
   const overallValidation = {
-    isValid: playerValidation.isValid && mafiaValidation.isValid && mafiaValidation.canProceed,
+    isValid:
+      playerValidation.isValid &&
+      mafiaValidation.isValid &&
+      mafiaValidation.canProceed,
     playerValidation,
     mafiaValidation,
   };
@@ -28,20 +34,23 @@ function App() {
       </header>
 
       <main className="flex-1">
-        <div className="max-w-lg mx-auto space-y-8">
-          <PlayerCountManager
-            initialCount={5}
-            onCountChange={setPlayerCount}
-            onNamesChange={setPlayerNames}
-            onValidationChange={setPlayerValidation}
-          />
-
-          <MafiaCountValidator
-            playerCount={playerCount}
-            initialMafiaCount={1}
-            onMafiaCountChange={setMafiaCount}
-            onValidationChange={setMafiaValidation}
-          />
+        <div className="max-w-lg mx-auto space-y-6">
+          <div className="space-y-6">
+            <PlayerCountManager
+              initialCount={5}
+              onCountChange={setPlayerCount}
+              onNamesChange={setPlayerNames}
+              onValidationChange={setPlayerValidation}
+              mafiaCountSection={
+                <MafiaCountValidator
+                  playerCount={playerCount}
+                  initialMafiaCount={1}
+                  onMafiaCountChange={setMafiaCount}
+                  onValidationChange={setMafiaValidation}
+                />
+              }
+            />
+          </div>
 
           {/* Debug info for development */}
           {import.meta.env.DEV && (
@@ -61,7 +70,10 @@ function App() {
 
       <footer className="p-4 text-gray-500 text-sm text-center">
         <p>
-          Input & Validation • {overallValidation.isValid ? 'Ready for Role Allocation' : 'Complete all fields to proceed'}
+          Input & Validation •{' '}
+          {overallValidation.isValid
+            ? 'Ready for Role Allocation'
+            : 'Complete all fields to proceed'}
         </p>
       </footer>
     </div>

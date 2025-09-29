@@ -248,6 +248,19 @@ src/
   - Added dynamic revalidation with useEffect that auto-adjusts when player count changes
 - **Performance**: Efficient re-rendering with useCallback/useMemo, validation calculations <100ms
 - **Accessibility**: Proper ARIA labels, error announcements, focus management, screen reader support
+
+### UI Layout Integration Enhancement (September 29, 2025)
+- ✅ **Mafia Count positioning optimized** for improved user workflow and form coherence
+- **Render prop integration**: Modified PlayerCountManager to accept `mafiaCountSection` prop
+- **User experience improvement**: Established logical flow (Player Count → Mafia Count → Player Names)
+- **Technical changes**:
+  - Updated `src/components/PlayerCountManager.jsx` to support `mafiaCountSection` render prop
+  - Modified `src/App.jsx` to pass MafiaCountValidator as integrated component
+  - Added PropTypes validation for new `mafiaCountSection: PropTypes.node` prop
+  - Applied Prettier formatting across all modified files for consistency
+- **Architecture benefit**: Cleaner component composition using render prop pattern
+- **Visual hierarchy**: More intuitive progression through game setup without separate form sections
+- **Impact**: Enhanced UX with cohesive form flow, better semantic grouping, reduced visual separation
 - **Mobile optimization**: 44px touch targets, warning/error styling visible on small screens
 - **Bundle impact**: +3.3KB JS (11.66KB total), +0.75KB CSS (13.18KB total), under performance budgets
 - **Testing**: Validated error scenarios (Mafia ≥ players), edge cases (0, almost-all), dynamic revalidation

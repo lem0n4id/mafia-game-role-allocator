@@ -13,12 +13,8 @@ const MafiaCountValidator = ({
   onMafiaCountChange,
   onValidationChange,
 }) => {
-  const {
-    mafiaCount,
-    validation,
-    hasUserInteracted,
-    updateMafiaCount,
-  } = useMafiaCountValidation(playerCount, initialMafiaCount);
+  const { mafiaCount, validation, hasUserInteracted, updateMafiaCount } =
+    useMafiaCountValidation(playerCount, initialMafiaCount);
 
   // Notify parent components of changes
   React.useEffect(() => {
@@ -78,16 +74,16 @@ const MafiaCountValidator = ({
               shouldShowError
                 ? 'border-red-300 focus:border-red-500'
                 : shouldShowWarning
-                ? 'border-yellow-300 focus:border-yellow-500'
-                : 'border-gray-300 focus:border-blue-500'
+                  ? 'border-yellow-300 focus:border-yellow-500'
+                  : 'border-gray-300 focus:border-blue-500'
             }
           `}
           aria-describedby={
             shouldShowError
               ? 'mafia-error'
               : shouldShowWarning
-              ? 'mafia-warning'
-              : undefined
+                ? 'mafia-warning'
+                : undefined
           }
         />
 
@@ -131,9 +127,7 @@ const MafiaCountValidator = ({
       <div className="text-xs text-gray-500">
         Valid range: 0 to {Math.max(0, playerCount - 1)} Mafia players
         {playerCount > 0 && (
-          <span className="ml-2">
-            ({playerCount - mafiaCount} Villagers)
-          </span>
+          <span className="ml-2">({playerCount - mafiaCount} Villagers)</span>
         )}
       </div>
     </div>

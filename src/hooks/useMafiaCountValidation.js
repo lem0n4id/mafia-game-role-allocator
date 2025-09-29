@@ -26,7 +26,7 @@ export const useMafiaCountValidation = (playerCount, initialMafiaCount = 1) => {
         isEdgeCase: false,
         error: 'Mafia count cannot be negative',
         canProceed: false,
-        type: 'error'
+        type: 'error',
       };
     }
 
@@ -37,7 +37,7 @@ export const useMafiaCountValidation = (playerCount, initialMafiaCount = 1) => {
         isEdgeCase: false,
         error: `Mafia count must be less than total players (${totalPlayers})`,
         canProceed: false,
-        type: 'error'
+        type: 'error',
       };
     }
 
@@ -49,7 +49,7 @@ export const useMafiaCountValidation = (playerCount, initialMafiaCount = 1) => {
         warning: 'No Mafia players - this creates an unusual game mode',
         canProceed: true,
         requiresConfirmation: true,
-        type: 'warning'
+        type: 'warning',
       };
     }
 
@@ -58,10 +58,11 @@ export const useMafiaCountValidation = (playerCount, initialMafiaCount = 1) => {
       return {
         isValid: true,
         isEdgeCase: true,
-        warning: 'Almost all players are Mafia - this creates an unusual game mode',
+        warning:
+          'Almost all players are Mafia - this creates an unusual game mode',
         canProceed: true,
         requiresConfirmation: true,
-        type: 'warning'
+        type: 'warning',
       };
     }
 
@@ -70,14 +71,14 @@ export const useMafiaCountValidation = (playerCount, initialMafiaCount = 1) => {
       isValid: true,
       isEdgeCase: false,
       canProceed: true,
-      type: 'valid'
+      type: 'valid',
     };
   }, [mafiaCount, playerCount]);
 
   /**
    * Update Mafia count with input validation
    */
-  const updateMafiaCount = useCallback((newCount) => {
+  const updateMafiaCount = useCallback(newCount => {
     const count = Math.max(0, parseInt(newCount) || 0);
     setMafiaCount(count);
     setHasUserInteracted(true);
