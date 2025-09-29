@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import PlayerCountManager from './components/PlayerCountManager.jsx';
 import MafiaCountValidator from './components/MafiaCountValidator.jsx';
+import AllocationConfirmationFlow from './components/AllocationConfirmationFlow.jsx';
 
 function App() {
   const [playerCount, setPlayerCount] = useState(5);
@@ -11,6 +12,17 @@ function App() {
     isValid: true,
     canProceed: true,
   });
+
+  // Handle allocation confirmation and trigger role assignment
+  const handleAllocate = async allocationParams => {
+    console.log('Starting role allocation with params:', allocationParams);
+    
+    // Simulate allocation process (replace with actual role assignment engine)
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    console.log('Role allocation completed successfully');
+    alert(`Roles allocated! ${allocationParams.mafiaCount} Mafia, ${allocationParams.villagerCount} Villagers`);
+  };
 
   // Combined validation state
   const overallValidation = {
@@ -51,6 +63,14 @@ function App() {
               }
             />
           </div>
+
+          {/* Allocation Confirmation Flow */}
+          <AllocationConfirmationFlow
+            playerNames={playerNames}
+            mafiaCount={mafiaCount}
+            isFormValid={overallValidation.isValid}
+            onAllocate={handleAllocate}
+          />
 
           {/* Debug info for development */}
           {import.meta.env.DEV && (
