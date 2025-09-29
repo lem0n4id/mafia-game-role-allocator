@@ -85,7 +85,7 @@ const CardListInterface = ({
         </div>
         
         {/* Current Player Indicator */}
-        {currentPlayerIndex < cardStates.length && (
+        {currentPlayerIndex < cardStates.length && progress.completed < progress.total && (
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
             <div className="flex items-center">
               <div className="w-2 h-2 bg-blue-600 rounded-full mr-3 animate-pulse" />
@@ -266,10 +266,10 @@ const CardListInterface = ({
             </svg>
             <div>
               <h3 className="text-sm font-medium text-green-800">
-                All roles revealed!
+                Great! Enjoy the game!
               </h3>
               <p className="text-sm text-green-600 mt-1">
-                Game setup complete. Ready to start playing.
+                All roles have been revealed. Ready to start playing.
               </p>
             </div>
           </div>
