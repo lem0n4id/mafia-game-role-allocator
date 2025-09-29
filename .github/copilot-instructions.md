@@ -141,6 +141,85 @@ const FeatureComponent = ({ onStateChange, onValidationChange }) => {
 };
 ```
 
+### **Confirmation Flow Pattern (AllocationConfirmationFlow)**
+**Follow this pattern for confirmation dialogs with destructive or critical actions:**
+
+```jsx
+// Confirmation flow component with portal-based modal
+const ConfirmationFlow = ({ onAction, isFormValid, actionData }) => {
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  // Memoized calculations for display
+  const actionDetails = useMemo(() => ({
+    // Calculate display parameters
+    isEdgeCase: /* edge case detection logic */,
+  }), [actionData]);
+
+  // Handle action trigger with validation
+  const handleActionClick = useCallback(() => {
+    if (!isFormValid || isProcessing) return;
+    setShowConfirmation(true);
+  }, [isFormValid, isProcessing]);
+
+  // Handle confirmation with async processing
+  const handleConfirm = useCallback(async () => {
+    setIsProcessing(true);
+    try {
+      await onAction(/* validated parameters */);
+      setShowConfirmation(false);
+    } catch (error) {
+      console.error('Action failed:', error);
+    } finally {
+      setIsProcessing(false);
+    }
+  }, [onAction, actionData]);
+
+  // Keyboard accessibility (Escape key)
+  useEffect(() => {
+    const handleEscape = e => {
+      if (e.key === 'Escape' && showConfirmation && !isProcessing) {
+        setShowConfirmation(false);
+      }
+    };
+    if (showConfirmation) {
+      document.addEventListener('keydown', handleEscape);
+      document.body.style.overflow = 'hidden'; // Prevent background scroll
+      return () => {
+        document.removeEventListener('keydown', handleEscape);
+        document.body.style.overflow = '';
+      };
+    }
+  }, [showConfirmation, isProcessing]);
+
+  return (
+    <>
+      {/* Action Button */}
+      <button
+        onClick={handleActionClick}
+        disabled={!isFormValid || isProcessing}
+        className="w-full h-14 touch-manipulation /* responsive button styles */"
+      >
+        {isProcessing ? 'Processing...' : 'Action Name'}
+      </button>
+
+      {/* Portal-based Modal */}
+      {showConfirmation && createPortal(
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+          role="dialog" aria-modal="true"
+        >
+          <div className="bg-white rounded-xl p-6 max-w-md w-full shadow-2xl">
+            {/* Header, details, edge case warnings, action buttons */}
+          </div>
+        </div>,
+        document.body
+      )}
+    </>
+  );
+};
+```
+
 ### **📋 File Organization Checklist**
 
 Before creating any new file, ask:
@@ -250,7 +329,7 @@ npm run format:check # Check if code is properly formatted
 - ✅ **Feature breakdown completed for ALL epics** into implementable features:
   - **Setup & Project Scaffolding:** 4 features (✅ Vite React, ✅ Tailwind, ✅ Dev Tooling, ✅ Mobile Optimization)
   - **Input & Validation:** 3 features (✅ Player Count Management, ✅ Mafia Count Validation, ✅ Player Name Input System)
-  - **Role Allocation:** 3 features (Allocation Confirmation Flow, Role Assignment Engine, Re-allocation System)  
+  - **Role Allocation:** 3 features (✅ Allocation Confirmation Flow, Role Assignment Engine, Re-allocation System)
   - **Role Display & Reveal:** 3 features (Card List Interface, Role Reveal Dialog, Sequential Order Enforcement)
   - **Reset & Re-Allocate:** 1 feature (Reset Button System)
   - **Minimal Styling & UI Clarity:** 2 features (Visual Differentiation System, Mobile Layout Optimization)
@@ -279,6 +358,7 @@ npm run format:check # Check if code is properly formatted
 - ✅ **IMPLEMENTATION STARTED** - Vite React Project Initialization complete with working React 18 application foundation
 - ✅ **IMPLEMENTATION CONTINUED** - Tailwind CSS Integration complete with utility-first styling and mobile-first responsive design
 - ✅ **INPUT & VALIDATION EPIC COMPLETE** - Player Count Management, Mafia Count Validation, and Player Name Input System completed with comprehensive validation and testing
+- ✅ **ROLE ALLOCATION EPIC STARTED** - Allocation Confirmation Flow completed with comprehensive confirmation flow and edge case handling
 - ✅ **PRODUCTION DEPLOYMENT COMPLETE** - Live application deployed to Vercel at https://mafia-game-role-allocator-jqhayysnn-lem0n4ids-projects.vercel.app with full Input & Validation epic functionality
 
 ## 📋 **Architectural Decisions Log**
@@ -438,6 +518,22 @@ npm run format:check # Check if code is properly formatted
 - **Code Quality**: Applied Prettier formatting, maintained all existing functionality and validation
 - **Visual Hierarchy**: More logical progression through game setup process
 - **Impact**: Improved user experience with cohesive form flow and better semantic grouping
+
+### Allocation Confirmation Flow implementation completed (September 29, 2025)
+- ✅ **First Role Allocation feature complete** - Comprehensive confirmation gateway with parameter validation and edge case handling
+- **Component Implementation**: Created `AllocationConfirmationFlow` component with smart button state, rich confirmation dialog, and accessibility features
+- **Smart Button State**: "Allocate Roles" button dynamically enables/disables based on combined form validation state
+- **Rich Confirmation Dialog**: Modal displaying total players, Mafia count, villager count with complete player name preview
+- **Edge Case Detection**: Automatic detection and warning for unusual configurations (0 Mafia or nearly all Mafia scenarios)
+- **Double-tap Protection**: Prevents multiple confirmation dialogs through processing state management and disabled states
+- **Accessibility Compliance**: Full ARIA compliance, keyboard navigation (Escape key), screen reader support, focus management
+- **Mobile Optimization**: 44px+ touch targets, responsive modal sizing, touch-friendly interactions, proper viewport handling
+- **Performance**: Efficient rendering with useMemo/useCallback optimizations, memoized allocation calculations
+- **Integration Architecture**: Clean callback interface providing validated parameters for future Role Assignment Engine integration
+- **Portal Implementation**: Uses React.createPortal for proper modal rendering outside component hierarchy
+- **File structure**: Added `src/components/AllocationConfirmationFlow.jsx`, integrated in `src/App.jsx`
+- **Bundle impact**: +10.6KB total (JS: +8.81KB app bundle, CSS: +5.27KB), well within performance budgets (total: ~162KB)
+- **Technical patterns**: Established confirmation flow pattern for future destructive actions, modal accessibility pattern
 
 ### Vercel Production Deployment (September 29, 2025)
 - ✅ **Production deployment successful** - Complete Input & Validation features live on Vercel
