@@ -66,7 +66,7 @@ const PlayerCountManager = ({
   /**
    * Handle field blur events to mark as touched
    */
-  const handleFieldBlur = (index) => {
+  const handleFieldBlur = index => {
     markFieldTouched(index);
   };
 
@@ -127,7 +127,7 @@ const PlayerCountManager = ({
 
         {/* Progress Bar */}
         <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
-          <div 
+          <div
             className="bg-blue-600 h-2 rounded-full transition-all duration-300"
             style={{ width: `${validation.completionRate * 100}%` }}
           />
@@ -135,9 +135,11 @@ const PlayerCountManager = ({
 
         <div className="space-y-3">
           {names.map((name, index) => {
-            const hasError = validation.blankFields.includes(index) && touchedFields.has(index);
+            const hasError =
+              validation.blankFields.includes(index) &&
+              touchedFields.has(index);
             const isCompleted = validation.completedFields.includes(index);
-            
+
             return (
               <div key={index} className="relative">
                 <label
@@ -146,10 +148,12 @@ const PlayerCountManager = ({
                 >
                   Player {index + 1}
                   {hasError && (
-                    <span className="text-red-600 ml-1" aria-label="required">*</span>
+                    <span className="text-red-600 ml-1" aria-label="required">
+                      *
+                    </span>
                   )}
                 </label>
-                
+
                 <div className="relative">
                   <input
                     id={`player-${index}`}
@@ -168,21 +172,19 @@ const PlayerCountManager = ({
                         hasError
                           ? 'border-red-500 focus:border-red-500 bg-red-50'
                           : isCompleted
-                          ? 'border-green-500 focus:border-blue-500 bg-green-50'
-                          : 'border-gray-300 focus:border-blue-500'
+                            ? 'border-green-500 focus:border-blue-500 bg-green-50'
+                            : 'border-gray-300 focus:border-blue-500'
                       }
                     `}
-                    aria-describedby={
-                      hasError ? `error-${index}` : undefined
-                    }
+                    aria-describedby={hasError ? `error-${index}` : undefined}
                   />
-                  
+
                   {/* Status Icon */}
                   <div className="absolute inset-y-0 right-0 flex items-center pr-3">
                     {isCompleted ? (
-                      <svg 
-                        className="w-5 h-5 text-green-500" 
-                        fill="currentColor" 
+                      <svg
+                        className="w-5 h-5 text-green-500"
+                        fill="currentColor"
                         viewBox="0 0 20 20"
                         aria-label="completed"
                       >
@@ -193,9 +195,9 @@ const PlayerCountManager = ({
                         />
                       </svg>
                     ) : hasError ? (
-                      <svg 
-                        className="w-5 h-5 text-red-500" 
-                        fill="currentColor" 
+                      <svg
+                        className="w-5 h-5 text-red-500"
+                        fill="currentColor"
                         viewBox="0 0 20 20"
                         aria-label="error"
                       >
@@ -208,10 +210,10 @@ const PlayerCountManager = ({
                     ) : null}
                   </div>
                 </div>
-                
+
                 {/* Field-specific error message */}
                 {hasError && (
-                  <div 
+                  <div
                     id={`error-${index}`}
                     className="mt-1 text-sm text-red-600"
                     role="alert"
@@ -226,13 +228,17 @@ const PlayerCountManager = ({
 
         {/* Global validation summary */}
         {validation.hasBlankNames && touchedFields.size > 0 && (
-          <div 
+          <div
             className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg"
             role="alert"
             aria-live="polite"
           >
             <div className="flex items-center">
-              <svg className="w-5 h-5 text-red-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <svg
+                className="w-5 h-5 text-red-500 mr-2"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
                 <path
                   fillRule="evenodd"
                   d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v3a1 1 0 102 0V6a1 1 0 00-1-1z"

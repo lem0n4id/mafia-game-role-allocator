@@ -52,7 +52,7 @@ export const usePlayerCountManager = (initialCount = 5, initialNames = []) => {
   /**
    * Mark a field as touched (user has interacted with it)
    */
-  const markFieldTouched = useCallback((index) => {
+  const markFieldTouched = useCallback(index => {
     setTouchedFields(prev => new Set([...prev, index]));
   }, []);
 
@@ -62,7 +62,7 @@ export const usePlayerCountManager = (initialCount = 5, initialNames = []) => {
   const validation = useMemo(() => {
     const blankFields = [];
     const completedFields = [];
-    
+
     names.forEach((name, index) => {
       if (!name.trim()) {
         blankFields.push(index);
@@ -70,10 +70,11 @@ export const usePlayerCountManager = (initialCount = 5, initialNames = []) => {
         completedFields.push(index);
       }
     });
-    
+
     const hasBlankNames = blankFields.length > 0;
     const validCount = playerCount >= 1 && playerCount <= 30;
-    const completionRate = names.length > 0 ? completedFields.length / names.length : 0;
+    const completionRate =
+      names.length > 0 ? completedFields.length / names.length : 0;
 
     return {
       isValid: !hasBlankNames && validCount,
@@ -87,8 +88,10 @@ export const usePlayerCountManager = (initialCount = 5, initialNames = []) => {
       errors: {
         count: !validCount ? 'Player count must be between 1 and 30' : null,
         names: hasBlankNames ? 'All player names are required' : null,
-        message: hasBlankNames ? `${blankFields.length} player name${blankFields.length > 1 ? 's' : ''} required` : null,
-        fields: blankFields
+        message: hasBlankNames
+          ? `${blankFields.length} player name${blankFields.length > 1 ? 's' : ''} required`
+          : null,
+        fields: blankFields,
       },
     };
   }, [names, playerCount]);
