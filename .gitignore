@@ -25,3 +25,5 @@ dist-ssr
 
 # Package manager lock files (ignored by project policy)
 package-lock.json
+
+.vercel

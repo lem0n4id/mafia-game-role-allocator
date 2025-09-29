@@ -37,5 +37,8 @@
     "rollup-plugin-visualizer": "^6.0.3",
     "vite": "^7.1.7",
     "vite-plugin-eslint": "^1.8.1"
+  },
+  "optionalDependencies": {
+    "@rollup/rollup-linux-x64-gnu": "4.6.1"
   }
 }

@@ -299,6 +299,19 @@ src/
 - **Bundle impact**: +3.3KB JS (11.66KB total), +0.75KB CSS (13.18KB total), under performance budgets
 - **Testing**: Validated error scenarios (Mafia ≥ players), edge cases (0, almost-all), dynamic revalidation
 
+### Vercel Deployment Success (September 29, 2025)
+- ✅ **Production deployment complete** - Mafia Game Role Allocator successfully deployed to Vercel
+- **Live URL**: https://mafia-game-role-allocator-jqhayysnn-lem0n4ids-projects.vercel.app
+- **Deployment fix**: Added `@rollup/rollup-linux-x64-gnu` as optional dependency to resolve Vercel Linux build issues
+- **Configuration**:
+  - Created `vercel.json` with static build configuration and install commands
+  - Added `.vercel` directory to `.gitignore` for deployment metadata
+  - Maintained Vite configuration with ESLint and bundle analysis plugins
+- **Performance verified**: Production build optimized with 171KB total bundle size
+- **Features deployed**: Complete Input & Validation epic with dynamic player management, comprehensive validation, and mobile-first responsive design
+- **Infrastructure**: Automated deployment pipeline established for future updates
+- **Git integration**: Project linked to GitHub repository for continuous deployment options
+
 ## Project Automation
 - GitHub Actions workflow added for automated issue creation:
   - Location: `.github/workflows/create-feature-issues.yml`
