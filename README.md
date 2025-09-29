@@ -5,6 +5,7 @@ A minimal, mobile-first web application for allocating roles in Mafia games. Bui
 ## Features
 
 - **Mobile-First Design**: Portrait layout optimized for mobile devices
+- **Touch-Optimized Controls**: Custom counter controls with 44px+ touch targets eliminating mobile keyboard dependencies
 - **Simple Role System**: Mafia vs Villagers only
 - **Real-Time Allocation**: Instant role assignment with confirmation
 - **Sequential Reveal**: Ordered role revelation system
@@ -87,15 +88,22 @@ npm run format:check # Check if code is properly formatted
 
 ```
 src/
-├── components/     # React components
-├── hooks/          # Custom React hooks  
-├── utils/          # Utility functions and mobile helpers
-│   ├── mobileLayout.js    # Mobile-first responsive patterns
-│   └── performance.js     # Performance monitoring utilities
-├── styles/         # CSS files
-│   └── mobile.css         # Mobile-optimized styles
-├── App.jsx         # Root application component
-└── main.jsx        # Application entry point
+├── components/       # React components
+│   ├── PlayerCountManager.jsx       # Dynamic player count with name fields
+│   ├── MafiaCountValidator.jsx      # Mafia count validation with edge cases
+│   ├── CounterControl.jsx           # Touch-optimized counter component
+│   └── AllocationConfirmationFlow.jsx  # Role allocation confirmation
+├── hooks/            # Custom React hooks  
+│   ├── usePlayerCountManager.js     # Player count and names state management
+│   ├── useMafiaCountValidation.js   # Mafia count validation logic
+│   └── useCounterControl.js         # Counter control state management
+├── utils/            # Utility functions and mobile helpers
+│   ├── mobileLayout.js      # Mobile-first responsive patterns
+│   └── performance.js       # Performance monitoring utilities
+├── styles/           # CSS files
+│   └── mobile.css           # Mobile-optimized styles
+├── App.jsx           # Root application component
+└── main.jsx          # Application entry point
 ```
 
 ## Performance Goals

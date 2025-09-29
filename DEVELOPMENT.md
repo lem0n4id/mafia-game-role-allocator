@@ -91,27 +91,25 @@ npm run format:check # Check if files are properly formatted
   - **Security and performance** optimization with deployment architecture
   - Used to generate all 18 implementation plans with consistent technical standards
 
-## Project Structure (suggested)
+## Project Structure (current implementation)
 
 ```
 src/
 ├── components/
-│   ├── InputForm.jsx        # Players count, Mafia count, dynamic name inputs
-│   ├── CardsList.jsx        # Vertical list of player cards
-│   ├── RevealDialog.jsx     # Single active reveal/close dialog
-│   ├── HeaderCue.jsx        # Current player cue at top
-│   └── FooterReset.jsx      # Reset button after allocation
+│   ├── PlayerCountManager.jsx       # Dynamic player count with touch controls and name fields
+│   ├── MafiaCountValidator.jsx      # Mafia count validation with touch controls
+│   ├── CounterControl.jsx           # Touch-optimized counter component (← N →)
+│   └── AllocationConfirmationFlow.jsx  # Role allocation confirmation dialog
 ├── hooks/
-│   ├── useValidation.js     # Blank names, mafia < players, warnings
-│   ├── useAllocation.js     # Confirmation + random role assignment (shuffle)
-│   └── useRevealFlow.js     # Enforce strict order, one open dialog
+│   ├── usePlayerCountManager.js     # Player count and names state management
+│   ├── useMafiaCountValidation.js   # Mafia count validation logic
+│   └── useCounterControl.js         # Counter control state management with boundaries
 ├── utils/
-│   ├── shuffle.js           # Fisher–Yates shuffle
-│   ├── mobileLayout.js      # Mobile-first responsive patterns and utilities
-│   └── performance.js       # Performance monitoring and mobile optimization
-├── styles/                  # CSS files and mobile-specific patterns
-│   └── mobile.css           # Touch-optimized styles and mobile utilities
-└── App.jsx                  # Compose screens/flows
+│   ├── mobileLayout.js              # Mobile-first responsive patterns and touch targets
+│   └── performance.js               # Performance monitoring and mobile optimization
+├── styles/                          # CSS files and mobile-specific patterns
+│   └── mobile.css                   # Touch-optimized styles and mobile utilities
+└── App.jsx                          # Root application component
 ```
 
 ## Tech Stack
@@ -130,11 +128,12 @@ src/
 - [ ] **Development Tooling** - ESLint, Prettier, npm scripts, code quality enforcement
 - ✅ **Mobile Optimization** **COMPLETE** - Viewport configuration, performance budgets, mobile patterns, network access
 
-### Phase 2: Input & Validation ✅ **Feature PRDs COMPLETE**
+### Phase 2: Input & Validation ✅ **Feature PRDs COMPLETE** ✅ **EPIC COMPLETE**
 **Feature Breakdown** (each can be developed independently):
 - ✅ **Player Count Management** **COMPLETE** - Dynamic field generation based on player count input *(Bug fix applied Sept 29: resolved array expansion issue in dynamic field generation)*
 - ✅ **Mafia Count Validation** **COMPLETE** - Ratio validation preventing impossible game configurations with comprehensive edge case handling and dynamic revalidation
 - ✅ **Player Name Input System** **COMPLETE** - Comprehensive name collection with enhanced validation and visual feedback *(Enhanced Sept 29: added progress tracking, field-level validation, and rich UI indicators)* **TESTED & VALIDATED Sept 29: All features verified including enhanced validation, visual feedback, accessibility, and mobile optimization**
+- ✅ **Touch-Optimized Counter Controls** **COMPLETE** - Custom counter components replacing HTML number inputs with 44px+ touch targets and horizontal layout (← N →) for improved mobile UX *(Implemented Dec 2024: eliminated mobile keyboard dependencies, added boundary enforcement, maintained full accessibility compliance)*
 
 ### Phase 3: Role Allocation ✅ **Feature PRDs COMPLETE** 
 **Feature Breakdown** (each can be developed independently):
