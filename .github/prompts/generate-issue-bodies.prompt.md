@@ -110,14 +110,6 @@ I’ll draft a complete Epic issue body for "{{epic_name}}" that you can paste d
   - Implementation plan: .github/prompts/breakdown-feature-implementation.prompt.md
   - Project planning: .github/prompts/breakdown-plan.prompt.md
 
-## Automation
-
-- Action: .github/workflows/create-feature-issues.yml
-  - Run “Create Feature Issues” to open Feature issues for this Epic
-  - Inputs: epic_issue, feature_name, docs_path (optional)
-  - Execution: Each created Feature issue serves as a prompt for an LLM agent to follow the linked implementation-plan.md and raise a PR
-
----
 
 TEMPLATE (auto-detected: feature)
 
