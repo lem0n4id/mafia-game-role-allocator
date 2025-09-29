@@ -1,10 +1,20 @@
 import { useState } from 'react';
 import PlayerCountManager from './components/PlayerCountManager.jsx';
+import MafiaCountValidator from './components/MafiaCountValidator.jsx';
 
 function App() {
   const [playerCount, setPlayerCount] = useState(5);
   const [playerNames, setPlayerNames] = useState([]);
-  const [validation, setValidation] = useState({ isValid: false });
+  const [playerValidation, setPlayerValidation] = useState({ isValid: false });
+  const [mafiaCount, setMafiaCount] = useState(1);
+  const [mafiaValidation, setMafiaValidation] = useState({ isValid: true, canProceed: true });
+
+  // Combined validation state
+  const overallValidation = {
+    isValid: playerValidation.isValid && mafiaValidation.isValid && mafiaValidation.canProceed,
+    playerValidation,
+    mafiaValidation,
+  };
 
   return (
     <div className="min-h-screen flex flex-col p-4 max-w-2xl mx-auto md:p-8">
@@ -18,12 +28,19 @@ function App() {
       </header>
 
       <main className="flex-1">
-        <div className="max-w-lg mx-auto">
+        <div className="max-w-lg mx-auto space-y-8">
           <PlayerCountManager
             initialCount={5}
             onCountChange={setPlayerCount}
             onNamesChange={setPlayerNames}
-            onValidationChange={setValidation}
+            onValidationChange={setPlayerValidation}
+          />
+
+          <MafiaCountValidator
+            playerCount={playerCount}
+            initialMafiaCount={1}
+            onMafiaCountChange={setMafiaCount}
+            onValidationChange={setMafiaValidation}
           />
 
           {/* Debug info for development */}
@@ -32,14 +49,20 @@ function App() {
               <h4 className="font-medium mb-2">Debug Info:</h4>
               <p>Player Count: {playerCount}</p>
               <p>Names: {JSON.stringify(playerNames)}</p>
-              <p>Valid: {validation.isValid ? 'Yes' : 'No'}</p>
+              <p>Mafia Count: {mafiaCount}</p>
+              <p>Player Valid: {playerValidation.isValid ? 'Yes' : 'No'}</p>
+              <p>Mafia Valid: {mafiaValidation.isValid ? 'Yes' : 'No'}</p>
+              <p>Can Proceed: {mafiaValidation.canProceed ? 'Yes' : 'No'}</p>
+              <p>Overall Valid: {overallValidation.isValid ? 'Yes' : 'No'}</p>
             </div>
           )}
         </div>
       </main>
 
       <footer className="p-4 text-gray-500 text-sm text-center">
-        <p>Player Count Management • Ready for Role Allocation</p>
+        <p>
+          Input & Validation • {overallValidation.isValid ? 'Ready for Role Allocation' : 'Complete all fields to proceed'}
+        </p>
       </footer>
     </div>
   );
