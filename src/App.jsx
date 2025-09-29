@@ -52,19 +52,26 @@ function App() {
     setRevealInProgress(true);
     
     try {
-      // Simulate reveal process (this would show a dialog in future features)
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Get the player's role
+      const player = assignment.players[playerIndex];
+      const role = player.role;
       
-      // Update assignment with revealed player
-      const updatedAssignment = revealPlayer(assignment, playerIndex);
-      setAssignment(updatedAssignment);
+      // Show role in a dialog
+      const roleMessage = `${playerName}, your role is: ${role}`;
+      const acknowledged = window.confirm(`${roleMessage}\n\nTap OK when you have seen your role, then pass the device to the next player.`);
       
-      // Advance to next player if not at the end
-      if (playerIndex < assignment.players.length - 1) {
-        setCurrentPlayerIndex(playerIndex + 1);
+      if (acknowledged) {
+        // Update assignment with revealed player
+        const updatedAssignment = revealPlayer(assignment, playerIndex);
+        setAssignment(updatedAssignment);
+        
+        // Advance to next player if not at the end
+        if (playerIndex < assignment.players.length - 1) {
+          setCurrentPlayerIndex(playerIndex + 1);
+        }
+        
+        console.log(`Role revealed for ${playerName}: ${role}`);
       }
-      
-      console.log(`Role revealed for ${playerName}: ${updatedAssignment.players[playerIndex].role}`);
     } catch (error) {
       console.error('Role reveal failed:', error);
     } finally {
