@@ -361,7 +361,7 @@ npm run format:check # Check if code is properly formatted
 - **File structure**: Added .prettierrc, .editorconfig, .prettierignore configuration files
 - **Ready for integration**: Professional development workflow prepared for Tailwind CSS and Mobile Optimization features
 
-### Player Count Management implementation completed (December 29, 2025)
+### Player Count Management implementation completed (September 29, 2025)
 - ✅ **First Input & Validation feature complete** - Dynamic player count management with real-time field generation
 - **Hook Implementation**: Created `usePlayerCountManager` custom hook for state management with player count (1-30) and names array
 - **Component Implementation**: Built `PlayerCountManager` component with responsive UI, validation feedback, and accessibility
@@ -374,6 +374,16 @@ npm run format:check # Check if code is properly formatted
 - **Integration**: Component replaces App.jsx placeholder, provides foundation for Mafia Count Validation feature
 - **File structure**: Added `src/hooks/usePlayerCountManager.js`, `src/components/PlayerCountManager.jsx`
 - **Bundle impact**: +4.28KB JS (8.33KB total), +1.76KB CSS (12.36KB total), still under performance budgets
+
+### Player Count Management bug fix (September 29, 2025)
+- ✅ **Dynamic field generation bug resolved** - Fixed array expansion logic in usePlayerCountManager hook
+- **Issue**: Player count decrease to 1, then increase to 2+ wasn't properly generating additional input fields
+- **Root Cause**: Array expansion using `array.length = count` doesn't handle expansion from smaller arrays
+- **Solution**: Replaced with explicit `while` loop using `push('')` for expansion and proper truncation for shrinking
+- **Implementation**: Updated `updatePlayerCount` function with robust array resize logic
+- **Testing**: Verified 1→2, 1→5, 5→2 player count transitions work correctly
+- **Commit**: `ea1d8c5` on branch `copilot/fix-f5bd74f4-9954-48c6-91fd-fff2ad648c27`
+- **Impact**: Resolves critical UX issue where dynamic fields weren't appearing correctly
 
 ## 📝 **DOCUMENTATION ENFORCEMENT (Detailed Checklist)**
 

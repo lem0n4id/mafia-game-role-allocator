@@ -132,7 +132,7 @@ src/
 
 ### Phase 2: Input & Validation ✅ **Feature PRDs COMPLETE**
 **Feature Breakdown** (each can be developed independently):
-- ✅ **Player Count Management** **COMPLETE** - Dynamic field generation based on player count input
+- ✅ **Player Count Management** **COMPLETE** - Dynamic field generation based on player count input *(Bug fix applied Sept 29: resolved array expansion issue in dynamic field generation)*
 - [ ] **Mafia Count Validation** - Ratio validation preventing impossible game configurations
 - [ ] **Player Name Input System** - Name collection with blank prevention and duplicate support
 
@@ -222,6 +222,19 @@ src/
   - Established `postcss.config.js` with tailwindcss and autoprefixer plugins
 - **Impact**: Provides consistent, mobile-optimized styling foundation for all future components
 - **Dependencies**: tailwindcss@3.4.17, postcss@8.5.6, autoprefixer@10.4.21
+
+### Player Count Management Bug Fix (September 29, 2025)
+- ✅ **Dynamic field generation bug resolved** in `usePlayerCountManager` hook
+- **Issue**: Array expansion logic failed when increasing player count after decreasing (e.g., 1→2 players)
+- **Root cause**: Using `array.length = count` for expansion creates undefined slots instead of proper array elements
+- **Solution**: Implemented explicit expansion logic with `while` loop and `push('')` for new slots
+- **Technical changes**:
+  - Modified `updatePlayerCount` function in `src/hooks/usePlayerCountManager.js`
+  - Replaced `newNames.length = count` with conditional expansion/truncation logic
+  - Ensured all array positions contain string values (empty or filled)
+- **Testing**: Verified 1→2, 1→5, 5→2 player count transitions work correctly
+- **Impact**: Resolves critical UX issue ensuring dynamic name fields appear correctly for all count changes
+- **Commit**: `ea1d8c5` on branch `copilot/fix-f5bd74f4-9954-48c6-91fd-fff2ad648c27`
 
 ## Project Automation
 - GitHub Actions workflow added for automated issue creation:
