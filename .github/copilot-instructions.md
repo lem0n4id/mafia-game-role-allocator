@@ -412,6 +412,32 @@ npm run format:check # Check if code is properly formatted
 - **Performance verification**: Optimized rendering for 10+ fields with smooth transitions confirmed, real-time validation updates maintaining <200ms response times, bundle size within performance budgets validated
 - **Integration readiness**: Foundation fully prepared for seamless integration with Mafia Count Validation feature, all API contracts and component interfaces stable and documented
 
+### Mafia Count Validation implementation completed (September 29, 2025)
+- ✅ **Second Input & Validation feature complete** - Comprehensive Mafia count validation with edge case handling
+- **Hook Implementation**: Created `useMafiaCountValidation` custom hook for real-time validation against player count
+- **Component Implementation**: Built `MafiaCountValidator` component with error/warning states and mobile optimization
+- **Validation System**: Real-time validation preventing invalid ratios (Mafia ≥ players), immediate feedback <100ms
+- **Edge Case Handling**: Supports 0 Mafia and almost-all-Mafia scenarios with warning messages and confirmation flow
+- **Dynamic Revalidation**: Auto-adjusts validation when player count changes, maintains valid state
+- **Error Messaging**: Clear, actionable error messages with proper accessibility (ARIA labels, screen reader support)
+- **Mobile Responsiveness**: 44px touch targets, warning/error styling visible on small screens, no layout shifts
+- **Integration**: Combined validation state in App.jsx supporting both player names and Mafia count validation
+- **Performance**: Efficient validation with useMemo/useCallback optimizations, memoized validation calculations
+- **File structure**: Added `src/hooks/useMafiaCountValidation.js`, `src/components/MafiaCountValidator.jsx`
+- **Bundle impact**: +3.3KB JS (11.66KB total), +0.75KB CSS (13.18KB total), still under performance budgets
+
+### UI Layout Integration improvement (September 29, 2025)
+- ✅ **Component integration enhanced** - Mafia Count Validator moved to optimal position in user workflow
+- **Layout Restructure**: Modified PlayerCountManager to accept `mafiaCountSection` render prop for seamless integration
+- **User Experience**: Improved flow from Player Count → Mafia Count → Individual Player Names
+- **Component Architecture**: Implemented render prop pattern for clean component composition
+- **App.jsx Changes**: Integrated MafiaCountValidator as prop within PlayerCountManager component
+- **PlayerCountManager Enhancement**: Added `mafiaCountSection` prop with PropTypes validation
+- **Positioning**: Mafia count section now appears between player count input and dynamic name fields
+- **Code Quality**: Applied Prettier formatting, maintained all existing functionality and validation
+- **Visual Hierarchy**: More logical progression through game setup process
+- **Impact**: Improved user experience with cohesive form flow and better semantic grouping
+
 ## 📝 **DOCUMENTATION ENFORCEMENT (Detailed Checklist)**
 
 **This section provides the detailed checklist referenced in the mandatory protocol at the top of this file.**
