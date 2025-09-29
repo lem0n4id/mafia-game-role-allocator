@@ -5,7 +5,7 @@ import { TOUCH_TARGETS, MOBILE_UTILS } from '../utils/mobileLayout.js';
 
 /**
  * CounterControl component
- * Touch-optimized counter with ↓ N ↑ layout for mobile interactions
+ * Touch-optimized counter with ← N → layout for mobile interactions
  * Provides immediate visual feedback and accessibility compliance
  */
 const CounterControl = React.memo(({
@@ -45,74 +45,13 @@ const CounterControl = React.memo(({
   return (
     <div 
       className={`
-        flex flex-col items-center space-y-1
+        flex flex-row items-center space-x-1
         ${className}
       `}
       role="group"
       aria-label={label}
     >
-      {/* Increment Button (↑) */}
-      <button
-        type="button"
-        onClick={handleIncrementClick}
-        disabled={disabled || !canIncrement}
-        className={`
-          ${TOUCH_TARGETS.minimum}
-          flex items-center justify-center
-          border-2 rounded-lg
-          ${MOBILE_UTILS.touchManipulation}
-          font-bold text-lg
-          transition-all duration-150
-          focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1
-          ${
-            disabled || !canIncrement
-              ? 'border-gray-200 text-gray-300 bg-gray-50 cursor-not-allowed'
-              : 'border-gray-300 text-gray-700 bg-white hover:bg-gray-50 active:bg-gray-100 hover:border-gray-400'
-          }
-        `}
-        aria-label={`Increase ${label}`}
-        aria-disabled={disabled || !canIncrement}
-      >
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          aria-hidden="true"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-            d="M5 15l7-7 7 7"
-          />
-        </svg>
-      </button>
-
-      {/* Value Display */}
-      <div
-        className={`
-          ${TOUCH_TARGETS.minimum}
-          flex items-center justify-center
-          border-2 rounded-lg
-          text-lg font-medium
-          bg-gray-50 border-gray-200
-          ${disabled ? 'text-gray-400' : 'text-gray-900'}
-        `}
-        tabIndex="0"
-        role="spinbutton"
-        aria-valuemin={min}
-        aria-valuemax={max}
-        aria-valuenow={value}
-        aria-label={`${label}: ${value}`}
-        aria-describedby={ariaDescribedBy}
-        onKeyDown={handleKeyDown}
-        id={id}
-      >
-        {value}
-      </div>
-
-      {/* Decrement Button (↓) */}
+      {/* Decrement Button (←) */}
       <button
         type="button"
         onClick={handleDecrementClick}
@@ -145,7 +84,68 @@ const CounterControl = React.memo(({
             strokeLinecap="round"
             strokeLinejoin="round"
             strokeWidth="2"
-            d="M19 9l-7 7-7-7"
+            d="M15 19l-7-7 7-7"
+          />
+        </svg>
+      </button>
+
+      {/* Value Display */}
+      <div
+        className={`
+          ${TOUCH_TARGETS.minimum}
+          flex items-center justify-center
+          border-2 rounded-lg
+          text-lg font-medium
+          bg-gray-50 border-gray-200
+          ${disabled ? 'text-gray-400' : 'text-gray-900'}
+        `}
+        tabIndex="0"
+        role="spinbutton"
+        aria-valuemin={min}
+        aria-valuemax={max}
+        aria-valuenow={value}
+        aria-label={`${label}: ${value}`}
+        aria-describedby={ariaDescribedBy}
+        onKeyDown={handleKeyDown}
+        id={id}
+      >
+        {value}
+      </div>
+
+      {/* Increment Button (→) */}
+      <button
+        type="button"
+        onClick={handleIncrementClick}
+        disabled={disabled || !canIncrement}
+        className={`
+          ${TOUCH_TARGETS.minimum}
+          flex items-center justify-center
+          border-2 rounded-lg
+          ${MOBILE_UTILS.touchManipulation}
+          font-bold text-lg
+          transition-all duration-150
+          focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1
+          ${
+            disabled || !canIncrement
+              ? 'border-gray-200 text-gray-300 bg-gray-50 cursor-not-allowed'
+              : 'border-gray-300 text-gray-700 bg-white hover:bg-gray-50 active:bg-gray-100 hover:border-gray-400'
+          }
+        `}
+        aria-label={`Increase ${label}`}
+        aria-disabled={disabled || !canIncrement}
+      >
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M9 5l7 7-7 7"
           />
         </svg>
       </button>
