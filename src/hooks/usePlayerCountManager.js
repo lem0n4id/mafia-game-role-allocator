@@ -26,8 +26,18 @@ export const usePlayerCountManager = (initialCount = 5, initialNames = []) => {
 
     setNames(prev => {
       const newNames = [...prev];
-      newNames.length = count; // Resize array to new count
-      return newNames.map(name => name || ''); // Fill empty slots
+      
+      // If expanding array, add empty strings for new slots
+      while (newNames.length < count) {
+        newNames.push('');
+      }
+      
+      // If shrinking array, truncate to new count
+      if (newNames.length > count) {
+        newNames.length = count;
+      }
+      
+      return newNames;
     });
   }, []);
 
