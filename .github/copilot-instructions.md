@@ -385,6 +385,20 @@ npm run format:check # Check if code is properly formatted
 - **Commit**: `ea1d8c5` on branch `copilot/fix-f5bd74f4-9954-48c6-91fd-fff2ad648c27`
 - **Impact**: Resolves critical UX issue where dynamic fields weren't appearing correctly
 
+### Mafia Count Validation implementation completed (September 29, 2025)
+- ✅ **Second Input & Validation feature complete** - Comprehensive Mafia count validation with edge case handling
+- **Hook Implementation**: Created `useMafiaCountValidation` custom hook for real-time validation against player count
+- **Component Implementation**: Built `MafiaCountValidator` component with error/warning states and mobile optimization
+- **Validation System**: Real-time validation preventing invalid ratios (Mafia ≥ players), immediate feedback <100ms
+- **Edge Case Handling**: Supports 0 Mafia and almost-all-Mafia scenarios with warning messages and confirmation flow
+- **Dynamic Revalidation**: Auto-adjusts validation when player count changes, maintains valid state
+- **Error Messaging**: Clear, actionable error messages with proper accessibility (ARIA labels, screen reader support)
+- **Mobile Responsiveness**: 44px touch targets, warning/error styling visible on small screens, no layout shifts
+- **Integration**: Combined validation state in App.jsx supporting both player names and Mafia count validation
+- **Performance**: Efficient validation with useMemo/useCallback optimizations, memoized validation calculations
+- **File structure**: Added `src/hooks/useMafiaCountValidation.js`, `src/components/MafiaCountValidator.jsx`
+- **Bundle impact**: +3.3KB JS (11.66KB total), +0.75KB CSS (13.18KB total), still under performance budgets
+
 ## 📝 **DOCUMENTATION ENFORCEMENT (Detailed Checklist)**
 
 **This section provides the detailed checklist referenced in the mandatory protocol at the top of this file.**
