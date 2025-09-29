@@ -1,49 +1,45 @@
+import { useState } from 'react';
+import PlayerCountManager from './components/PlayerCountManager.jsx';
+
 function App() {
+  const [playerCount, setPlayerCount] = useState(5);
+  const [playerNames, setPlayerNames] = useState([]);
+  const [validation, setValidation] = useState({ isValid: false });
+
   return (
-    <div className="min-h-screen flex flex-col p-4 max-w-2xl mx-auto text-center md:p-8">
-      <header className="py-8">
+    <div className="min-h-screen flex flex-col p-4 max-w-2xl mx-auto md:p-8">
+      <header className="py-8 text-center">
         <h1 className="text-2xl md:text-4xl font-bold mb-4 text-gray-800">
           Mafia Game Role Allocator
         </h1>
         <p className="text-lg text-gray-600 max-w-md mx-auto">
-          A minimal, mobile-first role allocation system for Mafia games.
+          Configure your game by entering player count and names.
         </p>
       </header>
 
-      <main className="flex-1 flex items-center justify-center">
-        <div className="max-w-md">
-          <h2 className="text-xl font-semibold mb-4 text-gray-700">
-            Welcome to the Setup
-          </h2>
-          <p className="mb-6 text-gray-600">
-            This foundational React 18 + Vite application is ready for feature
-            development.
-          </p>
+      <main className="flex-1">
+        <div className="max-w-lg mx-auto">
+          <PlayerCountManager
+            initialCount={5}
+            onCountChange={setPlayerCount}
+            onNamesChange={setPlayerNames}
+            onValidationChange={setValidation}
+          />
 
-          <div className="text-left space-y-2">
-            <p className="text-sm text-green-700">
-              ✅ React 18 functional components
-            </p>
-            <p className="text-sm text-green-700">✅ Vite build system</p>
-            <p className="text-sm text-green-700">✅ Hot module replacement</p>
-            <p className="text-sm text-green-700">
-              ✅ Mobile-first architecture ready
-            </p>
-            <p className="text-sm text-green-700">
-              ✅ Tailwind CSS v3.4.17 integrated
-            </p>
-            <p className="text-sm text-green-700">
-              ✅ PostCSS + Autoprefixer configured
-            </p>
-            <p className="text-sm text-green-700">
-              ✅ Mobile-first breakpoints (sm:640px, md:768px, lg:1024px)
-            </p>
-          </div>
+          {/* Debug info for development */}
+          {import.meta.env.DEV && (
+            <div className="mt-8 p-4 bg-gray-100 rounded-lg text-sm">
+              <h4 className="font-medium mb-2">Debug Info:</h4>
+              <p>Player Count: {playerCount}</p>
+              <p>Names: {JSON.stringify(playerNames)}</p>
+              <p>Valid: {validation.isValid ? 'Yes' : 'No'}</p>
+            </div>
+          )}
         </div>
       </main>
 
-      <footer className="p-4 text-gray-500 text-sm">
-        <p>Ready for feature implementation</p>
+      <footer className="p-4 text-gray-500 text-sm text-center">
+        <p>Player Count Management • Ready for Role Allocation</p>
       </footer>
     </div>
   );

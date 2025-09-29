@@ -99,8 +99,47 @@ export default {
 ## Code Organization Principles
 
 ### Component Architecture
-**Follow the simplified component pattern:**
-[UPDATE THIS WHEN ENCOUNTERED]
+**Follow the simplified component pattern established by PlayerCountManager:**
+
+```jsx
+// Custom hook pattern for state management
+export const useCustomHook = (initialParam = defaultValue) => {
+  const [state, setState] = useState(initialParam);
+  
+  const updateFunction = useCallback((newValue) => {
+    // Validation and transformation logic
+    const validValue = Math.max(min, Math.min(max, parseInt(newValue) || defaultValue));
+    setState(validValue);
+  }, []);
+  
+  const validation = useMemo(() => {
+    // Compute validation state
+    return { isValid: someCondition, errors: {} };
+  }, [state]);
+  
+  return { state, updateFunction, validation };
+};
+
+// Component pattern with prop communication
+const FeatureComponent = ({ onStateChange, onValidationChange }) => {
+  const { state, updateFunction, validation } = useCustomHook();
+  
+  // Notify parent of changes
+  React.useEffect(() => {
+    onStateChange?.(state);
+  }, [state, onStateChange]);
+  
+  React.useEffect(() => {
+    onValidationChange?.(validation);
+  }, [validation, onValidationChange]);
+  
+  return (
+    <div className="space-y-6">
+      {/* Form sections with proper labeling */}
+    </div>
+  );
+};
+```
 
 ### **📋 File Organization Checklist**
 
@@ -210,7 +249,7 @@ npm run format:check # Check if code is properly formatted
 - Architecture specs added for all phases (1–6) and Alternative / Edge Cases under `docs/ways-of-work/plan/*/arch.md`.
 - ✅ **Feature breakdown completed for ALL epics** into implementable features:
   - **Setup & Project Scaffolding:** 4 features (✅ Vite React, Tailwind, Dev Tooling, Mobile Optimization)
-  - **Input & Validation:** 3 features (Player Count Management, Mafia Count Validation, Player Name Input System)
+  - **Input & Validation:** 3 features (✅ Player Count Management, Mafia Count Validation, Player Name Input System)
   - **Role Allocation:** 3 features (Allocation Confirmation Flow, Role Assignment Engine, Re-allocation System)  
   - **Role Display & Reveal:** 3 features (Card List Interface, Role Reveal Dialog, Sequential Order Enforcement)
   - **Reset & Re-Allocate:** 1 feature (Reset Button System)
@@ -239,6 +278,7 @@ npm run format:check # Check if code is properly formatted
   - Used to generate all 18 implementation plans with consistent technical specifications
 - ✅ **IMPLEMENTATION STARTED** - Vite React Project Initialization complete with working React 18 application foundation
 - ✅ **IMPLEMENTATION CONTINUED** - Tailwind CSS Integration complete with utility-first styling and mobile-first responsive design
+- ✅ **FIRST FEATURE COMPLETE** - Player Count Management implemented with dynamic field generation and validation
 
 ## 📋 **Architectural Decisions Log**
 
@@ -320,6 +360,30 @@ npm run format:check # Check if code is properly formatted
 - **Code Quality**: Automated React best practices enforcement, immediate feedback loops established
 - **File structure**: Added .prettierrc, .editorconfig, .prettierignore configuration files
 - **Ready for integration**: Professional development workflow prepared for Tailwind CSS and Mobile Optimization features
+
+### Player Count Management implementation completed (September 29, 2025)
+- ✅ **First Input & Validation feature complete** - Dynamic player count management with real-time field generation
+- **Hook Implementation**: Created `usePlayerCountManager` custom hook for state management with player count (1-30) and names array
+- **Component Implementation**: Built `PlayerCountManager` component with responsive UI, validation feedback, and accessibility
+- **Dynamic Field Management**: Automatic generation/removal of name input fields based on player count changes
+- **Value Preservation**: Existing player names preserved when count decreases, new empty fields added when count increases
+- **Validation System**: Real-time validation with completion counter, visual status indicators, and error messaging
+- **Mobile Responsiveness**: 44px touch targets, responsive layout for 375px+ widths, no horizontal scrolling
+- **Performance**: Efficient re-rendering with useCallback/useMemo optimizations, under 100ms response time
+- **Accessibility**: Proper ARIA labeling, error announcements, focus management, and semantic HTML
+- **Integration**: Component replaces App.jsx placeholder, provides foundation for Mafia Count Validation feature
+- **File structure**: Added `src/hooks/usePlayerCountManager.js`, `src/components/PlayerCountManager.jsx`
+- **Bundle impact**: +4.28KB JS (8.33KB total), +1.76KB CSS (12.36KB total), still under performance budgets
+
+### Player Count Management bug fix (September 29, 2025)
+- ✅ **Dynamic field generation bug resolved** - Fixed array expansion logic in usePlayerCountManager hook
+- **Issue**: Player count decrease to 1, then increase to 2+ wasn't properly generating additional input fields
+- **Root Cause**: Array expansion using `array.length = count` doesn't handle expansion from smaller arrays
+- **Solution**: Replaced with explicit `while` loop using `push('')` for expansion and proper truncation for shrinking
+- **Implementation**: Updated `updatePlayerCount` function with robust array resize logic
+- **Testing**: Verified 1→2, 1→5, 5→2 player count transitions work correctly
+- **Commit**: `ea1d8c5` on branch `copilot/fix-f5bd74f4-9954-48c6-91fd-fff2ad648c27`
+- **Impact**: Resolves critical UX issue where dynamic fields weren't appearing correctly
 
 ## 📝 **DOCUMENTATION ENFORCEMENT (Detailed Checklist)**
 
