@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { usePlayerCountManager } from '../hooks/usePlayerCountManager.js';
+import CounterControl from './CounterControl.jsx';
 
 /**
  * PlayerCountManager component
@@ -39,20 +40,10 @@ const PlayerCountManager = ({
   }, [validation, onValidationChange]);
 
   /**
-   * Handle player count input changes with validation
+   * Handle player count changes from CounterControl
    */
-  const handleCountChange = e => {
-    const value = e.target.value;
-    // Allow empty input for user convenience
-    if (value === '') {
-      updatePlayerCount(1);
-      return;
-    }
-
-    const numValue = parseInt(value);
-    if (!isNaN(numValue)) {
-      updatePlayerCount(numValue);
-    }
+  const handleCountChange = (newValue) => {
+    updatePlayerCount(newValue);
   };
 
   /**
@@ -80,32 +71,28 @@ const PlayerCountManager = ({
         >
           Number of Players
         </label>
-        <input
-          id="playerCount"
-          type="number"
-          min="1"
-          max="30"
-          value={playerCount}
-          onChange={handleCountChange}
-          className={`
-            w-full h-12 px-4
-            border-2 rounded-lg
-            text-lg font-medium
-            touch-manipulation
-            focus:outline-none
-            transition-colors duration-200
-            ${
-              validation.validCount
-                ? 'border-gray-300 focus:border-blue-500'
-                : 'border-red-300 focus:border-red-500'
-            }
-          `}
-          aria-describedby={validation.errors.count ? 'count-error' : undefined}
-        />
+        <div className="flex justify-center">
+          <CounterControl
+            id="playerCount"
+            value={playerCount}
+            min={1}
+            max={30}
+            onChange={handleCountChange}
+            label="Number of Players"
+            aria-describedby={validation.errors.count ? 'count-error' : undefined}
+            className={`
+              ${
+                validation.validCount
+                  ? ''
+                  : 'ring-2 ring-red-300'
+              }
+            `}
+          />
+        </div>
         {validation.errors.count && (
           <p
             id="count-error"
-            className="mt-1 text-sm text-red-600"
+            className="mt-2 text-sm text-red-600 text-center"
             role="alert"
           >
             {validation.errors.count}

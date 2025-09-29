@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { useMafiaCountValidation } from '../hooks/useMafiaCountValidation.js';
+import CounterControl from './CounterControl.jsx';
 
 /**
  * MafiaCountValidator component
@@ -26,20 +27,10 @@ const MafiaCountValidator = ({
   }, [validation, onValidationChange]);
 
   /**
-   * Handle Mafia count input changes with validation
+   * Handle Mafia count changes from CounterControl
    */
-  const handleMafiaCountChange = e => {
-    const value = e.target.value;
-    // Allow empty input for user convenience
-    if (value === '') {
-      updateMafiaCount(0);
-      return;
-    }
-
-    const numValue = parseInt(value);
-    if (!isNaN(numValue)) {
-      updateMafiaCount(numValue);
-    }
+  const handleMafiaCountChange = (newValue) => {
+    updateMafiaCount(newValue);
   };
 
   // Determine when to show error/warning messages
@@ -56,42 +47,38 @@ const MafiaCountValidator = ({
         >
           Number of Mafia Players
         </label>
-        <input
-          id="mafiaCount"
-          type="number"
-          min="0"
-          max={Math.max(0, playerCount - 1)}
-          value={mafiaCount}
-          onChange={handleMafiaCountChange}
-          className={`
-            w-full h-12 px-4
-            border-2 rounded-lg
-            text-lg font-medium
-            touch-manipulation
-            focus:outline-none
-            transition-colors duration-200
-            ${
+        <div className="flex justify-center">
+          <CounterControl
+            id="mafiaCount"
+            value={mafiaCount}
+            min={0}
+            max={Math.max(0, playerCount - 1)}
+            onChange={handleMafiaCountChange}
+            label="Number of Mafia Players"
+            aria-describedby={
               shouldShowError
-                ? 'border-red-300 focus:border-red-500'
+                ? 'mafia-error'
                 : shouldShowWarning
-                  ? 'border-yellow-300 focus:border-yellow-500'
-                  : 'border-gray-300 focus:border-blue-500'
+                  ? 'mafia-warning'
+                  : undefined
             }
-          `}
-          aria-describedby={
-            shouldShowError
-              ? 'mafia-error'
-              : shouldShowWarning
-                ? 'mafia-warning'
-                : undefined
-          }
-        />
+            className={`
+              ${
+                shouldShowError
+                  ? 'ring-2 ring-red-300'
+                  : shouldShowWarning
+                    ? 'ring-2 ring-yellow-300'
+                    : ''
+              }
+            `}
+          />
+        </div>
 
         {/* Error Messages */}
         {shouldShowError && (
           <p
             id="mafia-error"
-            className="mt-1 text-sm text-red-600"
+            className="mt-2 text-sm text-red-600 text-center"
             role="alert"
           >
             {validation.error}
@@ -102,7 +89,7 @@ const MafiaCountValidator = ({
         {shouldShowWarning && (
           <p
             id="mafia-warning"
-            className="mt-1 text-sm text-yellow-600"
+            className="mt-2 text-sm text-yellow-600 text-center"
             role="alert"
           >
             <span className="inline-flex items-center">
