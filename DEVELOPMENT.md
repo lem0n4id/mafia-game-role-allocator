@@ -65,7 +65,7 @@ npm run format:check # Check if files are properly formatted
 - ✅ **Architecture specs added** for all phases (1–6) and Alternative / Edge Cases under `docs/ways-of-work/plan/*/arch.md`.
 - ✅ **Feature PRDs created** for ALL epics, broken down into 18 implementable features:
   - **Setup & Project Scaffolding (4 features)**: ✅ Vite React, ✅ Development Tooling, Tailwind Integration, Mobile Optimization
-  - **Input & Validation (3 features)**: Player Count Management, Mafia Count Validation, Player Name Input System  
+  - **Input & Validation (3 features)**: ✅ Player Count Management, Mafia Count Validation, Player Name Input System  
   - **Role Allocation (3 features)**: Allocation Confirmation Flow, Role Assignment Engine, Re-allocation System
   - **Role Display & Reveal (3 features)**: Card List Interface, Role Reveal Dialog, Sequential Order Enforcement
   - **Reset & Re-Allocate (1 feature)**: Reset Button System
@@ -132,7 +132,7 @@ src/
 
 ### Phase 2: Input & Validation ✅ **Feature PRDs COMPLETE**
 **Feature Breakdown** (each can be developed independently):
-- [ ] **Player Count Management** - Dynamic field generation based on player count input
+- ✅ **Player Count Management** **COMPLETE** - Dynamic field generation based on player count input
 - [ ] **Mafia Count Validation** - Ratio validation preventing impossible game configurations
 - [ ] **Player Name Input System** - Name collection with blank prevention and duplicate support
 
