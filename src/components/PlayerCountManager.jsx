@@ -18,8 +18,10 @@ const PlayerCountManager = ({
     playerCount,
     names,
     validation,
+    touchedFields,
     updatePlayerCount,
     updatePlayerName,
+    markFieldTouched,
   } = usePlayerCountManager(initialCount, initialNames);
 
   // Notify parent components of changes
@@ -57,6 +59,14 @@ const PlayerCountManager = ({
    */
   const handleNameChange = (index, value) => {
     updatePlayerName(index, value);
+    markFieldTouched(index);
+  };
+
+  /**
+   * Handle field blur events to mark as touched
+   */
+  const handleFieldBlur = (index) => {
+    markFieldTouched(index);
   };
 
   return (
@@ -107,56 +117,132 @@ const PlayerCountManager = ({
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-medium text-gray-900">Player Names</h3>
           <div className="text-sm text-gray-600">
-            {names.filter(name => name.trim()).length} of {playerCount}{' '}
-            completed
+            {validation.completedCount} of {playerCount} completed
           </div>
         </div>
 
-        <div className="space-y-3">
-          {names.map((name, index) => (
-            <div key={index}>
-              <label
-                htmlFor={`player-${index}`}
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Player {index + 1}
-              </label>
-              <input
-                id={`player-${index}`}
-                type="text"
-                value={name}
-                onChange={e => handleNameChange(index, e.target.value)}
-                placeholder={`Enter name for Player ${index + 1}`}
-                className={`
-                  w-full h-12 px-4
-                  border-2 rounded-lg
-                  touch-manipulation
-                  focus:outline-none
-                  transition-colors duration-200
-                  ${
-                    name.trim() || !validation.hasBlankNames
-                      ? 'border-gray-300 focus:border-blue-500'
-                      : 'border-red-300 focus:border-red-500'
-                  }
-                `}
-                aria-describedby={
-                  validation.hasBlankNames && !name.trim()
-                    ? 'names-error'
-                    : undefined
-                }
-              />
-            </div>
-          ))}
+        {/* Progress Bar */}
+        <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
+          <div 
+            className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+            style={{ width: `${validation.completionRate * 100}%` }}
+          />
         </div>
 
-        {validation.errors.names && (
-          <p
-            id="names-error"
-            className="mt-2 text-sm text-red-600"
+        <div className="space-y-3">
+          {names.map((name, index) => {
+            const hasError = validation.blankFields.includes(index) && touchedFields.has(index);
+            const isCompleted = validation.completedFields.includes(index);
+            
+            return (
+              <div key={index} className="relative">
+                <label
+                  htmlFor={`player-${index}`}
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Player {index + 1}
+                  {hasError && (
+                    <span className="text-red-600 ml-1" aria-label="required">*</span>
+                  )}
+                </label>
+                
+                <div className="relative">
+                  <input
+                    id={`player-${index}`}
+                    type="text"
+                    value={name}
+                    onChange={e => handleNameChange(index, e.target.value)}
+                    onBlur={() => handleFieldBlur(index)}
+                    placeholder={`Enter name for Player ${index + 1}`}
+                    className={`
+                      w-full h-12 px-4 pr-10
+                      border-2 rounded-lg
+                      touch-manipulation
+                      focus:outline-none
+                      transition-colors duration-200
+                      ${
+                        hasError
+                          ? 'border-red-500 focus:border-red-500 bg-red-50'
+                          : isCompleted
+                          ? 'border-green-500 focus:border-blue-500 bg-green-50'
+                          : 'border-gray-300 focus:border-blue-500'
+                      }
+                    `}
+                    aria-describedby={
+                      hasError ? `error-${index}` : undefined
+                    }
+                  />
+                  
+                  {/* Status Icon */}
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                    {isCompleted ? (
+                      <svg 
+                        className="w-5 h-5 text-green-500" 
+                        fill="currentColor" 
+                        viewBox="0 0 20 20"
+                        aria-label="completed"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    ) : hasError ? (
+                      <svg 
+                        className="w-5 h-5 text-red-500" 
+                        fill="currentColor" 
+                        viewBox="0 0 20 20"
+                        aria-label="error"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v3a1 1 0 102 0V6a1 1 0 00-1-1z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    ) : null}
+                  </div>
+                </div>
+                
+                {/* Field-specific error message */}
+                {hasError && (
+                  <div 
+                    id={`error-${index}`}
+                    className="mt-1 text-sm text-red-600"
+                    role="alert"
+                  >
+                    Player {index + 1} name is required
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Global validation summary */}
+        {validation.hasBlankNames && touchedFields.size > 0 && (
+          <div 
+            className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg"
             role="alert"
+            aria-live="polite"
           >
-            {validation.errors.names}
-          </p>
+            <div className="flex items-center">
+              <svg className="w-5 h-5 text-red-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  fillRule="evenodd"
+                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v3a1 1 0 102 0V6a1 1 0 00-1-1z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              <span className="text-sm text-red-800 font-medium">
+                {validation.errors.message}
+              </span>
+            </div>
+            <p className="text-sm text-red-700 mt-1">
+              All players need names before roles can be allocated.
+            </p>
+          </div>
         )}
       </div>
 
@@ -185,7 +271,7 @@ const PlayerCountManager = ({
                   clipRule="evenodd"
                 />
               </svg>
-              Ready to allocate roles
+              All player names completed! Ready to allocate roles.
             </>
           ) : (
             <>
