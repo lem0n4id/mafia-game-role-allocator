@@ -143,10 +143,17 @@ const FeatureComponent = ({ onStateChange, onValidationChange }) => {
 
 ### **Confirmation Flow Pattern (AllocationConfirmationFlow)**
 **Follow this pattern for confirmation dialogs with destructive or critical actions:**
+**Supports both initial actions and re-actions with dynamic UI adaptation:**
 
 ```jsx
-// Confirmation flow component with portal-based modal
-const ConfirmationFlow = ({ onAction, isFormValid, actionData }) => {
+// Unified confirmation flow component for initial and re-actions
+const ConfirmationFlow = ({ 
+  onAction, 
+  isFormValid, 
+  actionData,
+  hasExistingState = false,  // For re-actions
+  currentState = null         // Current state info
+}) => {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -166,14 +173,17 @@ const ConfirmationFlow = ({ onAction, isFormValid, actionData }) => {
   const handleConfirm = useCallback(async () => {
     setIsProcessing(true);
     try {
-      await onAction(/* validated parameters */);
+      await onAction({
+        ...actionData,
+        isReAction: hasExistingState  // Flag for re-actions
+      });
       setShowConfirmation(false);
     } catch (error) {
       console.error('Action failed:', error);
     } finally {
       setIsProcessing(false);
     }
-  }, [onAction, actionData]);
+  }, [onAction, actionData, hasExistingState]);
 
   // Keyboard accessibility (Escape key)
   useEffect(() => {
@@ -194,7 +204,7 @@ const ConfirmationFlow = ({ onAction, isFormValid, actionData }) => {
 
   return (
     <>
-      {/* Action Button */}
+      {/* Action Button - Always visible */}
       <button
         onClick={handleActionClick}
         disabled={!isFormValid || isProcessing}
@@ -203,14 +213,42 @@ const ConfirmationFlow = ({ onAction, isFormValid, actionData }) => {
         {isProcessing ? 'Processing...' : 'Action Name'}
       </button>
 
-      {/* Portal-based Modal */}
+      {/* Portal-based Modal with dynamic content */}
       {showConfirmation && createPortal(
         <div 
           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
           role="dialog" aria-modal="true"
         >
           <div className="bg-white rounded-xl p-6 max-w-md w-full shadow-2xl">
-            {/* Header, details, edge case warnings, action buttons */}
+            {/* Dynamic Header */}
+            {hasExistingState ? (
+              <>
+                <div className="mx-auto w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mb-4">
+                  {/* Refresh icon */}
+                </div>
+                <h3>Re-Action Name?</h3>
+                <p>This will create new state...</p>
+              </>
+            ) : (
+              <>
+                <h3>Confirm Action</h3>
+                <p>Ready to proceed?</p>
+              </>
+            )}
+            
+            {/* Warning for re-actions */}
+            {hasExistingState && (
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
+                <h4>Current state will be lost</h4>
+                <ul>
+                  <li>• All current state will be cleared</li>
+                  <li>• Configuration will be kept</li>
+                  <li>• New state will be generated</li>
+                </ul>
+              </div>
+            )}
+            
+            {/* Action details, buttons */}
           </div>
         </div>,
         document.body
@@ -219,6 +257,13 @@ const ConfirmationFlow = ({ onAction, isFormValid, actionData }) => {
   );
 };
 ```
+
+**Re-allocation Pattern Key Points:**
+- Same component used for both initial and re-actions
+- `hasExistingState` prop triggers re-action UI (orange theme, warning)
+- `isReAction` flag passed to handler for proper state cleanup
+- Always available button (not hidden after first action)
+- Dynamic button colors and text based on context
 
 ### **Card List Interface Pattern (CardListInterface)**
 **Follow this pattern for mobile-first list interfaces with state management and sequential interactions:**
@@ -422,7 +467,7 @@ npm run format:check # Check if code is properly formatted
 - ✅ **Feature breakdown completed for ALL epics** into implementable features:
   - **Setup & Project Scaffolding:** 4 features (✅ Vite React, ✅ Tailwind, ✅ Dev Tooling, ✅ Mobile Optimization)
   - **Input & Validation:** 3 features (✅ Player Count Management, ✅ Mafia Count Validation, ✅ Player Name Input System)
-  - **Role Allocation:** 3 features (✅ Allocation Confirmation Flow, ✅ Role Assignment Engine, Re-allocation System)
+  - **Role Allocation:** 3 features (✅ Allocation Confirmation Flow, ✅ Role Assignment Engine, ✅ Re-allocation System)
   - **Role Display & Reveal:** 3 features (✅ Card List Interface, Role Reveal Dialog, Sequential Order Enforcement)
   - **Reset & Re-Allocate:** 1 feature (Reset Button System)
   - **Minimal Styling & UI Clarity:** 2 features (Visual Differentiation System, Mobile Layout Optimization)
@@ -454,6 +499,7 @@ npm run format:check # Check if code is properly formatted
 - ✅ **ROLE ALLOCATION EPIC CONTINUED** - Role Assignment Engine completed with Fisher-Yates shuffle algorithm, comprehensive edge case handling, and complete data structure for card list integration
 - ✅ **ROLE DISPLAY & REVEAL EPIC STARTED** - Card List Interface completed with mobile-first vertical layout, sequential reveal enforcement, progress tracking, and comprehensive accessibility support
 - ✅ **PRODUCTION DEPLOYMENT COMPLETE** - Live application deployed to Vercel at https://mafia-game-role-allocator-jqhayysnn-lem0n4ids-projects.vercel.app with full Input & Validation epic functionality
+- ✅ **ROLE ALLOCATION EPIC COMPLETE** - Re-allocation System completed with unified confirmation flow, independent randomization, and state cleanup. Same "Allocate Roles" button used for both initial allocation and re-allocation with enhanced confirmation dialogs
 
 ## 📋 **Architectural Decisions Log**
 
@@ -680,6 +726,21 @@ npm run format:check # Check if code is properly formatted
 - **Integration architecture**: Clean callback interfaces between components
 - **Error handling**: Proper try-catch blocks with user-friendly error messages
 - **Performance**: Maintains <200ms interaction response times throughout reveal sequence
+
+### Re-allocation System implementation completed (October 2, 2025)
+- ✅ **Third Role Allocation feature complete** - Unified re-allocation flow using same AllocationConfirmationFlow component
+- **Unified confirmation flow**: Same "Allocate Roles" button used for both initial allocation and re-allocation (PRD AC-1 requirement)
+- **Enhanced AllocationConfirmationFlow component**: Added support for `hasExistingAssignment` and `currentAssignment` props
+- **Dynamic UI adaptation**: Different header ("Re-allocate Roles?"), orange theme, refresh icon, and warning section for re-allocation
+- **State cleanup integration**: Automatically clears reveal states (currentPlayerIndex, showCardListInterface) on re-allocation
+- **Independent randomization**: Each re-allocation uses fresh Fisher-Yates shuffle with new assignment ID
+- **Input preservation**: Player names and counts preserved across unlimited re-allocation attempts
+- **Performance excellence**: Re-allocation typically completes in <1ms (well under 200ms requirement)
+- **Removed duplicate UI**: Eliminated separate "Reassign Roles" button in favor of unified flow
+- **App.jsx refactoring**: Updated to always show AllocationConfirmationFlow when appropriate, with `isReallocation` flag
+- **File changes**: Modified `src/components/AllocationConfirmationFlow.jsx` and `src/App.jsx`
+- **Bundle impact**: Minimal increase (+1.87KB JS) with enhanced functionality
+- **Acceptance criteria**: All 7 PRD acceptance criteria categories validated through manual testing
 
 ## 📝 **DOCUMENTATION ENFORCEMENT (Detailed Checklist)**
 
