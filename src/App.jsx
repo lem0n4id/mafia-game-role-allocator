@@ -2,6 +2,7 @@ import { useState } from 'react';
 import PlayerCountManager from './components/PlayerCountManager.jsx';
 import MafiaCountValidator from './components/MafiaCountValidator.jsx';
 import AllocationConfirmationFlow from './components/AllocationConfirmationFlow.jsx';
+import CardListInterface from './components/CardListInterface.jsx';
 import { useRoleAssignment } from './hooks/useRoleAssignment.js';
 
 function App() {
@@ -14,7 +15,7 @@ function App() {
     canProceed: true,
   });
 
-  // Role assignment state
+  // Role assignment state (from useRoleAssignment hook)
   const {
     assignment,
     isAssigning,
@@ -28,21 +29,26 @@ function App() {
     ROLES
   } = useRoleAssignment();
 
+  // Card list reveal state (for sequential reveal interface)
+  const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
+  const [revealInProgress, setRevealInProgress] = useState(false);
+  const [showCardListInterface, setShowCardListInterface] = useState(false);
+
   // Handle allocation confirmation and trigger role assignment
   const handleAllocate = async allocationParams => {
     try {
       console.log('Starting role allocation with params:', allocationParams);
       
-      // Create role assignment using the engine
+      // Create role assignment using the hook
       const newAssignment = await createAssignment(
         allocationParams.playerNames,
         allocationParams.mafiaCount
       );
       
       console.log('Role allocation completed successfully:', {
-        assignmentId: newAssignment.metadata.assignmentId,
-        mafiaPlayers: newAssignment.statistics.mafiaNames,
-        villagerPlayers: newAssignment.statistics.villagerNames,
+        assignmentId: newAssignment?.metadata?.assignmentId,
+        mafiaPlayers: statistics?.mafiaNames,
+        villagerPlayers: statistics?.villagerNames,
         hasEdgeCases,
         edgeCaseInfo
       });
@@ -53,11 +59,58 @@ function App() {
     }
   };
 
+  // Handle switching to card list reveal interface
+  const handleStartReveal = () => {
+    if (assignment) {
+      setShowCardListInterface(true);
+      setCurrentPlayerIndex(0);
+      setRevealInProgress(false);
+      console.log('Switched to card list reveal interface');
+    }
+  };
+
+  // Handle player role reveal (for card list interface)
+  const handlePlayerReveal = async ({ playerName, playerIndex }) => {
+    if (revealInProgress || !assignment) return;
+    
+    console.log(`Revealing role for ${playerName} (index: ${playerIndex})`);
+    setRevealInProgress(true);
+    
+    try {
+      // Get the player's role
+      const player = assignment.players[playerIndex];
+      const role = player.role;
+      
+      // Show role in a dialog
+      const roleMessage = `${playerName}, your role is: ${role}`;
+      const acknowledged = window.confirm(`${roleMessage}\n\nTap OK when you have seen your role, then pass the device to the next player.`);
+      
+      if (acknowledged) {
+        // Update assignment with revealed player
+        // Note: We'll track reveal state locally for the card list interface
+        // The role assignment engine's revealPlayer function could be used here
+        // if we had a way to update the assignment state from the hook
+        
+        // Advance to next player if not at the end
+        if (playerIndex < assignment.players.length - 1) {
+          setCurrentPlayerIndex(playerIndex + 1);
+        }
+        
+        console.log(`Role revealed for ${playerName}: ${role}`);
+      }
+    } catch (error) {
+      console.error('Role reveal failed:', error);
+    } finally {
+      setRevealInProgress(false);
+    }
+  };
+
   // Handle re-allocation (reassign with same players/mafia count)
   const handleReassign = async () => {
     try {
       console.log('Re-allocating roles with same parameters');
       await reassignRoles();
+      setShowCardListInterface(false); // Return to assignment view
       console.log('Re-allocation completed successfully');
     } catch (error) {
       console.error('Re-allocation failed:', error);
@@ -67,6 +120,9 @@ function App() {
   // Handle reset - clear assignment and return to input mode
   const handleReset = () => {
     clearAssignment();
+    setShowCardListInterface(false);
+    setCurrentPlayerIndex(0);
+    setRevealInProgress(false);
     console.log('Assignment cleared - returned to input mode');
   };
 
@@ -88,7 +144,9 @@ function App() {
         </h1>
         <p className="text-lg text-gray-600 max-w-md mx-auto">
           {assignment 
-            ? 'Roles have been assigned! View the assignment details below.'
+            ? (showCardListInterface 
+                ? 'Reveal your roles in order. Only the current player can reveal.'
+                : 'Roles have been assigned! View assignment details or start revealing.')
             : 'Configure your game by entering player count and names.'}
         </p>
       </header>
@@ -137,6 +195,32 @@ function App() {
                 </div>
               )}
             </>
+          ) : showCardListInterface ? (
+            // Card List Reveal Phase
+            <>
+              <CardListInterface
+                assignment={assignment}
+                currentPlayerIndex={currentPlayerIndex}
+                onPlayerReveal={handlePlayerReveal}
+                revealInProgress={revealInProgress}
+              />
+              
+              {/* Navigation Buttons */}
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  onClick={() => setShowCardListInterface(false)}
+                  className="flex-1 h-12 bg-gray-600 text-white rounded-lg font-medium hover:bg-gray-700 touch-manipulation"
+                >
+                  Back to Assignment
+                </button>
+                <button
+                  onClick={handleReset}
+                  className="flex-1 h-12 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 touch-manipulation"
+                >
+                  Reset Game
+                </button>
+              </div>
+            </>
           ) : (
             // Assignment Results Phase
             <div className="space-y-6">
@@ -151,19 +235,19 @@ function App() {
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <span className="font-medium text-green-700">Total Players:</span>
-                    <span className="text-green-800 ml-1">{statistics.totalPlayers}</span>
+                    <span className="text-green-800 ml-1">{statistics?.totalPlayers}</span>
                   </div>
                   <div>
                     <span className="font-medium text-green-700">Assignment ID:</span>
-                    <span className="text-green-800 ml-1 font-mono text-xs">{statistics.assignmentId.slice(-8)}</span>
+                    <span className="text-green-800 ml-1 font-mono text-xs">{statistics?.assignmentId?.slice(-8)}</span>
                   </div>
                   <div>
                     <span className="font-medium text-red-700">Mafia Players:</span>
-                    <span className="text-red-800 ml-1">{statistics.mafiaCount}</span>
+                    <span className="text-red-800 ml-1">{statistics?.mafiaCount}</span>
                   </div>
                   <div>
                     <span className="font-medium text-blue-700">Villagers:</span>
-                    <span className="text-blue-800 ml-1">{statistics.villagerCount}</span>
+                    <span className="text-blue-800 ml-1">{statistics?.villagerCount}</span>
                   </div>
                 </div>
               </div>
@@ -218,21 +302,29 @@ function App() {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex flex-col gap-3">
                 <button
-                  onClick={handleReassign}
-                  disabled={isAssigning}
-                  className="flex-1 h-12 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
+                  onClick={handleStartReveal}
+                  className="w-full h-12 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 touch-manipulation"
                 >
-                  {isAssigning ? 'Reassigning...' : 'Reassign Roles'}
+                  Start Revealing Roles
                 </button>
-                <button
-                  onClick={handleReset}
-                  disabled={isAssigning}
-                  className="flex-1 h-12 bg-gray-600 text-white rounded-lg font-medium hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
-                >
-                  Reset Game
-                </button>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <button
+                    onClick={handleReassign}
+                    disabled={isAssigning}
+                    className="flex-1 h-12 bg-orange-600 text-white rounded-lg font-medium hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
+                  >
+                    {isAssigning ? 'Reassigning...' : 'Reassign Roles'}
+                  </button>
+                  <button
+                    onClick={handleReset}
+                    disabled={isAssigning}
+                    className="flex-1 h-12 bg-gray-600 text-white rounded-lg font-medium hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
+                  >
+                    Reset Game
+                  </button>
+                </div>
               </div>
             </div>
           )}
@@ -250,9 +342,12 @@ function App() {
               <p>Overall Valid: {overallValidation.isValid ? 'Yes' : 'No'}</p>
               <p>Has Assignment: {assignment ? 'Yes' : 'No'}</p>
               <p>Is Assigning: {isAssigning ? 'Yes' : 'No'}</p>
+              <p>Show Card List: {showCardListInterface ? 'Yes' : 'No'}</p>
+              <p>Current Player: {currentPlayerIndex}</p>
+              <p>Reveal In Progress: {revealInProgress ? 'Yes' : 'No'}</p>
               {assignment && (
                 <>
-                  <p>Assignment ID: {statistics.assignmentId}</p>
+                  <p>Assignment ID: {statistics?.assignmentId}</p>
                   <p>Has Edge Cases: {hasEdgeCases ? 'Yes' : 'No'}</p>
                   {edgeCaseInfo && <p>Edge Case: {edgeCaseInfo.type}</p>}
                 </>
@@ -265,7 +360,9 @@ function App() {
       <footer className="p-4 text-gray-500 text-sm text-center">
         <p>
           {assignment 
-            ? `Role Allocation Complete • ${statistics.mafiaCount} Mafia vs ${statistics.villagerCount} Villagers`
+            ? (showCardListInterface 
+                ? `Role Reveal • ${assignment.players.filter(p => p.revealed).length}/${assignment.players.length} revealed`
+                : `Role Allocation Complete • ${statistics?.mafiaCount} Mafia vs ${statistics?.villagerCount} Villagers`)
             : `Input & Validation • ${overallValidation.isValid ? 'Ready for Role Allocation' : 'Complete all fields to proceed'}`}
         </p>
       </footer>
