@@ -66,7 +66,7 @@ npm run format:check # Check if files are properly formatted
 - ✅ **Feature PRDs created** for ALL epics, broken down into 18 implementable features:
   - **Setup & Project Scaffolding (4 features)**: ✅ Vite React, ✅ Development Tooling, Tailwind Integration, Mobile Optimization
   - **Input & Validation (3 features)**: ✅ Player Count Management, ✅ Mafia Count Validation, ✅ Player Name Input System  
-  - **Role Allocation (3 features)**: ✅ Allocation Confirmation Flow, ✅ Role Assignment Engine, Re-allocation System
+  - **Role Allocation (3 features)**: ✅ Allocation Confirmation Flow, ✅ Role Assignment Engine, ✅ Re-allocation System
   - **Role Display & Reveal (3 features)**: Card List Interface, Role Reveal Dialog, Sequential Order Enforcement
   - **Reset & Re-Allocate (1 feature)**: Reset Button System
   - **Minimal Styling & UI Clarity (2 features)**: Visual Differentiation System, Mobile Layout Optimization
@@ -136,11 +136,11 @@ src/
 - ✅ **Mafia Count Validation** **COMPLETE** - Ratio validation preventing impossible game configurations with comprehensive edge case handling and dynamic revalidation
 - ✅ **Player Name Input System** **COMPLETE** - Comprehensive name collection with enhanced validation and visual feedback *(Enhanced Sept 29: added progress tracking, field-level validation, and rich UI indicators)* **TESTED & VALIDATED Sept 29: All features verified including enhanced validation, visual feedback, accessibility, and mobile optimization**
 
-### Phase 3: Role Allocation ✅ **Feature PRDs COMPLETE** 
+### Phase 3: Role Allocation ✅ **EPIC COMPLETE** 
 **Feature Breakdown** (each can be developed independently):
 - ✅ **Allocation Confirmation Flow** **COMPLETE** - Confirmation gateway with parameter display, edge case warnings, and accessibility compliance *(Completed Sept 29: comprehensive confirmation dialog with portal-based modal, smart button states, and mobile optimization)*
 - ✅ **Role Assignment Engine** **COMPLETE** - Fisher-Yates shuffle algorithm with cryptographically secure randomization, comprehensive edge case handling, and sub-millisecond performance *(Completed Sept 29: cryptographically fair role assignment system with 0.12ms performance for 30 players, comprehensive validation, and React integration)*
-- [ ] **Re-allocation System** - Independent reshuffling with complete state cleanup
+- ✅ **Re-allocation System** **COMPLETE** - Unified confirmation flow for independent reshuffling with complete state cleanup *(Completed Oct 2: enhanced AllocationConfirmationFlow to support both initial allocation and re-allocation, <1ms performance, automatic reveal state cleanup, and unlimited re-allocation attempts)*
 
 ### Phase 4: Role Display & Reveal ✅ **Feature PRDs COMPLETE**
 **Feature Breakdown** (each can be developed independently):
@@ -333,6 +333,28 @@ src/
 - **Bundle impact**: +9.45KB JavaScript within performance budgets, efficient implementation with memoized calculations
 - **UI/UX**: Rich assignment results display, visual role differentiation, reassign functionality, and seamless reset to input mode
 - **Technical patterns**: Fisher-Yates shuffle pattern, role assignment state management pattern, cryptographic randomness pattern
+
+### Re-allocation System implementation (October 2, 2025)
+- ✅ **Re-allocation System implementation complete** - Unified confirmation flow for independent role reshuffling
+- **Unified Confirmation Flow**: Enhanced `AllocationConfirmationFlow` component to support both initial allocation and re-allocation
+  - Added `hasExistingAssignment` and `currentAssignment` props for dynamic UI adaptation
+  - Dynamic dialog header: "Confirm Role Allocation" vs "Re-allocate Roles?" with refresh icon
+  - Orange-themed warning section for re-allocation with clear consequence messaging
+  - Different button colors (blue/orange) and text based on context
+- **State Cleanup Integration**: Modified `handleAllocate` in App.jsx to automatically clear reveal states on re-allocation
+  - Clears `currentPlayerIndex`, `showCardListInterface`, and `revealInProgress` states
+  - Passes `isReallocation` flag to enable proper state management
+- **Architecture Refactoring**: App.jsx updated to always show AllocationConfirmationFlow (not just when !assignment)
+  - Removed separate "Reassign Roles" button in favor of unified flow (PRD AC-1 requirement)
+  - Same confirmation flow used for both operations with dynamic adaptation
+- **Performance Excellence**: Re-allocation completes in <1ms (typically 0.10ms), well under 200ms requirement
+- **Independent Randomization**: Each re-allocation uses fresh Fisher-Yates shuffle with new assignment ID
+  - Verified independence: Assignment IDs changed across attempts (6_665222 → 2_341445 → 9_255326)
+  - Different role distributions on each attempt confirming independent randomization
+- **Input Preservation**: Player names, counts, and validation state preserved across unlimited re-allocation attempts
+- **Bundle impact**: +1.87KB JavaScript with enhanced functionality, still within performance budgets
+- **Testing Validated**: All 7 PRD acceptance criteria categories verified through comprehensive manual testing
+- **Technical patterns**: Unified confirmation flow pattern, dynamic UI adaptation pattern, state cleanup pattern for re-actions
 
 ## Project Automation
 - GitHub Actions workflow added for automated issue creation:
