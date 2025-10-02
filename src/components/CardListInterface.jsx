@@ -94,38 +94,38 @@ const CardListInterface = ({
             style={{ width: `${progress.percentage}%` }}
           />
         </div>
-        
-        {/* Current Player Indicator - Prominent with ARIA live region */}
-        {currentPlayerIndex < cardStates.length && progress.completed < progress.total && (
-          <div 
-            className="bg-blue-50 border-2 border-blue-500 rounded-lg p-4 shadow-md"
-            role="status"
-            aria-live="polite"
-            aria-atomic="true"
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <div className="w-3 h-3 bg-blue-600 rounded-full mr-3 animate-pulse" />
-                <div>
-                  <span className="text-base font-bold text-blue-900">
-                    {cardStates[currentPlayerIndex]?.isRevealed 
-                      ? `Current: ${cardStates[currentPlayerIndex].name}`
-                      : `Next: ${cardStates[currentPlayerIndex].name}`}
-                  </span>
-                  <p className="text-xs text-blue-700 mt-0.5">
-                    {cardStates[currentPlayerIndex]?.isRevealed 
-                      ? 'Tap card to see role again'
-                      : 'Tap card below to reveal role'}
-                  </p>
-                </div>
-              </div>
-              <div className="text-sm font-medium text-blue-700 bg-blue-100 rounded-full px-3 py-1">
-                {currentPlayerIndex + 1} of {cardStates.length}
+      </div>
+      
+      {/* Current Player Indicator - Sticky at top with enhanced visibility */}
+      {currentPlayerIndex < cardStates.length && progress.completed < progress.total && (
+        <div 
+          className="sticky top-0 z-10 -mx-4 px-4 py-3 bg-blue-50 border-2 border-blue-500 rounded-lg shadow-lg backdrop-blur-sm bg-opacity-95"
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center min-w-0 flex-1">
+              <div className="w-3 h-3 bg-blue-600 rounded-full mr-3 flex-shrink-0 animate-pulse" />
+              <div className="min-w-0 flex-1">
+                <span className="text-base font-bold text-blue-900 block truncate">
+                  {cardStates[currentPlayerIndex]?.isRevealed 
+                    ? `Current: ${cardStates[currentPlayerIndex].name}`
+                    : `Next: ${cardStates[currentPlayerIndex].name}`}
+                </span>
+                <p className="text-xs text-blue-700 mt-0.5 truncate">
+                  {cardStates[currentPlayerIndex]?.isRevealed 
+                    ? 'Tap card to see role again'
+                    : 'Tap card below to reveal role'}
+                </p>
               </div>
             </div>
+            <div className="text-sm font-medium text-blue-700 bg-blue-100 rounded-full px-3 py-1 ml-3 flex-shrink-0">
+              {currentPlayerIndex + 1} of {cardStates.length}
+            </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Player Cards */}
       <div className="space-y-3">
