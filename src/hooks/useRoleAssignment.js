@@ -137,6 +137,26 @@ export const useRoleAssignment = () => {
   }, [assignment]);
 
   /**
+   * Mark a player as revealed
+   */
+  const markPlayerRevealed = useCallback((playerIndex) => {
+    if (!assignment) return;
+    
+    setAssignment(prevAssignment => {
+      const updatedPlayers = prevAssignment.players.map((player, index) => 
+        index === playerIndex 
+          ? { ...player, revealed: true }
+          : player
+      );
+      
+      return {
+        ...prevAssignment,
+        players: updatedPlayers
+      };
+    });
+  }, [assignment]);
+
+  /**
    * Check if assignment has edge cases
    */
   const hasEdgeCases = useMemo(() => {
@@ -196,6 +216,7 @@ export const useRoleAssignment = () => {
     createAssignment,
     reassignRoles,
     clearAssignment,
+    markPlayerRevealed,
     
     // Utilities
     getPlayer,

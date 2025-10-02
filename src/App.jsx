@@ -3,7 +3,9 @@ import PlayerCountManager from './components/PlayerCountManager.jsx';
 import MafiaCountValidator from './components/MafiaCountValidator.jsx';
 import AllocationConfirmationFlow from './components/AllocationConfirmationFlow.jsx';
 import CardListInterface from './components/CardListInterface.jsx';
+import RoleRevealDialog from './components/RoleRevealDialog.jsx';
 import { useRoleAssignment } from './hooks/useRoleAssignment.js';
+import { useRoleRevealDialog } from './hooks/useRoleRevealDialog.js';
 
 function App() {
   const [playerCount, setPlayerCount] = useState(5);
@@ -25,13 +27,22 @@ function App() {
     edgeCaseInfo,
     createAssignment,
     clearAssignment,
+    markPlayerRevealed,
     ROLES
   } = useRoleAssignment();
 
   // Card list reveal state (for sequential reveal interface)
   const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
-  const [revealInProgress, setRevealInProgress] = useState(false);
   const [showCardListInterface, setShowCardListInterface] = useState(false);
+
+  // Dialog state (from useRoleRevealDialog hook)
+  const {
+    isOpen: isDialogOpen,
+    currentPlayer: dialogPlayer,
+    openDialog,
+    closeDialog,
+    handleRevealComplete
+  } = useRoleRevealDialog();
 
   // Handle allocation confirmation and trigger role assignment
   const handleAllocate = async allocationParams => {
@@ -43,7 +54,7 @@ function App() {
       if (isReallocation) {
         setShowCardListInterface(false);
         setCurrentPlayerIndex(0);
-        setRevealInProgress(false);
+        closeDialog();
         console.log('Cleared reveal states for re-allocation');
       }
       
@@ -72,45 +83,43 @@ function App() {
     if (assignment) {
       setShowCardListInterface(true);
       setCurrentPlayerIndex(0);
-      setRevealInProgress(false);
       console.log('Switched to card list reveal interface');
     }
   };
 
   // Handle player role reveal (for card list interface)
-  const handlePlayerReveal = async ({ playerName, playerIndex }) => {
-    if (revealInProgress || !assignment) return;
+  const handlePlayerReveal = ({ playerName, playerIndex }) => {
+    if (isDialogOpen || !assignment) return;
     
-    console.log(`Revealing role for ${playerName} (index: ${playerIndex})`);
-    setRevealInProgress(true);
+    console.log(`Opening reveal dialog for ${playerName} (index: ${playerIndex})`);
     
-    try {
-      // Get the player's role
-      const player = assignment.players[playerIndex];
-      const role = player.role;
+    // Get the player's data
+    const player = assignment.players[playerIndex];
+    
+    // Open the reveal dialog
+    openDialog(player);
+  };
+
+  // Handle when player closes the dialog after viewing their role
+  const handleDialogClose = () => {
+    if (!dialogPlayer) return;
+    
+    const playerIndex = assignment.players.findIndex(p => p.id === dialogPlayer.id);
+    
+    if (playerIndex !== -1) {
+      // Mark player as revealed in the assignment
+      markPlayerRevealed(playerIndex);
       
-      // Show role in a dialog
-      const roleMessage = `${playerName}, your role is: ${role}`;
-      const acknowledged = window.confirm(`${roleMessage}\n\nTap OK when you have seen your role, then pass the device to the next player.`);
-      
-      if (acknowledged) {
-        // Update assignment with revealed player
-        // Note: We'll track reveal state locally for the card list interface
-        // The role assignment engine's revealPlayer function could be used here
-        // if we had a way to update the assignment state from the hook
-        
-        // Advance to next player if not at the end
-        if (playerIndex < assignment.players.length - 1) {
-          setCurrentPlayerIndex(playerIndex + 1);
-        }
-        
-        console.log(`Role revealed for ${playerName}: ${role}`);
+      // Advance to next player if not at the end
+      if (playerIndex < assignment.players.length - 1) {
+        setCurrentPlayerIndex(playerIndex + 1);
       }
-    } catch (error) {
-      console.error('Role reveal failed:', error);
-    } finally {
-      setRevealInProgress(false);
+      
+      console.log(`Role revealed for ${dialogPlayer.name}: ${dialogPlayer.role}`);
     }
+    
+    // Close the dialog
+    closeDialog();
   };
 
 
@@ -120,7 +129,7 @@ function App() {
     clearAssignment();
     setShowCardListInterface(false);
     setCurrentPlayerIndex(0);
-    setRevealInProgress(false);
+    closeDialog();
     console.log('Assignment cleared - returned to input mode');
   };
 
@@ -332,7 +341,15 @@ function App() {
                 assignment={assignment}
                 currentPlayerIndex={currentPlayerIndex}
                 onPlayerReveal={handlePlayerReveal}
-                revealInProgress={revealInProgress}
+                revealInProgress={isDialogOpen}
+              />
+              
+              {/* Role Reveal Dialog */}
+              <RoleRevealDialog
+                isOpen={isDialogOpen}
+                player={dialogPlayer}
+                onClose={handleDialogClose}
+                onRevealComplete={handleRevealComplete}
               />
               
               {/* Navigation Buttons */}
@@ -368,7 +385,7 @@ function App() {
               <p>Is Assigning: {isAssigning ? 'Yes' : 'No'}</p>
               <p>Show Card List: {showCardListInterface ? 'Yes' : 'No'}</p>
               <p>Current Player: {currentPlayerIndex}</p>
-              <p>Reveal In Progress: {revealInProgress ? 'Yes' : 'No'}</p>
+              <p>Dialog Open: {isDialogOpen ? 'Yes' : 'No'}</p>
               {assignment && (
                 <>
                   <p>Assignment ID: {statistics?.assignmentId}</p>
