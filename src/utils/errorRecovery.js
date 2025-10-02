@@ -157,6 +157,18 @@ export const generateErrorMessages = (errorClassification) => {
 export const validateApplicationState = (state) => {
   const issues = [];
 
+  // Early guard: check if state exists and is an object
+  if (!state || typeof state !== 'object') {
+    issues.push({
+      type: 'MISSING_STATE',
+      message: 'Application state is missing or invalid'
+    });
+    return {
+      isValid: false,
+      issues
+    };
+  }
+
   // Validate player assignments
   if (state.assignment) {
     if (!Array.isArray(state.assignment.players)) {
