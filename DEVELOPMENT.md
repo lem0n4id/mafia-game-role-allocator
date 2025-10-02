@@ -91,27 +91,39 @@ npm run format:check # Check if files are properly formatted
   - **Security and performance** optimization with deployment architecture
   - Used to generate all 18 implementation plans with consistent technical standards
 
-## Project Structure (suggested)
+## Project Structure (current implementation)
 
+```
 ```
 src/
 ├── components/
-│   ├── InputForm.jsx        # Players count, Mafia count, dynamic name inputs
-│   ├── CardsList.jsx        # Vertical list of player cards
-│   ├── RevealDialog.jsx     # Single active reveal/close dialog
-│   ├── HeaderCue.jsx        # Current player cue at top
-│   └── FooterReset.jsx      # Reset button after allocation
+│   ├── PlayerCountManager.jsx       # Dynamic player count with touch controls and name fields
+│   ├── MafiaCountValidator.jsx      # Mafia count validation with touch controls
+│   ├── CounterControl.jsx           # Touch-optimized counter component (← N →)
+│   ├── AllocationConfirmationFlow.jsx  # Role allocation confirmation dialog
+│   ├── CardListInterface.jsx        # Mobile-first card list with sequential reveal
+│   ├── RoleRevealDialog.jsx         # Private role viewing modal with two-step flow
+│   ├── ResetButtonSystem.jsx        # Reset functionality with confirmation dialog
+│   └── ErrorBoundary.jsx            # Error recovery system for runtime protection
 ├── hooks/
-│   ├── useValidation.js     # Blank names, mafia < players, warnings
-│   ├── useAllocation.js     # Confirmation + random role assignment (shuffle)
-│   └── useRevealFlow.js     # Enforce strict order, one open dialog
+│   ├── usePlayerCountManager.js     # Player count and names state management
+│   ├── useMafiaCountValidation.js   # Mafia count validation logic
+│   ├── useCounterControl.js         # Counter control state management with boundaries
+│   ├── useRoleAssignment.js         # Role assignment engine with Fisher-Yates shuffle
+│   ├── useRoleRevealDialog.js       # Role reveal dialog state management
+│   └── useDebounce.js               # Debounce utilities for double-tap protection
 ├── utils/
-│   ├── shuffle.js           # Fisher–Yates shuffle
-│   ├── mobileLayout.js      # Mobile-first responsive patterns and utilities
-│   └── performance.js       # Performance monitoring and mobile optimization
-├── styles/                  # CSS files and mobile-specific patterns
-│   └── mobile.css           # Touch-optimized styles and mobile utilities
-└── App.jsx                  # Compose screens/flows
+│   ├── mobileLayout.js              # Mobile-first responsive patterns and touch targets
+│   ├── performance.js               # Performance monitoring and mobile optimization
+│   ├── roleAssignmentEngine.js      # Core role assignment logic with validation
+│   ├── designSystem.js              # Centralized design system utilities
+│   ├── edgeCaseValidation.js        # Edge case validation and error handling
+│   ├── errorRecovery.js             # Error recovery strategies and classification
+│   └── debounce.js                  # Debounce and throttle utilities
+├── styles/                          # CSS files and mobile-specific patterns
+```
+│   └── mobile.css                   # Touch-optimized styles and mobile utilities
+└── App.jsx                          # Root application component
 ```
 
 ## Tech Stack
@@ -130,11 +142,12 @@ src/
 - [ ] **Development Tooling** - ESLint, Prettier, npm scripts, code quality enforcement
 - ✅ **Mobile Optimization** **COMPLETE** - Viewport configuration, performance budgets, mobile patterns, network access
 
-### Phase 2: Input & Validation ✅ **Feature PRDs COMPLETE**
+### Phase 2: Input & Validation ✅ **Feature PRDs COMPLETE** ✅ **EPIC COMPLETE**
 **Feature Breakdown** (each can be developed independently):
 - ✅ **Player Count Management** **COMPLETE** - Dynamic field generation based on player count input *(Bug fix applied Sept 29: resolved array expansion issue in dynamic field generation)*
 - ✅ **Mafia Count Validation** **COMPLETE** - Ratio validation preventing impossible game configurations with comprehensive edge case handling and dynamic revalidation
 - ✅ **Player Name Input System** **COMPLETE** - Comprehensive name collection with enhanced validation and visual feedback *(Enhanced Sept 29: added progress tracking, field-level validation, and rich UI indicators)* **TESTED & VALIDATED Sept 29: All features verified including enhanced validation, visual feedback, accessibility, and mobile optimization**
+- ✅ **Touch-Optimized Counter Controls** **COMPLETE** - Custom counter components replacing HTML number inputs with 44px+ touch targets and horizontal layout (← N →) for improved mobile UX *(Implemented Dec 2024: eliminated mobile keyboard dependencies, added boundary enforcement, maintained full accessibility compliance)*
 
 ### Phase 3: Role Allocation ✅ **EPIC COMPLETE** 
 **Feature Breakdown** (each can be developed independently):
@@ -174,9 +187,11 @@ src/
 
 ## State & Logic (guidance)
 - Use React `useState` / `useReducer`; keep all state in memory
-- `useValidation.js`: ensure no blanks; mafia < players; show errors/confirmations
-- `useAllocation.js`: build roles list by mafia count, Fisher–Yates shuffle, map to players
-- `useRevealFlow.js`: index-based enforcement of reveal order; guard against multiple open dialogs
+- `src/hooks/usePlayerCountManager.js`: manage player count (1-30) and names validation; ensure no blanks; show completion status
+- `src/hooks/useMafiaCountValidation.js`: validate mafia count against total players; show errors/confirmations for edge cases
+- `src/hooks/useRoleAssignment.js`: create role assignments using Fisher-Yates shuffle; handle re-allocation and assignment validation
+- `src/hooks/useRoleRevealDialog.js`: manage reveal dialog state and sequential order enforcement; prevent multiple open dialogs
+- `src/hooks/useCounterControl.js`: provide touch-optimized counter controls with boundary validation and accessibility
 
 ## Testing Checklist (minimum)
 - [ ] Happy path: e.g., 8 players, 2 mafia → allocate → reveal sequentially → reset
