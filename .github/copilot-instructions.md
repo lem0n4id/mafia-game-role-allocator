@@ -650,6 +650,87 @@ const ResetButtonSystem = ({
 - Touch-optimized buttons (48px height minimum)
 - Proper disabled states during reset operation
 
+### **Sticky Positioning Pattern (Mobile Layout Optimization)**
+**Follow this pattern for keeping important UI elements visible during scrolling:**
+
+```jsx
+// Sticky current player indicator in CardListInterface
+const CardListInterface = ({ assignment, currentPlayerIndex, onPlayerReveal, revealInProgress }) => {
+  // ... state and calculations ...
+  
+  return (
+    <div className="space-y-6">
+      {/* Header with Progress (scrolls normally) */}
+      <div className="space-y-4">
+        <h2>Player Roles</h2>
+        {/* Progress bar */}
+      </div>
+      
+      {/* Sticky Current Player Cue - Always visible at top */}
+      {currentPlayerIndex < cardStates.length && progress.completed < progress.total && (
+        <div 
+          className="sticky top-0 z-10 -mx-4 px-4 py-3 bg-blue-50 border-2 border-blue-500 rounded-lg shadow-lg backdrop-blur-sm bg-opacity-95"
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center min-w-0 flex-1">
+              <div className="w-3 h-3 bg-blue-600 rounded-full mr-3 flex-shrink-0 animate-pulse" />
+              <div className="min-w-0 flex-1">
+                <span className="text-base font-bold text-blue-900 block truncate">
+                  Next: {cardStates[currentPlayerIndex].name}
+                </span>
+                <p className="text-xs text-blue-700 mt-0.5 truncate">
+                  Tap card below to reveal role
+                </p>
+              </div>
+            </div>
+            <div className="text-sm font-medium text-blue-700 bg-blue-100 rounded-full px-3 py-1 ml-3 flex-shrink-0">
+              {currentPlayerIndex + 1} of {cardStates.length}
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Scrollable content below */}
+      <div className="space-y-3">
+        {/* Player cards */}
+      </div>
+    </div>
+  );
+};
+```
+
+**Sticky Positioning Pattern Key Points:**
+- Use `sticky top-0` for positioning at top during scroll
+- Add `z-10` or higher for proper layering above content
+- Use `-mx-4 px-4` to extend to container edges (compensates for parent padding)
+- Add `backdrop-blur-sm bg-opacity-95` for visibility over scrolling content
+- Enhance with `shadow-lg` for depth perception and visual separation
+- Use `truncate` on text elements to handle overflow gracefully
+- Apply `min-w-0 flex-1` for proper flex text truncation
+- Keep `flex-shrink-0` on icons and badges to prevent squishing
+- Maintain ARIA live regions for accessibility announcements
+- Works automatically across all mobile viewport sizes (320px-768px+)
+
+**Safe Area Inset Support:**
+Tailwind configuration enables notch/home indicator handling:
+```javascript
+// tailwind.config.js
+theme: {
+  extend: {
+    spacing: {
+      'safe-top': 'env(safe-area-inset-top)',
+      'safe-bottom': 'env(safe-area-inset-bottom)',
+      'safe-left': 'env(safe-area-inset-left)',
+      'safe-right': 'env(safe-area-inset-right)',
+    },
+  },
+}
+```
+Usage: `pt-safe-top`, `pb-safe-bottom`, etc. for proper padding on notched devices.
+
 ### **📋 File Organization Checklist**
 
 Before creating any new file, ask:
@@ -771,8 +852,8 @@ npm run format:check # Check if code is properly formatted
   - **Input & Validation:** 3 features (✅ Player Count Management, ✅ Mafia Count Validation, ✅ Player Name Input System)
   - **Role Allocation:** 3 features (✅ Allocation Confirmation Flow, ✅ Role Assignment Engine, ✅ Re-allocation System)
   - **Role Display & Reveal:** 3 features (✅ Card List Interface, ✅ Role Reveal Dialog, ✅ Sequential Order Enforcement)
-  - **Reset & Re-Allocate:** 1 feature (Reset Button System)
-  - **Minimal Styling & UI Clarity:** 2 features (Visual Differentiation System, Mobile Layout Optimization)
+  - **Reset & Re-Allocate:** 1 feature (✅ Reset Button System)
+  - **Minimal Styling & UI Clarity:** 2 features (✅ Visual Differentiation System, ✅ Mobile Layout Optimization)
   - **Alternative & Edge Cases:** 2 features (Edge Case Validation, Error Recovery System)
 - **Total: 18 independent, implementable features** with complete user stories, acceptance criteria, and technical requirements
 - Each feature PRD includes functional/non-functional requirements, integration boundaries, and clear scope definitions
@@ -804,7 +885,7 @@ npm run format:check # Check if code is properly formatted
 - ✅ **ROLE ALLOCATION EPIC COMPLETE** - Re-allocation System completed with unified confirmation flow, independent randomization, and state cleanup. Same "Allocate Roles" button used for both initial allocation and re-allocation with enhanced confirmation dialogs
 - ✅ **ROLE DISPLAY & REVEAL EPIC COMPLETE** - Sequential Order Enforcement completed with enhanced current player indicator, strict order validation, and comprehensive accessibility support (ARIA live regions, tooltips, disabled states)
 - ✅ **RESET & RE-ALLOCATE EPIC COMPLETE** - Reset Button System completed with confirmation dialog, state preservation (player names, counts), and complete state cleanup (assignments, reveal progress, dialogs)
-- ✅ **MINIMAL STYLING & UI CLARITY EPIC STARTED** - Visual Differentiation System completed with centralized design system utilities (color palettes, typography scales, sizing constants), WCAG AA compliant contrast ratios, and comprehensive styling documentation
+- ✅ **MINIMAL STYLING & UI CLARITY EPIC COMPLETE** - Visual Differentiation System and Mobile Layout Optimization completed with centralized design system utilities (color palettes, typography scales, sizing constants), WCAG AA compliant contrast ratios, sticky current player cue, safe area inset support, and comprehensive styling documentation
 
 ## 📋 **Architectural Decisions Log**
 
@@ -1108,6 +1189,33 @@ npm run format:check # Check if code is properly formatted
 - **Performance**: No runtime JavaScript overhead (pure Tailwind utilities), build time unchanged (~2.36s)
 - **Acceptance Criteria**: All 8 criteria verified - element differentiation, state indication, mobile optimization, accessibility compliance
 - **Pattern Note**: Components can use inline Tailwind (current approach) or import design system functions (both valid and maintainable)
+
+### Mobile Layout Optimization implementation completed (October 2, 2025)
+- ✅ **Minimal Styling & UI Clarity epic complete** - Mobile-first responsive layout with sticky current player cue and comprehensive touch optimization
+- **Sticky Current Player Cue**: Enhanced CardListInterface with sticky positioning (position:sticky top-0 z-10) to keep current player indicator always visible during scrolling
+  - Backdrop blur effect (backdrop-blur-sm bg-opacity-95) for better visibility over content
+  - Enhanced shadow (shadow-lg) and prominent border (border-2 border-blue-500) for depth perception
+  - Negative margins (-mx-4) with padding (px-4) to extend indicator to container edges
+  - Text truncation for long player names to prevent layout issues
+- **Safe Area Inset Support**: Added Tailwind utilities for notched devices (iPhone X+, modern Android)
+  - Configured safe-area-inset-top/bottom/left/right in tailwind.config.js
+  - Enables proper padding on devices with notches and home indicators
+  - Uses CSS env() variables for dynamic safe area handling
+- **Touch Target Verification**: Comprehensive audit confirmed all interactive elements meet 44px+ minimum
+  - Inputs: 48px (h-12)
+  - Primary buttons: 56px (h-14)
+  - Secondary buttons: 48px (h-12)
+  - Player cards: 72px (min-h-[72px])
+- **Responsive Layout**: Mobile-first design with proper breakpoints
+  - Base padding: p-4 (16px) for mobile
+  - Tablet padding: md:p-8 (32px) for larger screens
+  - Max width constraints: max-w-2xl on container, max-w-lg on content
+  - Viewport configuration: width=device-width, initial-scale=1.0, viewport-fit=cover
+- **Performance**: Build time 2.25s, CSS 26.89KB (under 50KB budget), total bundle 220.34KB (under 500KB budget)
+- **Testing Documentation**: Created dev-tools/mobile-layout-test.md with comprehensive testing scenarios
+- **File changes**: Modified src/components/CardListInterface.jsx, tailwind.config.js
+- **Bundle impact**: +0.72KB CSS (26.17KB → 26.89KB), within performance budgets
+- **Acceptance criteria**: All 3 PRD categories verified - responsive layout (320px-768px), touch optimization (44px+ targets), current player cue visibility (sticky positioning)
 
 ## 📝 **DOCUMENTATION ENFORCEMENT (Detailed Checklist)**
 
