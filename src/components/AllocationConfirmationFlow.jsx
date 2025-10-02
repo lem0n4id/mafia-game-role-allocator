@@ -6,6 +6,7 @@ import { createPortal } from 'react-dom';
  * AllocationConfirmationFlow component
  * Provides confirmation gateway for role allocation with parameter validation
  * Includes allocation button, confirmation dialog, and edge case handling
+ * Supports both initial allocation and re-allocation with same flow
  */
 const AllocationConfirmationFlow = ({
   playerNames,
@@ -13,6 +14,11 @@ const AllocationConfirmationFlow = ({
   isFormValid,
   onAllocate,
   disabled = false,
+  hasExistingAssignment = false,
+  // currentAssignment is passed but not used in current implementation
+  // Reserved for future enhancement to show revealed count or assignment details
+  // eslint-disable-next-line no-unused-vars
+  currentAssignment = null,
 }) => {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -39,6 +45,7 @@ const AllocationConfirmationFlow = ({
         playerNames: playerNames.filter(name => name.trim()),
         mafiaCount: allocationDetails.mafiaCount,
         villagerCount: allocationDetails.villagerCount,
+        isReallocation: hasExistingAssignment,
       });
       setShowConfirmation(false);
     } catch (error) {
@@ -47,7 +54,7 @@ const AllocationConfirmationFlow = ({
     } finally {
       setIsProcessing(false);
     }
-  }, [onAllocate, playerNames, allocationDetails]);
+  }, [onAllocate, playerNames, allocationDetails, hasExistingAssignment]);
 
   // Handle cancellation
   const handleCancel = useCallback(() => {
@@ -147,19 +154,74 @@ const AllocationConfirmationFlow = ({
             >
               {/* Dialog Header */}
               <div className="text-center mb-6">
-                <h3
-                  id="confirmation-title"
-                  className="text-xl font-bold text-gray-900 mb-2"
-                >
-                  Confirm Role Allocation
-                </h3>
-                <p
-                  id="confirmation-description"
-                  className="text-gray-600"
-                >
-                  Ready to assign roles to all players?
-                </p>
+                {hasExistingAssignment ? (
+                  <>
+                    <div className="mx-auto w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mb-4">
+                      <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                        />
+                      </svg>
+                    </div>
+                    <h3
+                      id="confirmation-title"
+                      className="text-xl font-bold text-gray-900 mb-2"
+                    >
+                      Re-allocate Roles?
+                    </h3>
+                    <p
+                      id="confirmation-description"
+                      className="text-gray-600"
+                    >
+                      This will create new role assignments for all players.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <h3
+                      id="confirmation-title"
+                      className="text-xl font-bold text-gray-900 mb-2"
+                    >
+                      Confirm Role Allocation
+                    </h3>
+                    <p
+                      id="confirmation-description"
+                      className="text-gray-600"
+                    >
+                      Ready to assign roles to all players?
+                    </p>
+                  </>
+                )}
               </div>
+
+              {/* Re-allocation Warning */}
+              {hasExistingAssignment && (
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
+                  <div className="flex items-start">
+                    <svg className="w-5 h-5 text-orange-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path
+                        fillRule="evenodd"
+                        d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    <div>
+                      <h4 className="text-sm font-medium text-orange-800 mb-1">
+                        Current assignments will be lost
+                      </h4>
+                      <ul className="text-sm text-orange-700 space-y-1">
+                        <li>• All current role assignments will be cleared</li>
+                        <li>• Any revealed roles will be reset</li>
+                        <li>• Player names and game settings will be kept</li>
+                        <li>• New random roles will be generated</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Allocation Details */}
               <div className="bg-gray-50 rounded-lg p-4 mb-6 space-y-3">
@@ -253,17 +315,19 @@ const AllocationConfirmationFlow = ({
                   type="button"
                   onClick={handleConfirm}
                   disabled={isProcessing}
-                  className="
-                    flex-1 h-12 px-4 text-white bg-blue-600
-                    hover:bg-blue-700 active:bg-blue-800
-                    rounded-lg font-medium transition-colors
-                    focus:outline-none focus:ring-4 focus:ring-blue-200
-                    touch-manipulation
+                  className={`
+                    flex-1 h-12 px-4 text-white rounded-lg font-medium transition-colors
+                    focus:outline-none focus:ring-4 touch-manipulation
                     disabled:opacity-50 disabled:cursor-not-allowed
-                  "
-                  aria-label="Confirm and start role allocation"
+                    ${hasExistingAssignment 
+                      ? 'bg-orange-600 hover:bg-orange-700 active:bg-orange-800 focus:ring-orange-200' 
+                      : 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800 focus:ring-blue-200'}
+                  `}
+                  aria-label={hasExistingAssignment ? 'Confirm re-allocation' : 'Confirm and start role allocation'}
                 >
-                  {isProcessing ? 'Allocating...' : 'Confirm & Allocate'}
+                  {isProcessing 
+                    ? (hasExistingAssignment ? 'Re-allocating...' : 'Allocating...') 
+                    : (hasExistingAssignment ? 'Re-allocate' : 'Confirm & Allocate')}
                 </button>
               </div>
             </div>
@@ -280,6 +344,8 @@ AllocationConfirmationFlow.propTypes = {
   isFormValid: PropTypes.bool.isRequired,
   onAllocate: PropTypes.func.isRequired,
   disabled: PropTypes.bool,
+  hasExistingAssignment: PropTypes.bool,
+  currentAssignment: PropTypes.object,
 };
 
 export default AllocationConfirmationFlow;
