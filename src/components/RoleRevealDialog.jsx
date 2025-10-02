@@ -42,23 +42,15 @@ const RoleRevealDialog = ({
     }, 150); // Match animation duration
   }, [onClose]);
 
-  // Escape key handler
+  // Background scroll prevention (Escape key handler removed - dialog only closes via buttons)
   useEffect(() => {
-    const handleEscape = (e) => {
-      if (e.key === 'Escape' && isOpen) {
-        handleClose();
-      }
-    };
-
     if (isOpen) {
-      document.addEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'hidden'; // Prevent background scroll
+      document.body.style.overflow = 'hidden';
       return () => {
-        document.removeEventListener('keydown', handleEscape);
         document.body.style.overflow = '';
       };
     }
-  }, [isOpen, handleClose]);
+  }, [isOpen]);
 
   // Focus trap - keep focus within dialog
   useEffect(() => {
@@ -99,13 +91,6 @@ const RoleRevealDialog = ({
     onRevealComplete?.();
   }, [onRevealComplete]);
 
-  // Handle overlay click
-  const handleOverlayClick = useCallback((e) => {
-    if (e.target === e.currentTarget) {
-      handleClose();
-    }
-  }, [handleClose]);
-
   if (!isOpen || !player) return null;
 
   const { name, role } = player;
@@ -118,7 +103,6 @@ const RoleRevealDialog = ({
         transition-opacity duration-150
         ${isClosing ? 'opacity-0' : 'opacity-100'}
       `}
-      onClick={handleOverlayClick}
       role="dialog"
       aria-modal="true"
       aria-labelledby="role-reveal-title"
