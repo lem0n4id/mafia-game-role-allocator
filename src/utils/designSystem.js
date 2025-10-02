@@ -107,7 +107,7 @@ export const SIZING = {
  * Get role-based styling classes
  */
 export const getRoleStyles = (role) => {
-  const roleKey = role?.toLowerCase();
+  const roleKey = role?.toLowerCase?.() || '';
 
   switch (roleKey) {
     case 'mafia':
