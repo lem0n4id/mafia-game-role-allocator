@@ -69,10 +69,11 @@ export const classifyError = (error, errorInfo = {}) => {
   let context = {};
 
   // Classify by error message patterns
-  if (error.message?.includes('state') || error.message?.includes('invalid')) {
-    errorType = ERROR_TYPES.STATE_CORRUPTION;
-  } else if (error.message?.includes('validation') || error.message?.includes('input')) {
+  // Check validation errors first (more specific)
+  if (error.message?.includes('validation') || error.message?.includes('invalid') || error.message?.includes('input')) {
     errorType = ERROR_TYPES.VALIDATION_ERROR;
+  } else if (error.message?.includes('state')) {
+    errorType = ERROR_TYPES.STATE_CORRUPTION;
   } else if (errorInfo.componentStack) {
     errorType = ERROR_TYPES.COMPONENT_ERROR;
     context.componentStack = errorInfo.componentStack;
