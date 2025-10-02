@@ -340,7 +340,10 @@ src/
   - Added `hasExistingAssignment` and `currentAssignment` props for dynamic UI adaptation
   - Dynamic dialog header: "Confirm Role Allocation" vs "Re-allocate Roles?" with refresh icon
   - Orange-themed warning section for re-allocation with clear consequence messaging
-  - Different button colors (blue/orange) and text based on context
+  - **Dynamic button text**: "Allocate Roles" (initial) vs "Re-allocate Roles" (re-allocation)
+  - **Dynamic button colors**: Blue (`bg-blue-600`) for initial allocation, Orange (`bg-orange-600`) for re-allocation
+  - **Processing states**: "Allocating..." vs "Re-allocating..." with matching button colors
+  - Orange color provides clear visual distinction and signals significant/destructive action
 - **State Cleanup Integration**: Modified `handleAllocate` in App.jsx to automatically clear reveal states on re-allocation
   - Clears `currentPlayerIndex`, `showCardListInterface`, and `revealInProgress` states
   - Passes `isReallocation` flag to enable proper state management
@@ -355,6 +358,29 @@ src/
 - **Bundle impact**: +1.87KB JavaScript with enhanced functionality, still within performance budgets
 - **Testing Validated**: All 7 PRD acceptance criteria categories verified through comprehensive manual testing
 - **Technical patterns**: Unified confirmation flow pattern, dynamic UI adaptation pattern, state cleanup pattern for re-actions
+
+### Button Text and Color Enhancement for Re-allocation (January 2025)
+- ✅ **UX Enhancement complete** - Button text and color now dynamically reflect allocation context
+- **Button Text Changes**: 
+  - Initial allocation: "Allocate Roles" → "Allocating..."
+  - Re-allocation: "Re-allocate Roles" → "Re-allocating..."
+  - Provides clear distinction between first-time and subsequent allocations
+- **Button Color Changes**:
+  - Initial allocation: Blue (`bg-blue-600`, `hover:bg-blue-700`, `active:bg-blue-800`)
+  - Re-allocation: Orange (`bg-orange-600`, `hover:bg-orange-700`, `active:bg-orange-800`)
+  - Orange color matches warning theme in confirmation modal
+  - Signals re-allocation as significant/destructive action that clears existing assignments
+- **Implementation Details**:
+  - Modified `src/components/AllocationConfirmationFlow.jsx` button text logic (line 124, 127)
+  - Modified button className to include conditional color based on `hasExistingAssignment` prop
+  - Nested ternary structure: `isFormValid && !isProcessing ? hasExistingAssignment ? orange : blue : disabled`
+- **User Experience Impact**:
+  - Clear visual and textual distinction between allocation and re-allocation
+  - Orange color provides immediate visual feedback about action significance
+  - Consistent theming with orange warning indicators throughout re-allocation flow
+- **Bundle impact**: Minimal (+0.04KB), no new dependencies, pure CSS utility class changes
+- **Accessibility**: Maintained WCAG AA compliance, color contrast ratios meet standards
+- **Commits**: c2110b5 (button text), 6a3c330 (button color)
 
 ## Project Automation
 - GitHub Actions workflow added for automated issue creation:
