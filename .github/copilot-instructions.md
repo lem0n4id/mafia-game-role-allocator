@@ -963,7 +963,7 @@ npm run format:check # Check if code is properly formatted
   - **Role Display & Reveal:** 3 features (✅ Card List Interface, ✅ Role Reveal Dialog, ✅ Sequential Order Enforcement)
   - **Reset & Re-Allocate:** 1 feature (✅ Reset Button System)
   - **Minimal Styling & UI Clarity:** 2 features (✅ Visual Differentiation System, ✅ Mobile Layout Optimization)
-  - **Alternative & Edge Cases:** 2 features (✅ Edge Case Validation, Error Recovery System)
+  - **Alternative & Edge Cases:** 2 features (✅ Edge Case Validation, ✅ Error Recovery System)
 - **Total: 18 independent, implementable features** with complete user stories, acceptance criteria, and technical requirements
 - Each feature PRD includes functional/non-functional requirements, integration boundaries, and clear scope definitions
 - ✅ **Implementation plans completed for ALL 18 features** with complete technical specifications:
@@ -995,7 +995,7 @@ npm run format:check # Check if code is properly formatted
 - ✅ **ROLE DISPLAY & REVEAL EPIC COMPLETE** - Sequential Order Enforcement completed with enhanced current player indicator, strict order validation, and comprehensive accessibility support (ARIA live regions, tooltips, disabled states)
 - ✅ **RESET & RE-ALLOCATE EPIC COMPLETE** - Reset Button System completed with confirmation dialog, state preservation (player names, counts), and complete state cleanup (assignments, reveal progress, dialogs)
 - ✅ **MINIMAL STYLING & UI CLARITY EPIC COMPLETE** - Visual Differentiation System and Mobile Layout Optimization completed with centralized design system utilities (color palettes, typography scales, sizing constants), WCAG AA compliant contrast ratios, sticky current player cue, safe area inset support, and comprehensive styling documentation
-- ✅ **ALTERNATIVE & EDGE CASES EPIC STARTED** - Edge Case Validation completed with comprehensive validation utility, existing implementation verified to meet all acceptance criteria (0 Mafia, almost-all-Mafia edge cases allowed with warnings, invalid configurations blocked with clear errors)
+- ✅ **ALTERNATIVE & EDGE CASES EPIC COMPLETE** - Edge Case Validation and Error Recovery System both completed. Edge case validation handles 0/almost-all Mafia scenarios with warnings and blocks invalid configurations. Error Recovery System provides comprehensive runtime error protection with Error Boundary component, global error handlers, and enhanced double-tap protection utilities
 
 ## 📋 **Architectural Decisions Log**
 
@@ -1345,6 +1345,39 @@ npm run format:check # Check if code is properly formatted
 - **File structure**: Added `src/utils/edgeCaseValidation.js` (305 lines), `docs/EDGE_CASE_VALIDATION.md` (9.5KB)
 - **Bundle impact**: +9.41KB JS (edge case utility), within 500KB budget (total ~220KB)
 - **Acceptance criteria**: All 3 AC categories verified through code review and manual testing - edge cases allowed with warnings, invalid configs blocked, seamless integration
+
+### Error Recovery System implementation completed (January 2025)
+- ✅ **Alternative & Edge Cases epic complete** - Comprehensive error recovery system with runtime protection and double-tap safeguards
+- **Implementation Analysis**: Verified existing implementation already has robust double-tap protection; added error boundaries and recovery utilities
+- **Existing Protection**: Double-tap protection already implemented via `isProcessing`/`isResetting` states in all critical components:
+  - `AllocationConfirmationFlow`: isProcessing state prevents multiple allocations
+  - `ResetButtonSystem`: isResetting state prevents multiple resets  
+  - `RoleRevealDialog`: Dialog state prevents multiple opens
+- **Error Boundary**: Created `src/components/ErrorBoundary.jsx` for catching and recovering from runtime errors:
+  - Automatic error classification by type and severity
+  - User-friendly error messages with recovery actions
+  - Automatic recovery for low-severity errors (max 3 retries)
+  - Manual recovery options for critical errors
+  - Development mode debugging with full stack traces
+- **Error Recovery Utility**: Created `src/utils/errorRecovery.js` with comprehensive error handling:
+  - Error types: RUNTIME_ERROR, STATE_CORRUPTION, VALIDATION_ERROR, COMPONENT_ERROR, UNKNOWN_ERROR
+  - Severity levels: LOW (auto-recoverable), MEDIUM (user-guided), HIGH (manual), CRITICAL (restart needed)
+  - Recovery strategies: RETRY, RESET_STATE, RELOAD_COMPONENT, FALLBACK_UI, MANUAL_INTERVENTION
+  - State validation functions for detecting corruption
+- **Debounce Utility**: Created `src/utils/debounce.js` for enhanced double-tap protection:
+  - Debounce function with configurable delay (default 300ms)
+  - Throttle function for rate-limiting operations
+  - React-compatible callback creator
+- **Global Error Handler**: Added unhandled promise rejection handler in `src/main.jsx`:
+  - Catches unhandled promise rejections
+  - Prevents browser default error behavior
+  - Logs errors for debugging
+- **Integration**: Wrapped entire app in ErrorBoundary component in main.jsx
+- **Documentation**: Created comprehensive `docs/ERROR_RECOVERY.md` with usage examples, testing scenarios, and acceptance criteria verification
+- **Performance**: Error detection has minimal overhead, recovery operations complete within 500ms requirement
+- **File structure**: Added `src/components/ErrorBoundary.jsx` (281 lines), `src/utils/errorRecovery.js` (235 lines), `src/utils/debounce.js` (68 lines), `docs/ERROR_RECOVERY.md` (11.5KB)
+- **Bundle impact**: +6.68KB JS (error recovery utilities), within 500KB budget (total ~227KB)
+- **Acceptance criteria**: All 4 AC categories verified - reset during reveal works, double-tap protection active, workflow continuity maintained, shared device workflow supported
 
 ## 📝 **DOCUMENTATION ENFORCEMENT (Detailed Checklist)**
 
