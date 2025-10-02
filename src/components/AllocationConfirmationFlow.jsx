@@ -95,9 +95,13 @@ const AllocationConfirmationFlow = ({
             focus:outline-none focus:ring-4
             ${
               isFormValid && !disabled && !isProcessing
-                ? `bg-blue-600 hover:bg-blue-700 active:bg-blue-800 
-                   text-white focus:ring-blue-200 
-                   shadow-lg hover:shadow-xl transform hover:scale-[1.02]`
+                ? hasExistingAssignment
+                  ? `bg-orange-600 hover:bg-orange-700 active:bg-orange-800 
+                     text-white focus:ring-orange-200 
+                     shadow-lg hover:shadow-xl transform hover:scale-[1.02]`
+                  : `bg-blue-600 hover:bg-blue-700 active:bg-blue-800 
+                     text-white focus:ring-blue-200 
+                     shadow-lg hover:shadow-xl transform hover:scale-[1.02]`
                 : `bg-gray-300 text-gray-500 cursor-not-allowed 
                    focus:ring-gray-200`
             }
