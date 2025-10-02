@@ -261,7 +261,10 @@ The design system has minimal performance impact:
 
 - **CSS Bundle**: 26.17 KB (1.48 KB increase, well under 50KB budget)
 - **Build Time**: No significant change (~2.36s)
-- **Runtime**: Zero JavaScript overhead (pure Tailwind utilities)
+- **Runtime JavaScript**: 
+  - **Zero overhead** when using pure Tailwind utilities inline (e.g., `className="bg-red-50 border-red-500"`)
+  - **Minimal overhead** when importing helper functions from `designSystem.js` (e.g., `getRoleStyles()`, `getStateStyles()`), which adds runtime code and increases bundle size accordingly
+  - **Recommendation**: Prefer inline Tailwind classes for zero-overhead scenarios when possible
 - **Transitions**: Hardware-accelerated (transform, opacity)
 
 ## Best Practices
