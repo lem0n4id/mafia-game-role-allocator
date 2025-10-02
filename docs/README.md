@@ -13,6 +13,8 @@ Quick links
     - Reset & Re-Allocate
     - Minimal Styling & UI Clarity
     - Alternative & Edge Cases
+- Development Automation
+  - Git Workflow: `.github/prompts/commit.prompt.md` — Automated commit and push with conventional commit standards
 
 Notes
 - Keep docs updated per `.github/copilot-instructions.md` mandatory protocol.

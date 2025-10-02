@@ -405,3 +405,19 @@ src/
     - `epic_issue` (required number)
     - `docs_path` (optional docs folder path; e.g., `docs/ways-of-work/plan/<epic>/<feature>`)
   - Outcome: Creates a Feature issue (inherits Epic milestone if available). If `docs_path` is provided, the issue includes a Docs section that auto-links PRD.md, implementation-plan.md, project-plan.md, and issues-checklist.md when present (case-insensitive). The workflow is intentionally simplified; it no longer auto-creates child issues or comments on the Epic.
+
+### Git Commit Prompt Documentation Enforcement (October 3, 2025)
+- ✅ **Critical documentation enforcement implemented** - Enhanced commit prompt with mandatory documentation protocol
+- **Decision**: Every commit must include corresponding documentation updates to prevent documentation debt
+- **Context**: Project follows documentation-first workflow where architecture changes require immediate documentation updates
+- **Implementation**:
+  - Added mandatory documentation protocol section to `.github/prompts/commit.prompt.md`
+  - Enforced documentation verification before any commit is allowed
+  - Required updates to both `DEVELOPMENT.md` and `copilot-instructions.md` for code changes
+  - Established "zero commits without documentation" policy
+- **Technical changes**:
+  - Enhanced execution steps to include documentation verification step
+  - Updated success criteria to require documentation updates
+  - Added explicit checklist for documentation consistency validation
+- **Impact**: Ensures project documentation remains current and accurate, preventing confusion and technical debt
+- **Enforcement**: All future commits must follow this protocol or be rejected as incomplete

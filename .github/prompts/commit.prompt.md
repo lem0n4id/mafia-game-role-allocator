@@ -53,13 +53,65 @@ When multiple files are changed:
 - **Separate commits** for unrelated changes (docs vs code vs tests)
 - **Use clear scope** to indicate the area of change
 
+## 🚨 CRITICAL: MANDATORY DOCUMENTATION PROTOCOL
+
+### **⚠️ STOP: DOCUMENTATION ENFORCEMENT - NO EXCEPTIONS ⚠️**
+
+**BEFORE COMMITTING ANY CHANGE, YOU MUST COMPLETE THIS CHECKLIST:**
+
+**🔥 MANDATORY DOCUMENTATION UPDATES (NEVER SKIP):**
+
+✅ **1. UPDATE DEVELOPMENT.md:**
+- [ ] Add entry to Architectural Decision Log with implementation details
+- [ ] Update Current Architecture Status section with completed work
+- [ ] Mark completed features/phases with ✅ status
+- [ ] Update file structure documentation if files added/modified
+- [ ] Document any breaking changes or migration steps
+
+✅ **2. UPDATE copilot-instructions.md:**
+- [ ] Update Current Architecture Status section (around line 1100+)
+- [ ] Add/modify relevant code patterns and examples if new patterns introduced
+- [ ] Update component patterns if new architectural patterns added
+- [ ] Add new development guidelines if applicable
+- [ ] Update file organization or maintenance guidelines if structure changed
+
+✅ **3. VALIDATE DOCUMENTATION CONSISTENCY:**
+- [ ] Ensure no conflicting patterns between old and new documentation
+- [ ] Verify all code examples work with current implementation
+- [ ] Check that documentation reflects actual codebase state
+- [ ] Remove or update any deprecated examples or instructions
+
+**🎯 DOCUMENTATION ENFORCEMENT RULES:**
+- **ZERO commits without documentation updates** - Every code change requires corresponding documentation
+- **Documentation commits must be included** - Stage and commit documentation changes alongside code changes
+- **No "documentation debt"** - Documentation must be updated BEFORE committing code changes
+- **Architecture changes require comprehensive documentation** - Any new patterns, components, or utilities must be fully documented
+
+**💥 IF DOCUMENTATION IS NOT UPDATED:**
+- **Your commit is incomplete and must be rejected**
+- **Future developers will be misled by outdated documentation**
+- **Project architecture will deteriorate through inconsistency**
+- **Development velocity will decrease due to confusion and rework**
+
+### **📋 Documentation Checklist Verification:**
+Before proceeding with any commit, ask yourself:
+- ❓ Have I documented this change in DEVELOPMENT.md?
+- ❓ Have I updated copilot-instructions.md if patterns changed?
+- ❓ Could a new team member understand the current state from the docs?
+- ❓ Are there any conflicting or outdated instructions in the documentation?
+
+**If ANY answer is "No" or "Unsure", you MUST update documentation first!**
+
+---
+
 ## Task Instructions
 
 1. **Analyze Changed Files**: Use `get_changed_files` to identify all modified, added, or deleted files
 2. **Categorize Changes**: Group changes by type (code, docs, tests, config, etc.)
-3. **Generate Commit Message**: Create appropriate conventional commit message(s) based on the changes
-4. **Stage and Commit**: Add all changes and commit with the generated message
-5. **Push to Remote**: Push the commit(s) to the remote repository
+3. **🚨 ENFORCE DOCUMENTATION**: Verify documentation has been updated according to mandatory protocol above
+4. **Generate Commit Message**: Create appropriate conventional commit message(s) based on the changes
+5. **Stage and Commit**: Add ALL changes (including documentation) and commit with the generated message
+6. **Push to Remote**: Push the commit(s) to the remote repository
 
 ## Execution Steps
 
@@ -70,25 +122,35 @@ git status --porcelain
 git diff --name-only
 ```
 
-### Step 2: Determine Commit Strategy
-- **Single logical change**: One commit for all related files
-- **Multiple unrelated changes**: Separate commits for different areas
-- **Mixed changes**: Prioritize by impact (code > docs > config)
+### Step 2: 🚨 MANDATORY DOCUMENTATION VERIFICATION
+**CRITICAL: Check if documentation has been updated:**
+- Scan changed files for any code changes (src/, components/, hooks/, utils/)
+- If ANY code changes exist, verify documentation updates in:
+  - `DEVELOPMENT.md` (Architectural Decision Log, Current Architecture Status)
+  - `.github/copilot-instructions.md` (Current Architecture Status, patterns, examples)
+- **REJECT COMMIT** if code changes exist without corresponding documentation updates
+- **REQUIRE** documentation updates before proceeding
 
-### Step 3: Generate Commit Message
+### Step 3: Determine Commit Strategy
+- **Single logical change**: One commit for all related files (including documentation)
+- **Multiple unrelated changes**: Separate commits for different areas (but always include docs)
+- **Mixed changes**: Prioritize by impact (code + docs > config > tests)
+- **Documentation-first**: Always include documentation changes with code changes
+
+### Step 4: Generate Commit Message
 Based on the file analysis:
-- **Source code changes**: `feat:`, `fix:`, `refactor:`, `perf:`
-- **Documentation changes**: `docs:`
+- **Source code changes**: `feat:`, `fix:`, `refactor:`, `perf:` (must include documentation)
+- **Documentation changes**: `docs:` (when updating docs without code changes)
 - **Configuration changes**: `chore:`, `ci:`, `build:`
 - **Test changes**: `test:`
-- **Mixed changes**: Use the most significant change type
+- **Mixed changes**: Use the most significant change type + documentation
 
-### Step 4: Commit and Push
+### Step 5: Commit and Push
 ```bash
-# Stage all changes
+# Stage all changes (including documentation)
 git add .
 
-# Commit with generated message
+# Commit with generated message (must include both code and documentation changes)
 git commit -m "<conventional commit message>"
 
 # Push to remote
@@ -162,10 +224,14 @@ If automatic push fails:
 ## Success Criteria
 
 - ✅ All changed files are properly staged and committed
+- ✅ **MANDATORY: Documentation has been updated for all code changes**
+- ✅ **MANDATORY: DEVELOPMENT.md includes new architectural decisions**
+- ✅ **MANDATORY: copilot-instructions.md reflects current architecture state**
 - ✅ Commit message follows conventional commit standards
 - ✅ Changes are successfully pushed to remote repository
 - ✅ No conflicts or errors in the git workflow
 - ✅ Repository history remains clean and meaningful
+- ✅ **Documentation and code are committed together (no documentation debt)**
 
 ## Usage
 
