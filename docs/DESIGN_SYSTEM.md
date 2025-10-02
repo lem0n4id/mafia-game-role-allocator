@@ -212,17 +212,38 @@ const RoleCard = ({ role, state }) => {
 };
 ```
 
-### Inline Tailwind (Current Approach)
+### When to Use Inline Tailwind vs Design System Helpers
 
-Most components use inline Tailwind classes directly, which is perfectly acceptable:
+**Inline Tailwind is appropriate for layout, spacing, and structural styling:**
 
 ```javascript
-<div className="bg-red-50 border-2 border-red-500 text-red-900 p-4 rounded-xl">
-  Mafia Player Card
+// ✅ Good: Layout and spacing with inline Tailwind
+<div className="flex items-center justify-between p-4 rounded-xl border-2">
+  <span className="text-lg font-semibold">Player Name</span>
+  <button className="h-12 px-6">Action</button>
 </div>
 ```
 
-The design system provides consistency reference, but inline Tailwind remains valid and maintainable.
+**Use design system helpers for role and state colors to maintain consistency:**
+
+```javascript
+// ✅ Good: Role/state colors from design system
+import { getRoleStyles } from '../utils/designSystem';
+
+const RoleCard = ({ role }) => {
+  const styles = getRoleStyles(role);
+  
+  return (
+    <div className={`flex items-center p-4 rounded-xl border-2 ${styles.background} ${styles.border}`}>
+      <span className={`text-lg font-semibold ${styles.text}`}>
+        {role} Player Card
+      </span>
+    </div>
+  );
+};
+```
+
+**Guideline:** Use inline Tailwind for layout/spacing, but obtain role/state colors from centralized design system helpers to ensure consistency and easy updates.
 
 ## Mobile Optimization
 
