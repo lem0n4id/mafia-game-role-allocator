@@ -499,6 +499,157 @@ const CardListInterface = ({
 };
 ```
 
+### **Reset Button System Pattern (ResetButtonSystem)**
+**Follow this pattern for reset/destructive actions with confirmation dialogs and state preservation:**
+
+```jsx
+// Reset button component with confirmation dialog
+const ResetButtonSystem = ({
+  hasActiveGame,
+  currentAssignment,
+  onReset,
+  disabled = false
+}) => {
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
+  const confirmButtonRef = useRef(null);
+  const cancelButtonRef = useRef(null);
+
+  // Calculate reset state information
+  const revealedCount = currentAssignment?.players?.filter(p => p.revealed).length || 0;
+  const totalPlayers = currentAssignment?.players?.length || 0;
+  const hasRevealedRoles = revealedCount > 0;
+
+  // Handle reset button click
+  const handleResetClick = useCallback(() => {
+    if (disabled || isResetting) return;
+    setShowConfirmation(true);
+  }, [disabled, isResetting]);
+
+  // Handle confirmation
+  const handleConfirm = useCallback(async () => {
+    setIsResetting(true);
+    try {
+      await onReset();
+      setShowConfirmation(false);
+    } catch (error) {
+      console.error('Reset failed:', error);
+    } finally {
+      setIsResetting(false);
+    }
+  }, [onReset]);
+
+  // Handle cancellation
+  const handleCancel = useCallback(() => {
+    setShowConfirmation(false);
+  }, []);
+
+  // Handle escape key
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape' && showConfirmation && !isResetting) {
+        handleCancel();
+      }
+    };
+
+    if (showConfirmation) {
+      document.addEventListener('keydown', handleEscape);
+      document.body.style.overflow = 'hidden'; // Prevent background scroll
+      return () => {
+        document.removeEventListener('keydown', handleEscape);
+        document.body.style.overflow = '';
+      };
+    }
+  }, [showConfirmation, isResetting, handleCancel]);
+
+  // Focus management
+  useEffect(() => {
+    if (showConfirmation && cancelButtonRef.current) {
+      cancelButtonRef.current.focus();
+    }
+  }, [showConfirmation]);
+
+  return (
+    <>
+      {/* Reset Button */}
+      <button
+        type="button"
+        onClick={handleResetClick}
+        disabled={disabled || isResetting}
+        className="w-full h-12 px-4 text-white bg-gray-600 hover:bg-gray-700"
+        aria-label="Reset game and return to input screen"
+      >
+        Reset Game
+      </button>
+
+      {/* Confirmation Modal */}
+      {showConfirmation && createPortal(
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+             role="dialog" aria-modal="true">
+          <div className="bg-white rounded-xl p-6 max-w-md w-full shadow-2xl">
+            {/* Warning icon and header */}
+            <div className="text-center mb-6">
+              <div className="mx-auto w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                {/* Warning icon */}
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Reset Game?</h3>
+              <p className="text-gray-600">This will clear all game progress...</p>
+            </div>
+
+            {/* Warning Section */}
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+              <h4 className="text-sm font-medium text-red-800 mb-2">This action will clear:</h4>
+              <ul className="text-sm text-red-700 space-y-1">
+                <li>• All current role assignments</li>
+                {hasRevealedRoles && <li>• All revealed roles ({revealedCount} of {totalPlayers})</li>}
+                <li>• Current game progress and state</li>
+              </ul>
+              <p className="text-sm text-red-700 mt-3 font-medium">
+                ✓ Player names will be kept for easy re-setup.
+              </p>
+            </div>
+
+            {/* Current Game Summary */}
+            {currentAssignment && (
+              <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                <h4 className="text-sm font-medium text-gray-700 mb-2">Current Game:</h4>
+                {/* Game stats display */}
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex gap-3">
+              <button ref={cancelButtonRef} onClick={handleCancel} disabled={isResetting}
+                      className="flex-1 h-12 px-4 text-gray-700 bg-gray-200 hover:bg-gray-300">
+                Keep Playing
+              </button>
+              <button ref={confirmButtonRef} onClick={handleConfirm} disabled={isResetting}
+                      className="flex-1 h-12 px-4 text-white bg-red-600 hover:bg-red-700">
+                {isResetting ? 'Resetting...' : 'Reset Game'}
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+    </>
+  );
+};
+```
+
+**Reset Button System Pattern Key Points:**
+- Portal-based modal for confirmation dialog
+- Clear warning about what will be cleared vs. preserved
+- Two-button choice: "Keep Playing" (cancel) or "Reset Game" (confirm)
+- Focus management (auto-focus on cancel button for safety)
+- Escape key dismisses confirmation
+- Background scroll prevention when modal open
+- Async reset handler with loading state
+- Shows current game statistics before reset
+- Conditional revealed roles warning when applicable
+- Touch-optimized buttons (48px height minimum)
+- Proper disabled states during reset operation
+
 ### **📋 File Organization Checklist**
 
 Before creating any new file, ask:
@@ -642,6 +793,7 @@ npm run format:check # Check if code is properly formatted
 - ✅ **PRODUCTION DEPLOYMENT COMPLETE** - Live application deployed to Vercel at https://mafia-game-role-allocator-jqhayysnn-lem0n4ids-projects.vercel.app with full Input & Validation epic functionality
 - ✅ **ROLE ALLOCATION EPIC COMPLETE** - Re-allocation System completed with unified confirmation flow, independent randomization, and state cleanup. Same "Allocate Roles" button used for both initial allocation and re-allocation with enhanced confirmation dialogs
 - ✅ **ROLE DISPLAY & REVEAL EPIC COMPLETE** - Sequential Order Enforcement completed with enhanced current player indicator, strict order validation, and comprehensive accessibility support (ARIA live regions, tooltips, disabled states)
+- ✅ **RESET & RE-ALLOCATE EPIC COMPLETE** - Reset Button System completed with confirmation dialog, state preservation (player names, counts), and complete state cleanup (assignments, reveal progress, dialogs)
 
 ## 📋 **Architectural Decisions Log**
 
@@ -914,6 +1066,22 @@ npm run format:check # Check if code is properly formatted
 - **Bundle impact**: Minimal (+1.04KB JS, +0.35KB CSS), efficient implementation
 - **Testing**: All 3 acceptance criteria categories validated - current player cue, order enforcement, visual state management
 - **Implementation approach**: Built on existing working code rather than adding new abstractions, maintaining codebase simplicity
+
+### Reset Button System implementation completed (October 2, 2025)
+- ✅ **Reset & Re-Allocate epic complete** - Comprehensive reset functionality with confirmation dialog and state preservation
+- **Component Implementation**: Created `ResetButtonSystem` component with portal-based confirmation modal
+- **Confirmation Dialog**: Warning dialog prevents accidental resets with clear summary of what will be cleared/preserved
+- **State Cleanup**: Clears role assignments, reveal progress (currentPlayerIndex, showCardListInterface), and dialog states
+- **State Preservation**: Maintains player names, player count, and mafia count as per PRD requirements
+- **Critical Fix**: Updated App.jsx to pass preserved `playerNames` and `playerCount` as `initialNames` and `initialCount` to PlayerCountManager
+- **Integration**: Reset button available in both Assignment Results phase and Card List Reveal phase
+- **Accessibility Excellence**: Full ARIA compliance, focus management (auto-focus cancel button), Escape key handler, background scroll prevention
+- **Mobile Optimization**: 48px touch targets (exceeds 44px requirement), responsive modal sizing, touch-friendly interactions
+- **Performance**: Reset completes instantly (<200ms requirement exceeded), smooth 150ms fade animations
+- **File structure**: Added `src/components/ResetButtonSystem.jsx` (227 lines), modified `src/App.jsx` for integration
+- **Bundle impact**: +4.78KB JS, +0.34KB CSS (total ~220KB, well under 500KB budget)
+- **Testing**: All 8 PRD acceptance criteria validated - availability, state cleanup, data preservation, accessibility, performance, mobile optimization
+- **Pattern Established**: Confirmation dialog pattern for destructive actions with state preservation and clear user warnings
 
 ## 📝 **DOCUMENTATION ENFORCEMENT (Detailed Checklist)**
 
