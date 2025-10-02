@@ -204,13 +204,23 @@ const ConfirmationFlow = ({
 
   return (
     <>
-      {/* Action Button - Always visible */}
+      {/* Action Button - Always visible with dynamic styling */}
       <button
         onClick={handleActionClick}
         disabled={!isFormValid || isProcessing}
-        className="w-full h-14 touch-manipulation /* responsive button styles */"
+        className={`
+          w-full h-14 touch-manipulation transition-all duration-200
+          ${isFormValid && !isProcessing
+            ? hasExistingState
+              ? 'bg-orange-600 hover:bg-orange-700 text-white'  // Re-action
+              : 'bg-blue-600 hover:bg-blue-700 text-white'      // Initial action
+            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+          }
+        `}
       >
-        {isProcessing ? 'Processing...' : 'Action Name'}
+        {isProcessing 
+          ? (hasExistingState ? 'Re-processing...' : 'Processing...') 
+          : (hasExistingState ? 'Re-Action Name' : 'Action Name')}
       </button>
 
       {/* Portal-based Modal with dynamic content */}
@@ -263,7 +273,10 @@ const ConfirmationFlow = ({
 - `hasExistingState` prop triggers re-action UI (orange theme, warning)
 - `isReAction` flag passed to handler for proper state cleanup
 - Always available button (not hidden after first action)
-- Dynamic button colors and text based on context
+- **Dynamic button text**: "Allocate Roles" (initial) vs "Re-allocate Roles" (re-action)
+- **Dynamic button colors**: Blue (`bg-blue-600`) for initial allocation, Orange (`bg-orange-600`) for re-allocation
+- **Processing states**: "Allocating..." vs "Re-allocating..." with matching color themes
+- Orange color signals significant/destructive action and matches modal warning theme
 
 ### **Role Reveal Dialog Pattern (RoleRevealDialog)**
 **Follow this pattern for modal dialogs with two-step reveal flow and role-specific styling:**
