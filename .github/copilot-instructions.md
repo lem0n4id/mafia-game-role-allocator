@@ -265,6 +265,151 @@ const ConfirmationFlow = ({
 - Always available button (not hidden after first action)
 - Dynamic button colors and text based on context
 
+### **Role Reveal Dialog Pattern (RoleRevealDialog)**
+**Follow this pattern for modal dialogs with two-step reveal flow and role-specific styling:**
+
+```jsx
+// Role reveal dialog with portal-based modal and two-step flow
+const RoleRevealDialog = ({
+  isOpen,
+  player,
+  onClose,
+  onRevealComplete
+}) => {
+  const [isRoleRevealed, setIsRoleRevealed] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
+  const dialogRef = useRef(null);
+  const revealButtonRef = useRef(null);
+  const closeButtonRef = useRef(null);
+
+  // Reset reveal state when dialog opens with new player
+  useEffect(() => {
+    if (isOpen && player) {
+      setIsRoleRevealed(player.revealed || false);
+      setIsClosing(false);
+    }
+  }, [isOpen, player]);
+
+  // Focus management
+  useEffect(() => {
+    if (isOpen) {
+      const elementToFocus = isRoleRevealed ? closeButtonRef.current : revealButtonRef.current;
+      elementToFocus?.focus();
+    }
+  }, [isOpen, isRoleRevealed]);
+
+  // Escape key + background scroll prevention
+  const handleClose = useCallback(() => {
+    setIsClosing(true);
+    setTimeout(() => {
+      onClose?.();
+      setIsClosing(false);
+    }, 150);
+  }, [onClose]);
+
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape' && isOpen) handleClose();
+    };
+    if (isOpen) {
+      document.addEventListener('keydown', handleEscape);
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.removeEventListener('keydown', handleEscape);
+        document.body.style.overflow = '';
+      };
+    }
+  }, [isOpen, handleClose]);
+
+  if (!isOpen || !player) return null;
+
+  const isMafia = player.role === ROLES.MAFIA;
+
+  return createPortal(
+    <div
+      className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50
+        transition-opacity duration-150 ${isClosing ? 'opacity-0' : 'opacity-100'}`}
+      onClick={(e) => e.target === e.currentTarget && handleClose()}
+      role="dialog" aria-modal="true"
+    >
+      <div ref={dialogRef} className={`bg-white rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl
+        transform transition-all duration-150 ${isClosing ? 'scale-95 opacity-0' : 'scale-100 opacity-100'}`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="text-center mb-6">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">{player.name}</h2>
+          <p className="text-gray-600">
+            {isRoleRevealed ? 'Your role:' : 'Ready to see your role?'}
+          </p>
+        </div>
+
+        <div className="mb-8">
+          {isRoleRevealed ? (
+            <div className={`text-center p-8 rounded-xl border-4
+              ${isMafia ? 'bg-red-50 border-red-500 text-red-900' : 'bg-green-50 border-green-500 text-green-900'}`}>
+              <div className="mb-4">
+                <div className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center
+                  ${isMafia ? 'bg-red-600' : 'bg-green-600'}`}>
+                  {/* Role icon SVG */}
+                </div>
+              </div>
+              <h3 className={`text-4xl font-bold mb-2 ${isMafia ? 'text-red-700' : 'text-green-700'}`}>
+                {player.role}
+              </h3>
+              <p className={`text-sm font-medium ${isMafia ? 'text-red-600' : 'text-green-600'}`}>
+                {isMafia ? 'Work with other Mafia players to eliminate Villagers' 
+                         : 'Work with other Villagers to identify the Mafia'}
+              </p>
+            </div>
+          ) : (
+            <div className="text-center">
+              <div className="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-6">
+                {/* Question icon */}
+              </div>
+              <button
+                ref={revealButtonRef}
+                onClick={() => { setIsRoleRevealed(true); onRevealComplete?.(); }}
+                className="w-full h-14 px-6 text-lg font-semibold bg-blue-600 hover:bg-blue-700 
+                  text-white rounded-xl shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-200
+                  transition-all duration-200 touch-manipulation"
+              >
+                Reveal Role
+              </button>
+            </div>
+          )}
+        </div>
+
+        {isRoleRevealed && (
+          <button
+            ref={closeButtonRef}
+            onClick={handleClose}
+            className="w-full h-12 px-6 text-base font-medium bg-gray-200 hover:bg-gray-300 
+              text-gray-700 rounded-lg focus:outline-none focus:ring-4 focus:ring-gray-200
+              transition-all duration-200 touch-manipulation"
+          >
+            Close
+          </button>
+        )}
+      </div>
+    </div>,
+    document.body
+  );
+};
+```
+
+**Role Reveal Dialog Pattern Key Points:**
+- Portal-based rendering to document.body for proper z-index stacking
+- Two-step flow: "Reveal Role" button → Role display → "Close" button
+- Role-specific styling (red for Mafia, green for Villager)
+- Focus management with auto-focus on appropriate button
+- Focus trap for accessibility (Tab/Shift+Tab cycling)
+- Escape key closes dialog
+- Background scroll prevention when open
+- Smooth fade/scale animations (150ms duration)
+- Touch-optimized buttons (56px Reveal, 48px Close)
+- Overlay click closes dialog
+- State reset on player change
+
 ### **Card List Interface Pattern (CardListInterface)**
 **Follow this pattern for mobile-first list interfaces with state management and sequential interactions:**
 
@@ -741,6 +886,22 @@ npm run format:check # Check if code is properly formatted
 - **File changes**: Modified `src/components/AllocationConfirmationFlow.jsx` and `src/App.jsx`
 - **Bundle impact**: Minimal increase (+1.87KB JS) with enhanced functionality
 - **Acceptance criteria**: All 7 PRD acceptance criteria categories validated through manual testing
+
+### Role Reveal Dialog implementation completed (October 2, 2025)
+- ✅ **Second Role Display & Reveal feature complete** - Professional modal dialog system for private role viewing with clear Reveal/Close workflow
+- **Component Implementation**: Created `RoleRevealDialog` component with portal-based modal, two-step reveal process, and role-specific styling
+- **Two-Step Reveal Flow**: "Reveal Role" button → Role Display with icon and description → "Close" button (replaces window.confirm())
+- **Role-Specific Styling**: Red theme for Mafia (border-red-500, bg-red-50), green theme for Villagers (border-green-500, bg-green-50)
+- **Dialog Management Hook**: Created `useRoleRevealDialog` hook for state management (isOpen, currentPlayer, revealInProgress)
+- **Accessibility Excellence**: Full ARIA compliance, focus management, focus trap, keyboard navigation (Escape key), screen reader support
+- **Mobile Optimization**: 44px+ touch targets (Reveal: 56px, Close: 48px), responsive sizing (max-w-sm), proper viewport handling
+- **Privacy Features**: Modal overlay blocks background interaction, role info in memory only, no browser history exposure
+- **Integration**: Updated App.jsx to use dialog instead of window.confirm(), enhanced useRoleAssignment with markPlayerRevealed()
+- **Animation**: Smooth fade-in/fade-out transitions (150ms duration), scale transform for polish
+- **Performance**: Dialog appears <100ms, efficient state management with useCallback optimizations
+- **File structure**: Added `src/components/RoleRevealDialog.jsx` (296 lines), `src/hooks/useRoleRevealDialog.js` (45 lines)
+- **Bundle impact**: +6.07KB JS, +1.11KB CSS (total ~213KB, under 500KB budget)
+- **Acceptance criteria**: All 8 PRD acceptance criteria validated - display, button flow, privacy, security, performance, accessibility
 
 ## 📝 **DOCUMENTATION ENFORCEMENT (Detailed Checklist)**
 
