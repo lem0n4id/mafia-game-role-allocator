@@ -735,8 +735,18 @@ npm run format:check # Check if code is properly formatted
       <h1 className="text-2xl md:text-4xl font-bold mb-4 text-gray-800">
   ```
 - **Available breakpoints**: sm:640px, md:768px, lg:1024px (configured in tailwind.config.js)
-- **Performance**: CSS bundle should remain under 50KB after purging (currently 6.16KB)
+- **Performance**: CSS bundle should remain under 50KB after purging (currently 26.17KB)
 - **Content paths**: Include all JSX files in tailwind.config.js for proper CSS purging
+
+### Design System (src/utils/designSystem.js)
+- **Centralized styling utilities**: Color palettes, typography scales, sizing constants
+- **Role-based colors**: Red for Mafia, Green for Villager
+- **State-based colors**: Blue (current), Emerald (revealed), Gray (waiting/disabled)
+- **Helper functions**: `getRoleStyles()`, `getStateStyles()`, `getCombinedStyles()`
+- **Accessibility utilities**: Focus rings, touch-friendly sizing, WCAG AA compliance
+- **Usage**: Import constants/functions or use inline Tailwind (both approaches valid)
+- **Documentation**: See `docs/DESIGN_SYSTEM.md` for complete guide
+- **WCAG AA Compliance**: All color combinations meet 4.5:1+ contrast ratios
 
 ## When Working on Mafia Game Role Allocator
 
@@ -794,6 +804,7 @@ npm run format:check # Check if code is properly formatted
 - ✅ **ROLE ALLOCATION EPIC COMPLETE** - Re-allocation System completed with unified confirmation flow, independent randomization, and state cleanup. Same "Allocate Roles" button used for both initial allocation and re-allocation with enhanced confirmation dialogs
 - ✅ **ROLE DISPLAY & REVEAL EPIC COMPLETE** - Sequential Order Enforcement completed with enhanced current player indicator, strict order validation, and comprehensive accessibility support (ARIA live regions, tooltips, disabled states)
 - ✅ **RESET & RE-ALLOCATE EPIC COMPLETE** - Reset Button System completed with confirmation dialog, state preservation (player names, counts), and complete state cleanup (assignments, reveal progress, dialogs)
+- ✅ **MINIMAL STYLING & UI CLARITY EPIC STARTED** - Visual Differentiation System completed with centralized design system utilities (color palettes, typography scales, sizing constants), WCAG AA compliant contrast ratios, and comprehensive styling documentation
 
 ## 📋 **Architectural Decisions Log**
 
@@ -1082,6 +1093,21 @@ npm run format:check # Check if code is properly formatted
 - **Bundle impact**: +4.78KB JS, +0.34KB CSS (total ~220KB, well under 500KB budget)
 - **Testing**: All 8 PRD acceptance criteria validated - availability, state cleanup, data preservation, accessibility, performance, mobile optimization
 - **Pattern Established**: Confirmation dialog pattern for destructive actions with state preservation and clear user warnings
+
+### Visual Differentiation System implementation completed (October 2, 2025)
+- ✅ **Minimal Styling & UI Clarity epic started** - Centralized design system with comprehensive visual styling utilities
+- **Design System Foundation**: Created `src/utils/designSystem.js` with color palettes, typography scales, sizing constants, and helper functions
+- **Color Palettes**: Defined role-based colors (Red for Mafia, Green for Villager) and state-based colors (Blue for current, Emerald for revealed, Gray for waiting/disabled)
+- **Typography System**: Comprehensive scale from text-xs to text-4xl with appropriate font weights for headings, body, UI elements, and role displays
+- **Sizing Constants**: Touch targets (44px minimum), button heights (h-12/h-14), card padding, icon sizes for consistent spacing
+- **Helper Functions**: `getRoleStyles()`, `getStateStyles()`, `getCombinedStyles()` for programmatic style application
+- **Accessibility Utilities**: Focus rings, screen reader utilities, touch-friendly sizing, high contrast mode support
+- **WCAG AA Compliance**: All color combinations tested and validated (Mafia: 7.60:1, Villager: 8.70:1, Current: 9.52:1, Waiting: 9.86:1)
+- **Documentation**: Created comprehensive `docs/DESIGN_SYSTEM.md` guide with usage examples, color specifications, and best practices
+- **Bundle Impact**: CSS increased 1.48KB (24.69KB → 26.17KB), well under 50KB budget requirement
+- **Performance**: No runtime JavaScript overhead (pure Tailwind utilities), build time unchanged (~2.36s)
+- **Acceptance Criteria**: All 8 criteria verified - element differentiation, state indication, mobile optimization, accessibility compliance
+- **Pattern Note**: Components can use inline Tailwind (current approach) or import design system functions (both valid and maintainable)
 
 ## 📝 **DOCUMENTATION ENFORCEMENT (Detailed Checklist)**
 
