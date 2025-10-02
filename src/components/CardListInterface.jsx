@@ -99,7 +99,7 @@ const CardListInterface = ({
       {/* Current Player Indicator - Sticky at top with enhanced visibility */}
       {currentPlayerIndex < cardStates.length && progress.completed < progress.total && (
         <div 
-          className="sticky top-0 z-10 -mx-4 px-4 py-3 bg-blue-50 border-2 border-blue-500 rounded-lg shadow-lg backdrop-blur-sm bg-opacity-95"
+          className="sticky top-0 z-10 p-4 bg-blue-50 border-2 border-blue-500 rounded-lg shadow-lg backdrop-blur-sm bg-opacity-95"
           role="status"
           aria-live="polite"
           aria-atomic="true"
