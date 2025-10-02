@@ -213,14 +213,31 @@ import ErrorBoundary from './components/ErrorBoundary';
 
 ### Using Debounce for Click Handlers
 
+#### Option 1: React Hook (Recommended for React Components)
+
+```jsx
+import { useDebounce } from '../hooks/useDebounce';
+
+const MyComponent = () => {
+  // React hook provides stable memoized debounced callback
+  const debouncedSearch = useDebounce((searchTerm) => {
+    performSearch(searchTerm);
+  }, 500);
+
+  return <input onChange={(e) => debouncedSearch(e.target.value)} />;
+};
+```
+
+#### Option 2: Plain JavaScript Utility
+
 ```jsx
 import { debounce } from '../utils/debounce';
 
 const MyComponent = () => {
-  // Debounce for 300ms (default)
+  // Plain JavaScript debounce for non-React code
   const handleClick = debounce(() => {
     performAction();
-  });
+  }, 300);
 
   return <button onClick={handleClick}>Click Me</button>;
 };

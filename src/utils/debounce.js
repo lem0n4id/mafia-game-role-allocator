@@ -55,13 +55,17 @@ export const throttle = (func, wait = 300) => {
 };
 
 /**
- * React hook version of debounce
- * Returns a memoized debounced callback
+ * Creates a debounced callback function.
+ * This is a plain JavaScript utility - for React components, consider using the useDebounce hook.
  * 
- * Usage in component:
- * const debouncedHandler = useDebounce(() => {
- *   // Your handler logic
- * }, 300);
+ * @param {Function} callback - The callback function to debounce
+ * @param {number} wait - The number of milliseconds to delay (default: 300ms)
+ * @returns {Function} The debounced callback function
+ * 
+ * @example
+ * const debouncedSave = createDebouncedCallback(() => {
+ *   saveData();
+ * }, 500);
  */
 export const createDebouncedCallback = (callback, wait = 300) => {
   return debounce(callback, wait);
