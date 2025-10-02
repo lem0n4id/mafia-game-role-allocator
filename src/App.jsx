@@ -4,6 +4,7 @@ import MafiaCountValidator from './components/MafiaCountValidator.jsx';
 import AllocationConfirmationFlow from './components/AllocationConfirmationFlow.jsx';
 import CardListInterface from './components/CardListInterface.jsx';
 import RoleRevealDialog from './components/RoleRevealDialog.jsx';
+import ResetButtonSystem from './components/ResetButtonSystem.jsx';
 import { useRoleAssignment } from './hooks/useRoleAssignment.js';
 import { useRoleRevealDialog } from './hooks/useRoleRevealDialog.js';
 
@@ -172,14 +173,15 @@ function App() {
               {!assignment && (
                 <div className="space-y-6">
                   <PlayerCountManager
-                    initialCount={5}
+                    initialCount={playerCount}
+                    initialNames={playerNames}
                     onCountChange={setPlayerCount}
                     onNamesChange={setPlayerNames}
                     onValidationChange={setPlayerValidation}
                     mafiaCountSection={
                       <MafiaCountValidator
                         playerCount={playerCount}
-                        initialMafiaCount={1}
+                        initialMafiaCount={mafiaCount}
                         onMafiaCountChange={setMafiaCount}
                         onValidationChange={setMafiaValidation}
                       />
@@ -329,13 +331,13 @@ function App() {
                       currentAssignment={assignment}
                     />
                     
-                    <button
-                      onClick={handleReset}
+                    {/* Reset Button with Confirmation */}
+                    <ResetButtonSystem
+                      hasActiveGame={true}
+                      currentAssignment={assignment}
+                      onReset={handleReset}
                       disabled={isAssigning}
-                      className="w-full h-12 bg-gray-600 text-white rounded-lg font-medium hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
-                    >
-                      Reset Game
-                    </button>
+                    />
                   </div>
                 </div>
               )}
@@ -366,12 +368,16 @@ function App() {
                 >
                   Back to Assignment
                 </button>
-                <button
-                  onClick={handleReset}
-                  className="flex-1 h-12 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 touch-manipulation"
-                >
-                  Reset Game
-                </button>
+                
+                {/* Reset Button with Confirmation */}
+                <div className="flex-1">
+                  <ResetButtonSystem
+                    hasActiveGame={true}
+                    currentAssignment={assignment}
+                    onReset={handleReset}
+                    disabled={false}
+                  />
+                </div>
               </div>
             </>
           )}
