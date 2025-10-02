@@ -1102,7 +1102,7 @@ npm run format:check # Check if code is properly formatted
 - ✅ **INPUT & VALIDATION EPIC COMPLETE** - Player Count Management, Mafia Count Validation, and Player Name Input System completed with comprehensive validation and testing
 - ✅ **ROLE ALLOCATION EPIC CONTINUED** - Role Assignment Engine completed with Fisher-Yates shuffle algorithm, comprehensive edge case handling, and complete data structure for card list integration
 - ✅ **ROLE DISPLAY & REVEAL EPIC STARTED** - Card List Interface completed with mobile-first vertical layout, sequential reveal enforcement, progress tracking, and comprehensive accessibility support
-- ✅ **PRODUCTION DEPLOYMENT COMPLETE** - Live application deployed to Vercel at https://mafia-game-role-allocator-jqhayysnn-lem0n4ids-projects.vercel.app with full Input & Validation epic functionality
+- ✅ **PRODUCTION DEPLOYMENT COMPLETE** - Live application deployed to Vercel at https://mafia-game-role-allocator.vercel.app with full Input & Validation epic functionality
 - ✅ **ROLE ALLOCATION EPIC COMPLETE** - Re-allocation System completed with unified confirmation flow, independent randomization, and state cleanup. Same "Allocate Roles" button used for both initial allocation and re-allocation with enhanced confirmation dialogs
 - ✅ **ROLE DISPLAY & REVEAL EPIC COMPLETE** - Sequential Order Enforcement completed with enhanced current player indicator, strict order validation, and comprehensive accessibility support (ARIA live regions, tooltips, disabled states)
 - ✅ **RESET & RE-ALLOCATE EPIC COMPLETE** - Reset Button System completed with confirmation dialog, state preservation (player names, counts), and complete state cleanup (assignments, reveal progress, dialogs)
@@ -1285,7 +1285,7 @@ npm run format:check # Check if code is properly formatted
 
 ### Vercel Production Deployment (September 29, 2025)
 - ✅ **Production deployment successful** - Complete Input & Validation features live on Vercel
-- **Live application**: https://mafia-game-role-allocator-jqhayysnn-lem0n4ids-projects.vercel.app
+- **Live application**: https://mafia-game-role-allocator.vercel.app
 - **Deployment solution**: Added `@rollup/rollup-linux-x64-gnu: "4.6.1"` as optional dependency to resolve Linux build environment compatibility
 - **Technical implementation**:
   - Created `vercel.json` configuration with static build settings and npm install commands

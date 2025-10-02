@@ -44,7 +44,7 @@ graph TB
     end
 
     subgraph "Deployment Layer"
-        VERCEL[Vercel Production<br/>https://mafia-game-role-allocator-***.vercel.app<br/>Mobile Performance Optimization]
+        VERCEL[Vercel Production<br/>https://mafia-game-role-allocator.vercel.app<br/>Mobile Performance Optimization]
     end
 
     %% User Interactions

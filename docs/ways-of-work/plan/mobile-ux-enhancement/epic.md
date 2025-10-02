@@ -2,7 +2,7 @@
 
 ## Goal
 
-**Problem:** The current production application at https://mafia-game-role-allocator-jqhayysnn-lem0n4ids-projects.vercel.app uses traditional HTML `<input type="number">` fields for player count (1-30 range) and Mafia count validation in the `PlayerCountManager` and `MafiaCountValidator` components. While functional, these number inputs create friction on mobile devices due to small native spinner controls, awkward mobile keyboard interactions, and precision challenges when making quick adjustments during game setup.
+**Problem:** The current production application at https://mafia-game-role-allocator.vercel.app uses traditional HTML `<input type="number">` fields for player count (1-30 range) and Mafia count validation in the `PlayerCountManager` and `MafiaCountValidator` components. While functional, these number inputs create friction on mobile devices due to small native spinner controls, awkward mobile keyboard interactions, and precision challenges when making quick adjustments during game setup.
 
 **Current State:** The Input & Validation epic is complete with comprehensive form validation, but the number input UX represents the primary remaining friction point for mobile users. The existing components already handle validation logic, boundary enforcement, and real-time feedback - but the input mechanism itself needs enhancement for touch interfaces.
 
@@ -26,7 +26,7 @@
 ## High-Level User Journeys
 
 **Primary Journey - Enhanced Game Setup:**
-1. User opens live application (https://mafia-game-role-allocator-jqhayysnn-lem0n4ids-projects.vercel.app) on mobile device during a social gathering
+1. User opens live application (https://mafia-game-role-allocator.vercel.app) on mobile device during a social gathering
 2. User sees enhanced PlayerCountManager component with large, clear counter controls (↓ 5 ↑) instead of number input field
 3. User easily taps "+" or "-" buttons to adjust player count from 5 to desired number, seeing immediate visual feedback and dynamic name field generation
 4. User adjusts Mafia count using similar intuitive controls in MafiaCountValidator component with existing real-time validation feedback
