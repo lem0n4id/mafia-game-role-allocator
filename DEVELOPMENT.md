@@ -94,20 +94,34 @@ npm run format:check # Check if files are properly formatted
 ## Project Structure (current implementation)
 
 ```
+```
 src/
 ├── components/
 │   ├── PlayerCountManager.jsx       # Dynamic player count with touch controls and name fields
 │   ├── MafiaCountValidator.jsx      # Mafia count validation with touch controls
 │   ├── CounterControl.jsx           # Touch-optimized counter component (← N →)
-│   └── AllocationConfirmationFlow.jsx  # Role allocation confirmation dialog
+│   ├── AllocationConfirmationFlow.jsx  # Role allocation confirmation dialog
+│   ├── CardListInterface.jsx        # Mobile-first card list with sequential reveal
+│   ├── RoleRevealDialog.jsx         # Private role viewing modal with two-step flow
+│   ├── ResetButtonSystem.jsx        # Reset functionality with confirmation dialog
+│   └── ErrorBoundary.jsx            # Error recovery system for runtime protection
 ├── hooks/
 │   ├── usePlayerCountManager.js     # Player count and names state management
 │   ├── useMafiaCountValidation.js   # Mafia count validation logic
-│   └── useCounterControl.js         # Counter control state management with boundaries
+│   ├── useCounterControl.js         # Counter control state management with boundaries
+│   ├── useRoleAssignment.js         # Role assignment engine with Fisher-Yates shuffle
+│   ├── useRoleRevealDialog.js       # Role reveal dialog state management
+│   └── useDebounce.js               # Debounce utilities for double-tap protection
 ├── utils/
 │   ├── mobileLayout.js              # Mobile-first responsive patterns and touch targets
-│   └── performance.js               # Performance monitoring and mobile optimization
+│   ├── performance.js               # Performance monitoring and mobile optimization
+│   ├── roleAssignmentEngine.js      # Core role assignment logic with validation
+│   ├── designSystem.js              # Centralized design system utilities
+│   ├── edgeCaseValidation.js        # Edge case validation and error handling
+│   ├── errorRecovery.js             # Error recovery strategies and classification
+│   └── debounce.js                  # Debounce and throttle utilities
 ├── styles/                          # CSS files and mobile-specific patterns
+```
 │   └── mobile.css                   # Touch-optimized styles and mobile utilities
 └── App.jsx                          # Root application component
 ```
@@ -173,9 +187,11 @@ src/
 
 ## State & Logic (guidance)
 - Use React `useState` / `useReducer`; keep all state in memory
-- `useValidation.js`: ensure no blanks; mafia < players; show errors/confirmations
-- `useAllocation.js`: build roles list by mafia count, Fisher–Yates shuffle, map to players
-- `useRevealFlow.js`: index-based enforcement of reveal order; guard against multiple open dialogs
+- `src/hooks/usePlayerCountManager.js`: manage player count (1-30) and names validation; ensure no blanks; show completion status
+- `src/hooks/useMafiaCountValidation.js`: validate mafia count against total players; show errors/confirmations for edge cases
+- `src/hooks/useRoleAssignment.js`: create role assignments using Fisher-Yates shuffle; handle re-allocation and assignment validation
+- `src/hooks/useRoleRevealDialog.js`: manage reveal dialog state and sequential order enforcement; prevent multiple open dialogs
+- `src/hooks/useCounterControl.js`: provide touch-optimized counter controls with boundary validation and accessibility
 
 ## Testing Checklist (minimum)
 - [ ] Happy path: e.g., 8 players, 2 mafia → allocate → reveal sequentially → reset
