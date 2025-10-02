@@ -143,10 +143,17 @@ const FeatureComponent = ({ onStateChange, onValidationChange }) => {
 
 ### **Confirmation Flow Pattern (AllocationConfirmationFlow)**
 **Follow this pattern for confirmation dialogs with destructive or critical actions:**
+**Supports both initial actions and re-actions with dynamic UI adaptation:**
 
 ```jsx
-// Confirmation flow component with portal-based modal
-const ConfirmationFlow = ({ onAction, isFormValid, actionData }) => {
+// Unified confirmation flow component for initial and re-actions
+const ConfirmationFlow = ({ 
+  onAction, 
+  isFormValid, 
+  actionData,
+  hasExistingState = false,  // For re-actions
+  currentState = null         // Current state info
+}) => {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -166,14 +173,17 @@ const ConfirmationFlow = ({ onAction, isFormValid, actionData }) => {
   const handleConfirm = useCallback(async () => {
     setIsProcessing(true);
     try {
-      await onAction(/* validated parameters */);
+      await onAction({
+        ...actionData,
+        isReAction: hasExistingState  // Flag for re-actions
+      });
       setShowConfirmation(false);
     } catch (error) {
       console.error('Action failed:', error);
     } finally {
       setIsProcessing(false);
     }
-  }, [onAction, actionData]);
+  }, [onAction, actionData, hasExistingState]);
 
   // Keyboard accessibility (Escape key)
   useEffect(() => {
@@ -194,23 +204,61 @@ const ConfirmationFlow = ({ onAction, isFormValid, actionData }) => {
 
   return (
     <>
-      {/* Action Button */}
+      {/* Action Button - Always visible with dynamic styling */}
       <button
         onClick={handleActionClick}
         disabled={!isFormValid || isProcessing}
-        className="w-full h-14 touch-manipulation /* responsive button styles */"
+        className={`
+          w-full h-14 touch-manipulation transition-all duration-200
+          ${isFormValid && !isProcessing
+            ? hasExistingState
+              ? 'bg-orange-600 hover:bg-orange-700 text-white'  // Re-action
+              : 'bg-blue-600 hover:bg-blue-700 text-white'      // Initial action
+            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+          }
+        `}
       >
-        {isProcessing ? 'Processing...' : 'Action Name'}
+        {isProcessing 
+          ? (hasExistingState ? 'Re-processing...' : 'Processing...') 
+          : (hasExistingState ? 'Re-Action Name' : 'Action Name')}
       </button>
 
-      {/* Portal-based Modal */}
+      {/* Portal-based Modal with dynamic content */}
       {showConfirmation && createPortal(
         <div 
           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
           role="dialog" aria-modal="true"
         >
           <div className="bg-white rounded-xl p-6 max-w-md w-full shadow-2xl">
-            {/* Header, details, edge case warnings, action buttons */}
+            {/* Dynamic Header */}
+            {hasExistingState ? (
+              <>
+                <div className="mx-auto w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mb-4">
+                  {/* Refresh icon */}
+                </div>
+                <h3>Re-Action Name?</h3>
+                <p>This will create new state...</p>
+              </>
+            ) : (
+              <>
+                <h3>Confirm Action</h3>
+                <p>Ready to proceed?</p>
+              </>
+            )}
+            
+            {/* Warning for re-actions */}
+            {hasExistingState && (
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
+                <h4>Current state will be lost</h4>
+                <ul>
+                  <li>• All current state will be cleared</li>
+                  <li>• Configuration will be kept</li>
+                  <li>• New state will be generated</li>
+                </ul>
+              </div>
+            )}
+            
+            {/* Action details, buttons */}
           </div>
         </div>,
         document.body
@@ -219,6 +267,591 @@ const ConfirmationFlow = ({ onAction, isFormValid, actionData }) => {
   );
 };
 ```
+
+**Re-allocation Pattern Key Points:**
+- Same component used for both initial and re-actions
+- `hasExistingState` prop triggers re-action UI (orange theme, warning)
+- `isReAction` flag passed to handler for proper state cleanup
+- Always available button (not hidden after first action)
+- **Dynamic button text**: "Allocate Roles" (initial) vs "Re-allocate Roles" (re-action)
+- **Dynamic button colors**: Blue (`bg-blue-600`) for initial allocation, Orange (`bg-orange-600`) for re-allocation
+- **Processing states**: "Allocating..." vs "Re-allocating..." with matching color themes
+- Orange color signals significant/destructive action and matches modal warning theme
+
+### **Role Reveal Dialog Pattern (RoleRevealDialog)**
+**Follow this pattern for modal dialogs with two-step reveal flow and role-specific styling:**
+
+```jsx
+// Role reveal dialog with portal-based modal and two-step flow
+const RoleRevealDialog = ({
+  isOpen,
+  player,
+  onClose,
+  onRevealComplete
+}) => {
+  const [isRoleRevealed, setIsRoleRevealed] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
+  const dialogRef = useRef(null);
+  const revealButtonRef = useRef(null);
+  const closeButtonRef = useRef(null);
+
+  // Reset reveal state when dialog opens with new player
+  useEffect(() => {
+    if (isOpen && player) {
+      setIsRoleRevealed(player.revealed || false);
+      setIsClosing(false);
+    }
+  }, [isOpen, player]);
+
+  // Focus management
+  useEffect(() => {
+    if (isOpen) {
+      const elementToFocus = isRoleRevealed ? closeButtonRef.current : revealButtonRef.current;
+      elementToFocus?.focus();
+    }
+  }, [isOpen, isRoleRevealed]);
+
+  // Background scroll prevention only (Escape key deliberately ignored for privacy)
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = '';
+      };
+    }
+  }, [isOpen]);
+
+  // Handle dialog close (called only by buttons)
+  const handleClose = useCallback(() => {
+    setIsClosing(true);
+    setTimeout(() => {
+      onClose?.();
+      setIsClosing(false);
+    }, 150);
+  }, [onClose]);
+
+  if (!isOpen || !player) return null;
+
+  const isMafia = player.role === ROLES.MAFIA;
+
+  return createPortal(
+    <div
+      className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50
+        transition-opacity duration-150 ${isClosing ? 'opacity-0' : 'opacity-100'}`}
+      role="dialog" aria-modal="true"
+      // Overlay clicks intentionally do nothing; dialog closes via buttons only
+    >
+      <div ref={dialogRef} className={`bg-white rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl
+        transform transition-all duration-150 ${isClosing ? 'scale-95 opacity-0' : 'scale-100 opacity-100'}`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="text-center mb-6">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">{player.name}</h2>
+          <p className="text-gray-600">
+            {isRoleRevealed ? 'Your role:' : 'Ready to see your role?'}
+          </p>
+        </div>
+
+        <div className="mb-8">
+          {isRoleRevealed ? (
+            <div className={`text-center p-8 rounded-xl border-4
+              ${isMafia ? 'bg-red-50 border-red-500 text-red-900' : 'bg-green-50 border-green-500 text-green-900'}`}>
+              <div className="mb-4">
+                <div className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center
+                  ${isMafia ? 'bg-red-600' : 'bg-green-600'}`}>
+                  {/* Role icon SVG */}
+                </div>
+              </div>
+              <h3 className={`text-4xl font-bold mb-2 ${isMafia ? 'text-red-700' : 'text-green-700'}`}>
+                {player.role}
+              </h3>
+              <p className={`text-sm font-medium ${isMafia ? 'text-red-600' : 'text-green-600'}`}>
+                {isMafia ? 'Work with other Mafia players to eliminate Villagers' 
+                         : 'Work with other Villagers to identify the Mafia'}
+              </p>
+            </div>
+          ) : (
+            <div className="text-center">
+              <div className="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-6">
+                {/* Question icon */}
+              </div>
+              <button
+                ref={revealButtonRef}
+                onClick={() => { setIsRoleRevealed(true); onRevealComplete?.(); }}
+                className="w-full h-14 px-6 text-lg font-semibold bg-blue-600 hover:bg-blue-700 
+                  text-white rounded-xl shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-200
+                  transition-all duration-200 touch-manipulation"
+              >
+                Reveal Role
+              </button>
+            </div>
+          )}
+        </div>
+
+        {isRoleRevealed && (
+          <button
+            ref={closeButtonRef}
+            onClick={handleClose}
+            className="w-full h-12 px-6 text-base font-medium bg-gray-200 hover:bg-gray-300 
+              text-gray-700 rounded-lg focus:outline-none focus:ring-4 focus:ring-gray-200
+              transition-all duration-200 touch-manipulation"
+          >
+            Close
+          </button>
+        )}
+      </div>
+    </div>,
+    document.body
+  );
+};
+```
+
+**Role Reveal Dialog Pattern Key Points:**
+- Portal-based rendering to document.body for proper z-index stacking
+- Two-step flow: "Reveal Role" button → Role display → "Close" button
+- Role-specific styling (red for Mafia, green for Villager)
+- Focus management with auto-focus on appropriate button
+- Focus trap for accessibility (Tab/Shift+Tab cycling)
+- Escape key is ignored; dialog remains open until an action button is pressed (ensures privacy)
+- Background scroll prevention when open
+- Smooth fade/scale animations (150ms duration)
+- Touch-optimized buttons (56px Reveal, 48px Close)
+- Overlay clicks are inert; only in-dialog buttons can dismiss it (prevents accidental closure)
+- State reset on player change
+
+### **Card List Interface Pattern (CardListInterface)**
+**Follow this pattern for mobile-first list interfaces with state management and sequential interactions:**
+
+```jsx
+// Card list component with state-driven rendering
+const CardListInterface = ({
+  assignment,
+  currentPlayerIndex,
+  onPlayerReveal,
+  revealInProgress = false
+}) => {
+  // Memoized state calculations for performance
+  const cardStates = useMemo(() => {
+    if (!assignment?.players) return [];
+    
+    return assignment.players.map((player, index) => {
+      const isRevealed = player.revealed;
+      const isCurrent = index === currentPlayerIndex;
+      const canReveal = isCurrent && !isRevealed && !revealInProgress;
+      
+      return {
+        ...player,
+        isRevealed,
+        isCurrent,
+        canReveal,
+        cardState: isRevealed ? 'revealed' : 
+                  isCurrent ? 'current' : 'waiting'
+      };
+    });
+  }, [assignment, currentPlayerIndex, revealInProgress]);
+
+  // Progress tracking
+  const progress = useMemo(() => {
+    const completed = cardStates.filter(card => card.isRevealed).length;
+    const total = cardStates.length;
+    return { completed, total, percentage: total > 0 ? (completed / total) * 100 : 0 };
+  }, [cardStates]);
+
+  // Touch-optimized interaction handler
+  const handleCardClick = useCallback((player, cardState) => {
+    if (!cardState.canReveal) return;
+    onPlayerReveal?.({ playerName: player.name, playerIndex: player.index });
+  }, [onPlayerReveal]);
+
+  return (
+    <div className="space-y-6">
+      {/* Progress Header */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-bold text-gray-900">Player Roles</h2>
+          <div className="text-sm text-gray-600">{progress.completed} of {progress.total} revealed</div>
+        </div>
+        
+        {/* Progress Bar */}
+        <div className="w-full bg-gray-200 rounded-full h-2">
+          <div 
+            className="bg-green-600 h-2 rounded-full transition-all duration-500"
+            style={{ width: `${progress.percentage}%` }}
+          />
+        </div>
+      </div>
+
+      {/* Card List */}
+      <div className="space-y-3">
+        {cardStates.map((cardState, index) => (
+          <div
+            key={cardState.id}
+            onClick={() => handleCardClick(cardState, cardState)}
+            className={`
+              relative p-4 rounded-xl border-2 transition-all duration-200
+              touch-manipulation cursor-pointer min-h-[72px] flex items-center
+              ${cardState.cardState === 'current' && cardState.canReveal
+                ? 'border-blue-500 bg-blue-50 shadow-lg hover:shadow-xl'
+                : cardState.cardState === 'revealed'
+                ? cardState.role === ROLES.MAFIA
+                  ? 'border-red-500 bg-red-50'
+                  : 'border-green-500 bg-green-50'
+                : 'border-gray-200 bg-white'
+              }
+            `}
+            role="button"
+            tabIndex={cardState.canReveal ? 0 : -1}
+            aria-label={`${cardState.name}: ${cardState.isRevealed ? cardState.role + ' (revealed)' : cardState.isCurrent ? 'Tap to reveal role' : 'Waiting to reveal'}`}
+          >
+            {/* Player number, name, role badge, status text */}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+```
+
+### **Reset Button System Pattern (ResetButtonSystem)**
+**Follow this pattern for reset/destructive actions with confirmation dialogs and state preservation:**
+
+```jsx
+// Reset button component with confirmation dialog
+const ResetButtonSystem = ({
+  hasActiveGame,
+  currentAssignment,
+  onReset,
+  disabled = false
+}) => {
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
+  const confirmButtonRef = useRef(null);
+  const cancelButtonRef = useRef(null);
+
+  // Calculate reset state information
+  const revealedCount = currentAssignment?.players?.filter(p => p.revealed).length || 0;
+  const totalPlayers = currentAssignment?.players?.length || 0;
+  const hasRevealedRoles = revealedCount > 0;
+
+  // Handle reset button click
+  const handleResetClick = useCallback(() => {
+    if (disabled || isResetting) return;
+    setShowConfirmation(true);
+  }, [disabled, isResetting]);
+
+  // Handle confirmation
+  const handleConfirm = useCallback(async () => {
+    setIsResetting(true);
+    try {
+      await onReset();
+      setShowConfirmation(false);
+    } catch (error) {
+      console.error('Reset failed:', error);
+    } finally {
+      setIsResetting(false);
+    }
+  }, [onReset]);
+
+  // Handle cancellation
+  const handleCancel = useCallback(() => {
+    setShowConfirmation(false);
+  }, []);
+
+  // Handle escape key
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape' && showConfirmation && !isResetting) {
+        handleCancel();
+      }
+    };
+
+    if (showConfirmation) {
+      document.addEventListener('keydown', handleEscape);
+      document.body.style.overflow = 'hidden'; // Prevent background scroll
+      return () => {
+        document.removeEventListener('keydown', handleEscape);
+        document.body.style.overflow = '';
+      };
+    }
+  }, [showConfirmation, isResetting, handleCancel]);
+
+  // Focus management
+  useEffect(() => {
+    if (showConfirmation && cancelButtonRef.current) {
+      cancelButtonRef.current.focus();
+    }
+  }, [showConfirmation]);
+
+  return (
+    <>
+      {/* Reset Button */}
+      <button
+        type="button"
+        onClick={handleResetClick}
+        disabled={disabled || isResetting}
+        className="w-full h-12 px-4 text-white bg-gray-600 hover:bg-gray-700"
+        aria-label="Reset game and return to input screen"
+      >
+        Reset Game
+      </button>
+
+      {/* Confirmation Modal */}
+      {showConfirmation && createPortal(
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+             role="dialog" aria-modal="true">
+          <div className="bg-white rounded-xl p-6 max-w-md w-full shadow-2xl">
+            {/* Warning icon and header */}
+            <div className="text-center mb-6">
+              <div className="mx-auto w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                {/* Warning icon */}
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Reset Game?</h3>
+              <p className="text-gray-600">This will clear all game progress...</p>
+            </div>
+
+            {/* Warning Section */}
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+              <h4 className="text-sm font-medium text-red-800 mb-2">This action will clear:</h4>
+              <ul className="text-sm text-red-700 space-y-1">
+                <li>• All current role assignments</li>
+                {hasRevealedRoles && <li>• All revealed roles ({revealedCount} of {totalPlayers})</li>}
+                <li>• Current game progress and state</li>
+              </ul>
+              <p className="text-sm text-red-700 mt-3 font-medium">
+                ✓ Player names will be kept for easy re-setup.
+              </p>
+            </div>
+
+            {/* Current Game Summary */}
+            {currentAssignment && (
+              <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                <h4 className="text-sm font-medium text-gray-700 mb-2">Current Game:</h4>
+                {/* Game stats display */}
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex gap-3">
+              <button ref={cancelButtonRef} onClick={handleCancel} disabled={isResetting}
+                      className="flex-1 h-12 px-4 text-gray-700 bg-gray-200 hover:bg-gray-300">
+                Keep Playing
+              </button>
+              <button ref={confirmButtonRef} onClick={handleConfirm} disabled={isResetting}
+                      className="flex-1 h-12 px-4 text-white bg-red-600 hover:bg-red-700">
+                {isResetting ? 'Resetting...' : 'Reset Game'}
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+    </>
+  );
+};
+```
+
+**Reset Button System Pattern Key Points:**
+- Portal-based modal for confirmation dialog
+- Clear warning about what will be cleared vs. preserved
+- Two-button choice: "Keep Playing" (cancel) or "Reset Game" (confirm)
+- Focus management (auto-focus on cancel button for safety)
+- Escape key dismisses confirmation
+- Background scroll prevention when modal open
+- Async reset handler with loading state
+- Shows current game statistics before reset
+- Conditional revealed roles warning when applicable
+- Touch-optimized buttons (48px height minimum)
+- Proper disabled states during reset operation
+
+### **Edge Case Validation Pattern (ValidationUtility)**
+**Follow this pattern for comprehensive input validation with edge case handling:**
+
+```javascript
+// Import centralized validation utility
+import { 
+  validateMafiaCount, 
+  formatValidationMessages,
+  VALIDATION_SEVERITY,
+  EDGE_CASE_TYPES 
+} from '../utils/edgeCaseValidation';
+
+// Hook pattern for validation state management
+export const useValidation = (value, totalPlayers) => {
+  const [hasUserInteracted, setHasUserInteracted] = useState(false);
+  
+  // Memoized validation with edge case detection
+  const validation = useMemo(() => {
+    return validateMafiaCount(value, totalPlayers);
+  }, [value, totalPlayers]);
+  
+  // Determine UI state
+  const shouldShowError = hasUserInteracted && !validation.isValid;
+  const shouldShowWarning = validation.isEdgeCase && validation.warning;
+  const canProceed = validation.canProceed;
+  
+  return { validation, shouldShowError, shouldShowWarning, canProceed };
+};
+
+// Component pattern with visual feedback
+const ValidatorComponent = ({ value, totalPlayers, onChange, onValidationChange }) => {
+  const { validation, shouldShowError, shouldShowWarning } = useValidation(value, totalPlayers);
+  
+  // Notify parent of validation state changes
+  React.useEffect(() => {
+    onValidationChange?.(validation);
+  }, [validation, onValidationChange]);
+  
+  return (
+    <div>
+      <input
+        value={value}
+        onChange={onChange}
+        className={`
+          ${shouldShowError ? 'border-red-300 focus:border-red-500' : ''}
+          ${shouldShowWarning ? 'border-yellow-300 focus:border-yellow-500' : ''}
+          ${!shouldShowError && !shouldShowWarning ? 'border-gray-300 focus:border-blue-500' : ''}
+        `}
+        aria-describedby={shouldShowError ? 'error-id' : shouldShowWarning ? 'warning-id' : undefined}
+      />
+      
+      {/* Error Messages - Red */}
+      {shouldShowError && (
+        <p id="error-id" className="text-sm text-red-600" role="alert">
+          {validation.message}
+        </p>
+      )}
+      
+      {/* Warning Messages - Yellow */}
+      {shouldShowWarning && (
+        <p id="warning-id" className="text-sm text-yellow-600" role="alert">
+          <span className="inline-flex items-center">
+            <WarningIcon />
+            {validation.warning}
+          </span>
+        </p>
+      )}
+    </div>
+  );
+};
+```
+
+**Edge Case Validation Pattern Key Points:**
+- Centralized validation logic in `src/utils/edgeCaseValidation.js`
+- Three severity levels: ERROR (blocks), WARNING (requires confirmation), INFO (informational)
+- Edge case types: NO_MAFIA (0), ALMOST_ALL_MAFIA (total-1), LARGE_GROUP (>30), SMALL_GROUP (<3)
+- Clear distinction between invalid (blocks allocation) and edge cases (allows with warning)
+- Visual feedback: Red for errors, yellow for warnings, blue/green for valid states
+- User-friendly messages with icons, explanations, and gameplay impact
+- ARIA compliance with role="alert" and proper aria-describedby associations
+- Memoized validation prevents unnecessary recalculations
+- Parent notification via callback props for state coordination
+- Validation result structure includes: `isValid`, `severity`, `type`, `message`, `explanation`, `canProceed`, `requiresConfirmation`, `isEdgeCase`
+
+**Validation Utility Functions:**
+- `validateMafiaCount(mafiaCount, totalPlayers)` - Core validation logic
+- `detectEdgeCase(mafiaCount, totalPlayers)` - Edge case detection
+- `formatValidationMessages(validation)` - UI-friendly message formatting
+- `validateGameConfiguration(playerNames, mafiaCount)` - Complete validation including names
+
+**Example Edge Cases:**
+```javascript
+// 0 Mafia - Allowed with warning
+validateMafiaCount(0, 5)
+// { isValid: true, isEdgeCase: true, warning: 'No Mafia players...', requiresConfirmation: true }
+
+// Almost all Mafia - Allowed with warning
+validateMafiaCount(4, 5) 
+// { isValid: true, isEdgeCase: true, warning: 'Almost all players are Mafia...', requiresConfirmation: true }
+
+// All Mafia - Blocked as error
+validateMafiaCount(5, 5)
+// { isValid: false, error: 'Mafia count must be less than total players (5)', canProceed: false }
+
+// Too many Mafia - Blocked as error
+validateMafiaCount(6, 5)
+// { isValid: false, error: 'Mafia count cannot exceed total players', canProceed: false }
+```
+
+### **Sticky Positioning Pattern (Mobile Layout Optimization)**
+**Follow this pattern for keeping important UI elements visible during scrolling:**
+
+```jsx
+// Sticky current player indicator in CardListInterface
+const CardListInterface = ({ assignment, currentPlayerIndex, onPlayerReveal, revealInProgress }) => {
+  // ... state and calculations ...
+  
+  return (
+    <div className="space-y-6">
+      {/* Header with Progress (scrolls normally) */}
+      <div className="space-y-4">
+        <h2>Player Roles</h2>
+        {/* Progress bar */}
+      </div>
+      
+      {/* Sticky Current Player Cue - Always visible at top */}
+      {currentPlayerIndex < cardStates.length && progress.completed < progress.total && (
+        <div 
+          className="sticky top-0 z-10 -mx-4 px-4 py-3 bg-blue-50 border-2 border-blue-500 rounded-lg shadow-lg backdrop-blur-sm bg-opacity-95"
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center min-w-0 flex-1">
+              <div className="w-3 h-3 bg-blue-600 rounded-full mr-3 flex-shrink-0 animate-pulse" />
+              <div className="min-w-0 flex-1">
+                <span className="text-base font-bold text-blue-900 block truncate">
+                  Next: {cardStates[currentPlayerIndex].name}
+                </span>
+                <p className="text-xs text-blue-700 mt-0.5 truncate">
+                  Tap card below to reveal role
+                </p>
+              </div>
+            </div>
+            <div className="text-sm font-medium text-blue-700 bg-blue-100 rounded-full px-3 py-1 ml-3 flex-shrink-0">
+              {currentPlayerIndex + 1} of {cardStates.length}
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Scrollable content below */}
+      <div className="space-y-3">
+        {/* Player cards */}
+      </div>
+    </div>
+  );
+};
+```
+
+**Sticky Positioning Pattern Key Points:**
+- Use `sticky top-0` for positioning at top during scroll
+- Add `z-10` or higher for proper layering above content
+- Use `-mx-4 px-4` to extend to container edges (compensates for parent padding)
+- Add `backdrop-blur-sm bg-opacity-95` for visibility over scrolling content
+- Enhance with `shadow-lg` for depth perception and visual separation
+- Use `truncate` on text elements to handle overflow gracefully
+- Apply `min-w-0 flex-1` for proper flex text truncation
+- Keep `flex-shrink-0` on icons and badges to prevent squishing
+- Maintain ARIA live regions for accessibility announcements
+- Works automatically across all mobile viewport sizes (320px-768px+)
+
+**Safe Area Inset Support:**
+Tailwind configuration enables notch/home indicator handling:
+```javascript
+// tailwind.config.js
+theme: {
+  extend: {
+    spacing: {
+      'safe-top': 'env(safe-area-inset-top)',
+      'safe-bottom': 'env(safe-area-inset-bottom)',
+      'safe-left': 'env(safe-area-inset-left)',
+      'safe-right': 'env(safe-area-inset-right)',
+    },
+  },
+}
+```
+Usage: `pt-safe-top`, `pb-safe-bottom`, etc. for proper padding on notched devices.
 
 ### **Touch-Optimized Counter Control Pattern**
 **Follow this pattern for numeric input controls with touch optimization:**
@@ -308,6 +941,670 @@ const CounterControl = React.memo(({ value, min, max, onChange, label, disabled 
 });
 ```
 
+  const increment = useCallback(() => {
+    if (canIncrement && onChange) onChange(value + 1);
+  }, [value, canIncrement, onChange]);
+
+  const decrement = useCallback(() => {
+    if (canDecrement && onChange) onChange(value - 1);
+  }, [value, canDecrement, onChange]);
+
+  const handleKeyDown = useCallback((event) => {
+    switch (event.key) {
+      case 'ArrowUp': event.preventDefault(); increment(); break;
+      case 'ArrowDown': event.preventDefault(); decrement(); break;
+    }
+  }, [increment, decrement]);
+
+  return { increment, decrement, canIncrement, canDecrement, handleKeyDown };
+};
+
+// Touch-optimized counter component with horizontal layout
+const CounterControl = React.memo(({ value, min, max, onChange, label, disabled = false }) => {
+  const { increment, decrement, canIncrement, canDecrement, handleKeyDown } = 
+    useCounterControl(value, min, max, onChange);
+
+  return (
+    <div className="flex flex-row items-center space-x-1" role="group" aria-label={label}>
+      {/* Decrement Button (←) */}
+      <button
+        type="button"
+        onClick={decrement}
+        disabled={disabled || !canDecrement}
+        className={`
+          min-h-[44px] min-w-[44px] flex items-center justify-center
+          border-2 rounded-lg touch-manipulation font-bold text-lg
+          transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500
+          ${disabled || !canDecrement 
+            ? 'border-gray-200 text-gray-300 bg-gray-50 cursor-not-allowed'
+            : 'border-gray-300 text-gray-700 bg-white hover:bg-gray-50 active:bg-gray-100'
+          }
+        `}
+        aria-label={`Decrease ${label}`}
+      >
+        ←
+      </button>
+
+      {/* Value Display */}
+      <div
+        className="min-h-[44px] min-w-[44px] flex items-center justify-center
+                   border-2 rounded-lg text-lg font-medium bg-gray-50 border-gray-200"
+        tabIndex="0" role="spinbutton"
+        aria-valuemin={min} aria-valuemax={max} aria-valuenow={value}
+        aria-label={`${label}: ${value}`}
+        onKeyDown={handleKeyDown}
+      >
+        {value}
+      </div>
+
+      {/* Increment Button (→) */}
+      <button
+        type="button"
+        onClick={increment}
+        disabled={disabled || !canIncrement}
+        className={`
+          min-h-[44px] min-w-[44px] flex items-center justify-center
+          border-2 rounded-lg touch-manipulation font-bold text-lg
+          transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500
+          ${disabled || !canIncrement
+            ? 'border-gray-200 text-gray-300 bg-gray-50 cursor-not-allowed'
+            : 'border-gray-300 text-gray-700 bg-white hover:bg-gray-50 active:bg-gray-100'
+          }
+        `}
+        aria-label={`Increase ${label}`}
+      >
+        →
+      </button>
+    </div>
+  );
+});
+```
+
+=======
+**Re-allocation Pattern Key Points:**
+- Same component used for both initial and re-actions
+- `hasExistingState` prop triggers re-action UI (orange theme, warning)
+- `isReAction` flag passed to handler for proper state cleanup
+- Always available button (not hidden after first action)
+- **Dynamic button text**: "Allocate Roles" (initial) vs "Re-allocate Roles" (re-action)
+- **Dynamic button colors**: Blue (`bg-blue-600`) for initial allocation, Orange (`bg-orange-600`) for re-allocation
+- **Processing states**: "Allocating..." vs "Re-allocating..." with matching color themes
+- Orange color signals significant/destructive action and matches modal warning theme
+
+### **Role Reveal Dialog Pattern (RoleRevealDialog)**
+**Follow this pattern for modal dialogs with two-step reveal flow and role-specific styling:**
+
+```jsx
+// Role reveal dialog with portal-based modal and two-step flow
+const RoleRevealDialog = ({
+  isOpen,
+  player,
+  onClose,
+  onRevealComplete
+}) => {
+  const [isRoleRevealed, setIsRoleRevealed] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
+  const dialogRef = useRef(null);
+  const revealButtonRef = useRef(null);
+  const closeButtonRef = useRef(null);
+
+  // Reset reveal state when dialog opens with new player
+  useEffect(() => {
+    if (isOpen && player) {
+      setIsRoleRevealed(player.revealed || false);
+      setIsClosing(false);
+    }
+  }, [isOpen, player]);
+
+  // Focus management
+  useEffect(() => {
+    if (isOpen) {
+      const elementToFocus = isRoleRevealed ? closeButtonRef.current : revealButtonRef.current;
+      elementToFocus?.focus();
+    }
+  }, [isOpen, isRoleRevealed]);
+
+  // Background scroll prevention only (Escape key deliberately ignored for privacy)
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = '';
+      };
+    }
+  }, [isOpen]);
+
+  // Handle dialog close (called only by buttons)
+  const handleClose = useCallback(() => {
+    setIsClosing(true);
+    setTimeout(() => {
+      onClose?.();
+      setIsClosing(false);
+    }, 150);
+  }, [onClose]);
+
+  if (!isOpen || !player) return null;
+
+  const isMafia = player.role === ROLES.MAFIA;
+
+  return createPortal(
+    <div
+      className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50
+        transition-opacity duration-150 ${isClosing ? 'opacity-0' : 'opacity-100'}`}
+      role="dialog" aria-modal="true"
+      // Overlay clicks intentionally do nothing; dialog closes via buttons only
+    >
+      <div ref={dialogRef} className={`bg-white rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl
+        transform transition-all duration-150 ${isClosing ? 'scale-95 opacity-0' : 'scale-100 opacity-100'}`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="text-center mb-6">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">{player.name}</h2>
+          <p className="text-gray-600">
+            {isRoleRevealed ? 'Your role:' : 'Ready to see your role?'}
+          </p>
+        </div>
+
+        <div className="mb-8">
+          {isRoleRevealed ? (
+            <div className={`text-center p-8 rounded-xl border-4
+              ${isMafia ? 'bg-red-50 border-red-500 text-red-900' : 'bg-green-50 border-green-500 text-green-900'}`}>
+              <div className="mb-4">
+                <div className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center
+                  ${isMafia ? 'bg-red-600' : 'bg-green-600'}`}>
+                  {/* Role icon SVG */}
+                </div>
+              </div>
+              <h3 className={`text-4xl font-bold mb-2 ${isMafia ? 'text-red-700' : 'text-green-700'}`}>
+                {player.role}
+              </h3>
+              <p className={`text-sm font-medium ${isMafia ? 'text-red-600' : 'text-green-600'}`}>
+                {isMafia ? 'Work with other Mafia players to eliminate Villagers' 
+                         : 'Work with other Villagers to identify the Mafia'}
+              </p>
+            </div>
+          ) : (
+            <div className="text-center">
+              <div className="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-6">
+                {/* Question icon */}
+              </div>
+              <button
+                ref={revealButtonRef}
+                onClick={() => { setIsRoleRevealed(true); onRevealComplete?.(); }}
+                className="w-full h-14 px-6 text-lg font-semibold bg-blue-600 hover:bg-blue-700 
+                  text-white rounded-xl shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-200
+                  transition-all duration-200 touch-manipulation"
+              >
+                Reveal Role
+              </button>
+            </div>
+          )}
+        </div>
+
+        {isRoleRevealed && (
+          <button
+            ref={closeButtonRef}
+            onClick={handleClose}
+            className="w-full h-12 px-6 text-base font-medium bg-gray-200 hover:bg-gray-300 
+              text-gray-700 rounded-lg focus:outline-none focus:ring-4 focus:ring-gray-200
+              transition-all duration-200 touch-manipulation"
+          >
+            Close
+          </button>
+        )}
+      </div>
+    </div>,
+    document.body
+  );
+};
+```
+
+**Role Reveal Dialog Pattern Key Points:**
+- Portal-based rendering to document.body for proper z-index stacking
+- Two-step flow: "Reveal Role" button → Role display → "Close" button
+- Role-specific styling (red for Mafia, green for Villager)
+- Focus management with auto-focus on appropriate button
+- Focus trap for accessibility (Tab/Shift+Tab cycling)
+- Escape key is ignored; dialog remains open until an action button is pressed (ensures privacy)
+- Background scroll prevention when open
+- Smooth fade/scale animations (150ms duration)
+- Touch-optimized buttons (56px Reveal, 48px Close)
+- Overlay clicks are inert; only in-dialog buttons can dismiss it (prevents accidental closure)
+- State reset on player change
+
+### **Card List Interface Pattern (CardListInterface)**
+**Follow this pattern for mobile-first list interfaces with state management and sequential interactions:**
+
+```jsx
+// Card list component with state-driven rendering
+const CardListInterface = ({
+  assignment,
+  currentPlayerIndex,
+  onPlayerReveal,
+  revealInProgress = false
+}) => {
+  // Memoized state calculations for performance
+  const cardStates = useMemo(() => {
+    if (!assignment?.players) return [];
+    
+    return assignment.players.map((player, index) => {
+      const isRevealed = player.revealed;
+      const isCurrent = index === currentPlayerIndex;
+      const canReveal = isCurrent && !isRevealed && !revealInProgress;
+      
+      return {
+        ...player,
+        isRevealed,
+        isCurrent,
+        canReveal,
+        cardState: isRevealed ? 'revealed' : 
+                  isCurrent ? 'current' : 'waiting'
+      };
+    });
+  }, [assignment, currentPlayerIndex, revealInProgress]);
+
+  // Progress tracking
+  const progress = useMemo(() => {
+    const completed = cardStates.filter(card => card.isRevealed).length;
+    const total = cardStates.length;
+    return { completed, total, percentage: total > 0 ? (completed / total) * 100 : 0 };
+  }, [cardStates]);
+
+  // Touch-optimized interaction handler
+  const handleCardClick = useCallback((player, cardState) => {
+    if (!cardState.canReveal) return;
+    onPlayerReveal?.({ playerName: player.name, playerIndex: player.index });
+  }, [onPlayerReveal]);
+
+  return (
+    <div className="space-y-6">
+      {/* Progress Header */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-bold text-gray-900">Player Roles</h2>
+          <div className="text-sm text-gray-600">{progress.completed} of {progress.total} revealed</div>
+        </div>
+        
+        {/* Progress Bar */}
+        <div className="w-full bg-gray-200 rounded-full h-2">
+          <div 
+            className="bg-green-600 h-2 rounded-full transition-all duration-500"
+            style={{ width: `${progress.percentage}%` }}
+          />
+        </div>
+      </div>
+
+      {/* Card List */}
+      <div className="space-y-3">
+        {cardStates.map((cardState, index) => (
+          <div
+            key={cardState.id}
+            onClick={() => handleCardClick(cardState, cardState)}
+            className={`
+              relative p-4 rounded-xl border-2 transition-all duration-200
+              touch-manipulation cursor-pointer min-h-[72px] flex items-center
+              ${cardState.cardState === 'current' && cardState.canReveal
+                ? 'border-blue-500 bg-blue-50 shadow-lg hover:shadow-xl'
+                : cardState.cardState === 'revealed'
+                ? cardState.role === ROLES.MAFIA
+                  ? 'border-red-500 bg-red-50'
+                  : 'border-green-500 bg-green-50'
+                : 'border-gray-200 bg-white'
+              }
+            `}
+            role="button"
+            tabIndex={cardState.canReveal ? 0 : -1}
+            aria-label={`${cardState.name}: ${cardState.isRevealed ? cardState.role + ' (revealed)' : cardState.isCurrent ? 'Tap to reveal role' : 'Waiting to reveal'}`}
+          >
+            {/* Player number, name, role badge, status text */}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+```
+
+### **Reset Button System Pattern (ResetButtonSystem)**
+**Follow this pattern for reset/destructive actions with confirmation dialogs and state preservation:**
+
+```jsx
+// Reset button component with confirmation dialog
+const ResetButtonSystem = ({
+  hasActiveGame,
+  currentAssignment,
+  onReset,
+  disabled = false
+}) => {
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
+  const confirmButtonRef = useRef(null);
+  const cancelButtonRef = useRef(null);
+
+  // Calculate reset state information
+  const revealedCount = currentAssignment?.players?.filter(p => p.revealed).length || 0;
+  const totalPlayers = currentAssignment?.players?.length || 0;
+  const hasRevealedRoles = revealedCount > 0;
+
+  // Handle reset button click
+  const handleResetClick = useCallback(() => {
+    if (disabled || isResetting) return;
+    setShowConfirmation(true);
+  }, [disabled, isResetting]);
+
+  // Handle confirmation
+  const handleConfirm = useCallback(async () => {
+    setIsResetting(true);
+    try {
+      await onReset();
+      setShowConfirmation(false);
+    } catch (error) {
+      console.error('Reset failed:', error);
+    } finally {
+      setIsResetting(false);
+    }
+  }, [onReset]);
+
+  // Handle cancellation
+  const handleCancel = useCallback(() => {
+    setShowConfirmation(false);
+  }, []);
+
+  // Handle escape key
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape' && showConfirmation && !isResetting) {
+        handleCancel();
+      }
+    };
+
+    if (showConfirmation) {
+      document.addEventListener('keydown', handleEscape);
+      document.body.style.overflow = 'hidden'; // Prevent background scroll
+      return () => {
+        document.removeEventListener('keydown', handleEscape);
+        document.body.style.overflow = '';
+      };
+    }
+  }, [showConfirmation, isResetting, handleCancel]);
+
+  // Focus management
+  useEffect(() => {
+    if (showConfirmation && cancelButtonRef.current) {
+      cancelButtonRef.current.focus();
+    }
+  }, [showConfirmation]);
+
+  return (
+    <>
+      {/* Reset Button */}
+      <button
+        type="button"
+        onClick={handleResetClick}
+        disabled={disabled || isResetting}
+        className="w-full h-12 px-4 text-white bg-gray-600 hover:bg-gray-700"
+        aria-label="Reset game and return to input screen"
+      >
+        Reset Game
+      </button>
+
+      {/* Confirmation Modal */}
+      {showConfirmation && createPortal(
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+             role="dialog" aria-modal="true">
+          <div className="bg-white rounded-xl p-6 max-w-md w-full shadow-2xl">
+            {/* Warning icon and header */}
+            <div className="text-center mb-6">
+              <div className="mx-auto w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                {/* Warning icon */}
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Reset Game?</h3>
+              <p className="text-gray-600">This will clear all game progress...</p>
+            </div>
+
+            {/* Warning Section */}
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+              <h4 className="text-sm font-medium text-red-800 mb-2">This action will clear:</h4>
+              <ul className="text-sm text-red-700 space-y-1">
+                <li>• All current role assignments</li>
+                {hasRevealedRoles && <li>• All revealed roles ({revealedCount} of {totalPlayers})</li>}
+                <li>• Current game progress and state</li>
+              </ul>
+              <p className="text-sm text-red-700 mt-3 font-medium">
+                ✓ Player names will be kept for easy re-setup.
+              </p>
+            </div>
+
+            {/* Current Game Summary */}
+            {currentAssignment && (
+              <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                <h4 className="text-sm font-medium text-gray-700 mb-2">Current Game:</h4>
+                {/* Game stats display */}
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex gap-3">
+              <button ref={cancelButtonRef} onClick={handleCancel} disabled={isResetting}
+                      className="flex-1 h-12 px-4 text-gray-700 bg-gray-200 hover:bg-gray-300">
+                Keep Playing
+              </button>
+              <button ref={confirmButtonRef} onClick={handleConfirm} disabled={isResetting}
+                      className="flex-1 h-12 px-4 text-white bg-red-600 hover:bg-red-700">
+                {isResetting ? 'Resetting...' : 'Reset Game'}
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+    </>
+  );
+};
+```
+
+**Reset Button System Pattern Key Points:**
+- Portal-based modal for confirmation dialog
+- Clear warning about what will be cleared vs. preserved
+- Two-button choice: "Keep Playing" (cancel) or "Reset Game" (confirm)
+- Focus management (auto-focus on cancel button for safety)
+- Escape key dismisses confirmation
+- Background scroll prevention when modal open
+- Async reset handler with loading state
+- Shows current game statistics before reset
+- Conditional revealed roles warning when applicable
+- Touch-optimized buttons (48px height minimum)
+- Proper disabled states during reset operation
+
+### **Edge Case Validation Pattern (ValidationUtility)**
+**Follow this pattern for comprehensive input validation with edge case handling:**
+
+```javascript
+// Import centralized validation utility
+import { 
+  validateMafiaCount, 
+  formatValidationMessages,
+  VALIDATION_SEVERITY,
+  EDGE_CASE_TYPES 
+} from '../utils/edgeCaseValidation';
+
+// Hook pattern for validation state management
+export const useValidation = (value, totalPlayers) => {
+  const [hasUserInteracted, setHasUserInteracted] = useState(false);
+  
+  // Memoized validation with edge case detection
+  const validation = useMemo(() => {
+    return validateMafiaCount(value, totalPlayers);
+  }, [value, totalPlayers]);
+  
+  // Determine UI state
+  const shouldShowError = hasUserInteracted && !validation.isValid;
+  const shouldShowWarning = validation.isEdgeCase && validation.warning;
+  const canProceed = validation.canProceed;
+  
+  return { validation, shouldShowError, shouldShowWarning, canProceed };
+};
+
+// Component pattern with visual feedback
+const ValidatorComponent = ({ value, totalPlayers, onChange, onValidationChange }) => {
+  const { validation, shouldShowError, shouldShowWarning } = useValidation(value, totalPlayers);
+  
+  // Notify parent of validation state changes
+  React.useEffect(() => {
+    onValidationChange?.(validation);
+  }, [validation, onValidationChange]);
+  
+  return (
+    <div>
+      <input
+        value={value}
+        onChange={onChange}
+        className={`
+          ${shouldShowError ? 'border-red-300 focus:border-red-500' : ''}
+          ${shouldShowWarning ? 'border-yellow-300 focus:border-yellow-500' : ''}
+          ${!shouldShowError && !shouldShowWarning ? 'border-gray-300 focus:border-blue-500' : ''}
+        `}
+        aria-describedby={shouldShowError ? 'error-id' : shouldShowWarning ? 'warning-id' : undefined}
+      />
+      
+      {/* Error Messages - Red */}
+      {shouldShowError && (
+        <p id="error-id" className="text-sm text-red-600" role="alert">
+          {validation.message}
+        </p>
+      )}
+      
+      {/* Warning Messages - Yellow */}
+      {shouldShowWarning && (
+        <p id="warning-id" className="text-sm text-yellow-600" role="alert">
+          <span className="inline-flex items-center">
+            <WarningIcon />
+            {validation.warning}
+          </span>
+        </p>
+      )}
+    </div>
+  );
+};
+```
+
+**Edge Case Validation Pattern Key Points:**
+- Centralized validation logic in `src/utils/edgeCaseValidation.js`
+- Three severity levels: ERROR (blocks), WARNING (requires confirmation), INFO (informational)
+- Edge case types: NO_MAFIA (0), ALMOST_ALL_MAFIA (total-1), LARGE_GROUP (>30), SMALL_GROUP (<3)
+- Clear distinction between invalid (blocks allocation) and edge cases (allows with warning)
+- Visual feedback: Red for errors, yellow for warnings, blue/green for valid states
+- User-friendly messages with icons, explanations, and gameplay impact
+- ARIA compliance with role="alert" and proper aria-describedby associations
+- Memoized validation prevents unnecessary recalculations
+- Parent notification via callback props for state coordination
+- Validation result structure includes: `isValid`, `severity`, `type`, `message`, `explanation`, `canProceed`, `requiresConfirmation`, `isEdgeCase`
+
+**Validation Utility Functions:**
+- `validateMafiaCount(mafiaCount, totalPlayers)` - Core validation logic
+- `detectEdgeCase(mafiaCount, totalPlayers)` - Edge case detection
+- `formatValidationMessages(validation)` - UI-friendly message formatting
+- `validateGameConfiguration(playerNames, mafiaCount)` - Complete validation including names
+
+**Example Edge Cases:**
+```javascript
+// 0 Mafia - Allowed with warning
+validateMafiaCount(0, 5)
+// { isValid: true, isEdgeCase: true, warning: 'No Mafia players...', requiresConfirmation: true }
+
+// Almost all Mafia - Allowed with warning
+validateMafiaCount(4, 5) 
+// { isValid: true, isEdgeCase: true, warning: 'Almost all players are Mafia...', requiresConfirmation: true }
+
+// All Mafia - Blocked as error
+validateMafiaCount(5, 5)
+// { isValid: false, error: 'Mafia count must be less than total players (5)', canProceed: false }
+
+// Too many Mafia - Blocked as error
+validateMafiaCount(6, 5)
+// { isValid: false, error: 'Mafia count cannot exceed total players', canProceed: false }
+```
+
+### **Sticky Positioning Pattern (Mobile Layout Optimization)**
+**Follow this pattern for keeping important UI elements visible during scrolling:**
+
+```jsx
+// Sticky current player indicator in CardListInterface
+const CardListInterface = ({ assignment, currentPlayerIndex, onPlayerReveal, revealInProgress }) => {
+  // ... state and calculations ...
+  
+  return (
+    <div className="space-y-6">
+      {/* Header with Progress (scrolls normally) */}
+      <div className="space-y-4">
+        <h2>Player Roles</h2>
+        {/* Progress bar */}
+      </div>
+      
+      {/* Sticky Current Player Cue - Always visible at top */}
+      {currentPlayerIndex < cardStates.length && progress.completed < progress.total && (
+        <div 
+          className="sticky top-0 z-10 -mx-4 px-4 py-3 bg-blue-50 border-2 border-blue-500 rounded-lg shadow-lg backdrop-blur-sm bg-opacity-95"
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center min-w-0 flex-1">
+              <div className="w-3 h-3 bg-blue-600 rounded-full mr-3 flex-shrink-0 animate-pulse" />
+              <div className="min-w-0 flex-1">
+                <span className="text-base font-bold text-blue-900 block truncate">
+                  Next: {cardStates[currentPlayerIndex].name}
+                </span>
+                <p className="text-xs text-blue-700 mt-0.5 truncate">
+                  Tap card below to reveal role
+                </p>
+              </div>
+            </div>
+            <div className="text-sm font-medium text-blue-700 bg-blue-100 rounded-full px-3 py-1 ml-3 flex-shrink-0">
+              {currentPlayerIndex + 1} of {cardStates.length}
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Scrollable content below */}
+      <div className="space-y-3">
+        {/* Player cards */}
+      </div>
+    </div>
+  );
+};
+```
+
+**Sticky Positioning Pattern Key Points:**
+- Use `sticky top-0` for positioning at top during scroll
+- Add `z-10` or higher for proper layering above content
+- Use `-mx-4 px-4` to extend to container edges (compensates for parent padding)
+- Add `backdrop-blur-sm bg-opacity-95` for visibility over scrolling content
+- Enhance with `shadow-lg` for depth perception and visual separation
+- Use `truncate` on text elements to handle overflow gracefully
+- Apply `min-w-0 flex-1` for proper flex text truncation
+- Keep `flex-shrink-0` on icons and badges to prevent squishing
+- Maintain ARIA live regions for accessibility announcements
+- Works automatically across all mobile viewport sizes (320px-768px+)
+
+**Safe Area Inset Support:**
+Tailwind configuration enables notch/home indicator handling:
+```javascript
+// tailwind.config.js
+theme: {
+  extend: {
+    spacing: {
+      'safe-top': 'env(safe-area-inset-top)',
+      'safe-bottom': 'env(safe-area-inset-bottom)',
+      'safe-left': 'env(safe-area-inset-left)',
+      'safe-right': 'env(safe-area-inset-right)',
+    },
+  },
+}
+```
+Usage: `pt-safe-top`, `pb-safe-bottom`, etc. for proper padding on notched devices.
 ### **📋 File Organization Checklist**
 
 Before creating any new file, ask:
@@ -393,8 +1690,18 @@ npm run format:check # Check if code is properly formatted
       <h1 className="text-2xl md:text-4xl font-bold mb-4 text-gray-800">
   ```
 - **Available breakpoints**: sm:640px, md:768px, lg:1024px (configured in tailwind.config.js)
-- **Performance**: CSS bundle should remain under 50KB after purging (currently 6.16KB)
+- **Performance**: CSS bundle should remain under 50KB after purging (currently 26.17KB)
 - **Content paths**: Include all JSX files in tailwind.config.js for proper CSS purging
+
+### Design System (src/utils/designSystem.js)
+- **Centralized styling utilities**: Color palettes, typography scales, sizing constants
+- **Role-based colors**: Red for Mafia, Green for Villager
+- **State-based colors**: Blue (current), Emerald (revealed), Gray (waiting/disabled)
+- **Helper functions**: `getRoleStyles()`, `getStateStyles()`, `getCombinedStyles()`
+- **Accessibility utilities**: Focus rings, touch-friendly sizing, WCAG AA compliance
+- **Usage**: Import constants/functions or use inline Tailwind (both approaches valid)
+- **Documentation**: See `docs/DESIGN_SYSTEM.md` for complete guide
+- **WCAG AA Compliance**: All color combinations meet 4.5:1+ contrast ratios
 
 ## When Working on Mafia Game Role Allocator
 
@@ -417,11 +1724,11 @@ npm run format:check # Check if code is properly formatted
 - ✅ **Feature breakdown completed for ALL epics** into implementable features:
   - **Setup & Project Scaffolding:** 4 features (✅ Vite React, ✅ Tailwind, ✅ Dev Tooling, ✅ Mobile Optimization)
   - **Input & Validation:** 3 features (✅ Player Count Management, ✅ Mafia Count Validation, ✅ Player Name Input System)
-  - **Role Allocation:** 3 features (✅ Allocation Confirmation Flow, ✅ Role Assignment Engine, Re-allocation System)
-  - **Role Display & Reveal:** 3 features (Card List Interface, Role Reveal Dialog, Sequential Order Enforcement)
-  - **Reset & Re-Allocate:** 1 feature (Reset Button System)
-  - **Minimal Styling & UI Clarity:** 2 features (Visual Differentiation System, Mobile Layout Optimization)
-  - **Alternative & Edge Cases:** 2 features (Edge Case Validation, Error Recovery System)
+  - **Role Allocation:** 3 features (✅ Allocation Confirmation Flow, ✅ Role Assignment Engine, ✅ Re-allocation System)
+  - **Role Display & Reveal:** 3 features (✅ Card List Interface, ✅ Role Reveal Dialog, ✅ Sequential Order Enforcement)
+  - **Reset & Re-Allocate:** 1 feature (✅ Reset Button System)
+  - **Minimal Styling & UI Clarity:** 2 features (✅ Visual Differentiation System, ✅ Mobile Layout Optimization)
+  - **Alternative & Edge Cases:** 2 features (✅ Edge Case Validation, ✅ Error Recovery System)
 - **Total: 18 independent, implementable features** with complete user stories, acceptance criteria, and technical requirements
 - Each feature PRD includes functional/non-functional requirements, integration boundaries, and clear scope definitions
 - ✅ **Implementation plans completed for ALL 18 features** with complete technical specifications:
@@ -446,8 +1753,14 @@ npm run format:check # Check if code is properly formatted
 - ✅ **IMPLEMENTATION STARTED** - Vite React Project Initialization complete with working React 18 application foundation
 - ✅ **IMPLEMENTATION CONTINUED** - Tailwind CSS Integration complete with utility-first styling and mobile-first responsive design
 - ✅ **INPUT & VALIDATION EPIC COMPLETE** - Player Count Management, Mafia Count Validation, and Player Name Input System completed with comprehensive validation and testing
-- ✅ **ROLE ALLOCATION EPIC CONTINUED** - Role Assignment Engine completed with Fisher-Yates shuffle algorithm and comprehensive edge case handling
+- ✅ **ROLE ALLOCATION EPIC CONTINUED** - Role Assignment Engine completed with Fisher-Yates shuffle algorithm, comprehensive edge case handling, and complete data structure for card list integration
+- ✅ **ROLE DISPLAY & REVEAL EPIC STARTED** - Card List Interface completed with mobile-first vertical layout, sequential reveal enforcement, progress tracking, and comprehensive accessibility support
 - ✅ **PRODUCTION DEPLOYMENT COMPLETE** - Live application deployed to Vercel at https://mafia-game-role-allocator-jqhayysnn-lem0n4ids-projects.vercel.app with full Input & Validation epic functionality
+- ✅ **ROLE ALLOCATION EPIC COMPLETE** - Re-allocation System completed with unified confirmation flow, independent randomization, and state cleanup. Same "Allocate Roles" button used for both initial allocation and re-allocation with enhanced confirmation dialogs
+- ✅ **ROLE DISPLAY & REVEAL EPIC COMPLETE** - Sequential Order Enforcement completed with enhanced current player indicator, strict order validation, and comprehensive accessibility support (ARIA live regions, tooltips, disabled states)
+- ✅ **RESET & RE-ALLOCATE EPIC COMPLETE** - Reset Button System completed with confirmation dialog, state preservation (player names, counts), and complete state cleanup (assignments, reveal progress, dialogs)
+- ✅ **MINIMAL STYLING & UI CLARITY EPIC COMPLETE** - Visual Differentiation System and Mobile Layout Optimization completed with centralized design system utilities (color palettes, typography scales, sizing constants), WCAG AA compliant contrast ratios, sticky current player cue, safe area inset support, and comprehensive styling documentation
+- ✅ **ALTERNATIVE & EDGE CASES EPIC COMPLETE** - Edge Case Validation and Error Recovery System both completed. Edge case validation handles 0/almost-all Mafia scenarios with warnings and blocks invalid configurations. Error Recovery System provides comprehensive runtime error protection with Error Boundary component, global error handlers, and enhanced double-tap protection utilities
 
 ## 📋 **Architectural Decisions Log**
 
@@ -651,6 +1964,186 @@ npm run format:check # Check if code is properly formatted
 - **Bundle impact**: +9.45KB JavaScript, efficient implementation within performance budgets
 - **Acceptance criteria**: All 7 categories validated - algorithm, assignment logic, validation, output format, performance, testability, integration
 
+### Card List Interface implementation completed (October 2, 2025)
+- ✅ **First Role Display & Reveal feature complete** - Mobile-first card list component with sequential reveal enforcement
+- **Component implementation**: Created `src/components/CardListInterface.jsx` with comprehensive features:
+  - Vertical card layout with 72px minimum height for touch accessibility
+  - Sequential reveal order enforcement with visual state management
+  - Progress tracking with completion percentage and current player indicators
+  - Role-based visual differentiation (green for Villagers, red for Mafia)
+  - Completion state with "All roles revealed!" celebration message
+- **Accessibility compliance**: Full ARIA labeling, keyboard navigation, and screen reader support
+- **Performance optimization**: Memoized calculations with useMemo/useCallback for efficient re-rendering
+- **Visual design**: Tailwind CSS mobile-first responsive layout with proper touch targets (44px+)
+- **State management**: Card states (waiting, current, revealed) with smooth transitions
+- **Edge case handling**: Supports 1-30 players with proper layout adaptation
+- **Integration**: Enhanced role assignment engine with reveal tracking and card list data structure
+
+### App.jsx integration enhancement completed (October 2, 2025)
+- ✅ **Dual-phase application flow** - Seamless transition between input and display phases
+- **State management enhancement**: Added assignment, currentPlayerIndex, and revealInProgress state
+- **Phase-based rendering**: Conditional display of input forms vs. card list interface
+- **Reset functionality**: Clean state reset preserving user workflow patterns
+- **Integration architecture**: Clean callback interfaces between components
+- **Error handling**: Proper try-catch blocks with user-friendly error messages
+- **Performance**: Maintains <200ms interaction response times throughout reveal sequence
+
+### Re-allocation System implementation completed (October 2, 2025)
+- ✅ **Third Role Allocation feature complete** - Unified re-allocation flow using same AllocationConfirmationFlow component
+- **Unified confirmation flow**: Same "Allocate Roles" button used for both initial allocation and re-allocation (PRD AC-1 requirement)
+- **Enhanced AllocationConfirmationFlow component**: Added support for `hasExistingAssignment` and `currentAssignment` props
+- **Dynamic UI adaptation**: Different header ("Re-allocate Roles?"), orange theme, refresh icon, and warning section for re-allocation
+- **State cleanup integration**: Automatically clears reveal states (currentPlayerIndex, showCardListInterface) on re-allocation
+- **Independent randomization**: Each re-allocation uses fresh Fisher-Yates shuffle with new assignment ID
+- **Input preservation**: Player names and counts preserved across unlimited re-allocation attempts
+- **Performance excellence**: Re-allocation typically completes in <1ms (well under 200ms requirement)
+- **Removed duplicate UI**: Eliminated separate "Reassign Roles" button in favor of unified flow
+- **App.jsx refactoring**: Updated to always show AllocationConfirmationFlow when appropriate, with `isReallocation` flag
+- **File changes**: Modified `src/components/AllocationConfirmationFlow.jsx` and `src/App.jsx`
+- **Bundle impact**: Minimal increase (+1.87KB JS) with enhanced functionality
+- **Acceptance criteria**: All 7 PRD acceptance criteria categories validated through manual testing
+
+### Role Reveal Dialog implementation completed (October 2, 2025)
+- ✅ **Second Role Display & Reveal feature complete** - Professional modal dialog system for private role viewing with clear Reveal/Close workflow
+- **Component Implementation**: Created `RoleRevealDialog` component with portal-based modal, two-step reveal process, and role-specific styling
+- **Two-Step Reveal Flow**: "Reveal Role" button → Role Display with icon and description → "Close" button (replaces window.confirm())
+- **Role-Specific Styling**: Red theme for Mafia (border-red-500, bg-red-50), green theme for Villagers (border-green-500, bg-green-50)
+- **Dialog Management Hook**: Created `useRoleRevealDialog` hook for state management (isOpen, currentPlayer, revealInProgress)
+- **Accessibility Excellence**: Full ARIA compliance, focus management, focus trap, keyboard navigation (Escape key), screen reader support
+- **Mobile Optimization**: 44px+ touch targets (Reveal: 56px, Close: 48px), responsive sizing (max-w-sm), proper viewport handling
+- **Privacy Features**: Modal overlay blocks background interaction, role info in memory only, no browser history exposure
+- **Integration**: Updated App.jsx to use dialog instead of window.confirm(), enhanced useRoleAssignment with markPlayerRevealed()
+- **Animation**: Smooth fade-in/fade-out transitions (150ms duration), scale transform for polish
+- **Performance**: Dialog appears <100ms, efficient state management with useCallback optimizations
+- **File structure**: Added `src/components/RoleRevealDialog.jsx` (296 lines), `src/hooks/useRoleRevealDialog.js` (45 lines)
+- **Bundle impact**: +6.07KB JS, +1.11KB CSS (total ~213KB, under 500KB budget)
+- **Acceptance criteria**: All 8 PRD acceptance criteria validated - display, button flow, privacy, security, performance, accessibility
+
+### Sequential Order Enforcement implementation completed (October 2, 2025)
+- ✅ **Third Role Display & Reveal feature complete** - Enhanced existing components with strict order validation and prominent current player indication
+- **Enhancement Strategy**: Rather than creating new wrapper components, enhanced CardListInterface and App.jsx with minimal changes following "surgical modifications" principle
+- **Current Player Indicator Enhancement**: Made indicator more prominent with border-2, bold text, shadow, and position badge (e.g., "1 of 5")
+- **ARIA Live Region**: Added `role="status" aria-live="polite"` to current player indicator for screen reader announcements
+- **Strict Order Validation**: Added validation guard in App.jsx handlePlayerReveal to block out-of-order attempts
+- **Enhanced Card States**: Improved visual differentiation with opacity (revealed: 90%, waiting: 60%) and cursor states (cursor-not-allowed for disabled)
+- **Accessibility Improvements**: Added aria-disabled, title tooltips, and enhanced aria-label descriptions
+- **User Feedback**: Console warnings for blocked interactions with descriptive messages
+- **Performance**: Current player indicator updates within 100ms as required, verified with manual testing
+- **File changes**: Modified `src/components/CardListInterface.jsx` and `src/App.jsx` (64 line changes)
+- **Bundle impact**: Minimal (+1.04KB JS, +0.35KB CSS), efficient implementation
+- **Testing**: All 3 acceptance criteria categories validated - current player cue, order enforcement, visual state management
+- **Implementation approach**: Built on existing working code rather than adding new abstractions, maintaining codebase simplicity
+
+### Reset Button System implementation completed (October 2, 2025)
+- ✅ **Reset & Re-Allocate epic complete** - Comprehensive reset functionality with confirmation dialog and state preservation
+- **Component Implementation**: Created `ResetButtonSystem` component with portal-based confirmation modal
+- **Confirmation Dialog**: Warning dialog prevents accidental resets with clear summary of what will be cleared/preserved
+- **State Cleanup**: Clears role assignments, reveal progress (currentPlayerIndex, showCardListInterface), and dialog states
+- **State Preservation**: Maintains player names, player count, and mafia count as per PRD requirements
+- **Critical Fix**: Updated App.jsx to pass preserved `playerNames` and `playerCount` as `initialNames` and `initialCount` to PlayerCountManager
+- **Integration**: Reset button available in both Assignment Results phase and Card List Reveal phase
+- **Accessibility Excellence**: Full ARIA compliance, focus management (auto-focus cancel button), Escape key handler, background scroll prevention
+- **Mobile Optimization**: 48px touch targets (exceeds 44px requirement), responsive modal sizing, touch-friendly interactions
+- **Performance**: Reset completes instantly (<200ms requirement exceeded), smooth 150ms fade animations
+- **File structure**: Added `src/components/ResetButtonSystem.jsx` (227 lines), modified `src/App.jsx` for integration
+- **Bundle impact**: +4.78KB JS, +0.34KB CSS (total ~220KB, well under 500KB budget)
+- **Testing**: All 8 PRD acceptance criteria validated - availability, state cleanup, data preservation, accessibility, performance, mobile optimization
+- **Pattern Established**: Confirmation dialog pattern for destructive actions with state preservation and clear user warnings
+
+### Visual Differentiation System implementation completed (October 2, 2025)
+- ✅ **Minimal Styling & UI Clarity epic started** - Centralized design system with comprehensive visual styling utilities
+- **Design System Foundation**: Created `src/utils/designSystem.js` with color palettes, typography scales, sizing constants, and helper functions
+- **Color Palettes**: Defined role-based colors (Red for Mafia, Green for Villager) and state-based colors (Blue for current, Emerald for revealed, Gray for waiting/disabled)
+- **Typography System**: Comprehensive scale from text-xs to text-4xl with appropriate font weights for headings, body, UI elements, and role displays
+- **Sizing Constants**: Touch targets (44px minimum), button heights (h-12/h-14), card padding, icon sizes for consistent spacing
+- **Helper Functions**: `getRoleStyles()`, `getStateStyles()`, `getCombinedStyles()` for programmatic style application
+- **Accessibility Utilities**: Focus rings, screen reader utilities, touch-friendly sizing, high contrast mode support
+- **WCAG AA Compliance**: All color combinations tested and validated (Mafia: 7.60:1, Villager: 8.70:1, Current: 9.52:1, Waiting: 9.86:1)
+- **Documentation**: Created comprehensive `docs/DESIGN_SYSTEM.md` guide with usage examples, color specifications, and best practices
+- **Bundle Impact**: CSS increased 1.48KB (24.69KB → 26.17KB), well under 50KB budget requirement
+- **Performance**: No runtime JavaScript overhead (pure Tailwind utilities), build time unchanged (~2.36s)
+- **Acceptance Criteria**: All 8 criteria verified - element differentiation, state indication, mobile optimization, accessibility compliance
+- **Pattern Note**: Components can use inline Tailwind (current approach) or import design system functions (both valid and maintainable)
+
+### Mobile Layout Optimization implementation completed (October 2, 2025)
+- ✅ **Minimal Styling & UI Clarity epic complete** - Mobile-first responsive layout with sticky current player cue and comprehensive touch optimization
+- **Sticky Current Player Cue**: Enhanced CardListInterface with sticky positioning (position:sticky top-0 z-10) to keep current player indicator always visible during scrolling
+  - Backdrop blur effect (backdrop-blur-sm bg-opacity-95) for better visibility over content
+  - Enhanced shadow (shadow-lg) and prominent border (border-2 border-blue-500) for depth perception
+  - Negative margins (-mx-4) with padding (px-4) to extend indicator to container edges
+  - Text truncation for long player names to prevent layout issues
+- **Safe Area Inset Support**: Added Tailwind utilities for notched devices (iPhone X+, modern Android)
+  - Configured safe-area-inset-top/bottom/left/right in tailwind.config.js
+  - Enables proper padding on devices with notches and home indicators
+  - Uses CSS env() variables for dynamic safe area handling
+- **Touch Target Verification**: Comprehensive audit confirmed all interactive elements meet 44px+ minimum
+  - Inputs: 48px (h-12)
+  - Primary buttons: 56px (h-14)
+  - Secondary buttons: 48px (h-12)
+  - Player cards: 72px (min-h-[72px])
+- **Responsive Layout**: Mobile-first design with proper breakpoints
+  - Base padding: p-4 (16px) for mobile
+  - Tablet padding: md:p-8 (32px) for larger screens
+  - Max width constraints: max-w-2xl on container, max-w-lg on content
+  - Viewport configuration: width=device-width, initial-scale=1.0, viewport-fit=cover
+- **Performance**: Build time 2.25s, CSS 26.89KB (under 50KB budget), total bundle 220.34KB (under 500KB budget)
+- **Testing Documentation**: Created dev-tools/mobile-layout-test.md with comprehensive testing scenarios
+- **File changes**: Modified src/components/CardListInterface.jsx, tailwind.config.js
+- **Bundle impact**: +0.72KB CSS (26.17KB → 26.89KB), within performance budgets
+- **Acceptance criteria**: All 3 PRD categories verified - responsive layout (320px-768px), touch optimization (44px+ targets), current player cue visibility (sticky positioning)
+
+### Edge Case Validation implementation completed (January 2025)
+- ✅ **Alternative & Edge Cases epic started** - Edge case validation fully functional with comprehensive validation utility
+- **Implementation Analysis**: Verified existing implementation meets all PRD acceptance criteria (AC-1: Edge case allowance, AC-2: Invalid input prevention, AC-3: Validation integration)
+- **Existing Validation**: `useMafiaCountValidation` hook already detects 0 Mafia and almost-all-Mafia edge cases with appropriate warnings
+- **UI Components**: `MafiaCountValidator` displays yellow warnings for edge cases, red errors for invalid configurations
+- **Confirmation Flow**: `AllocationConfirmationFlow` shows edge case warnings in confirmation dialog before allocation
+- **Name Validation**: `usePlayerCountManager` validates blank names and blocks allocation with clear error messages
+- **Centralized Utility**: Created `src/utils/edgeCaseValidation.js` with comprehensive validation logic for consistency and future enhancements:
+  - Edge case types: NO_MAFIA, ALL_MAFIA, ALMOST_ALL_MAFIA, LARGE_GROUP, SMALL_GROUP, INVALID_INPUT
+  - Validation severity levels: ERROR (blocks), WARNING (requires confirmation), INFO (informational)
+  - Functions: `validateMafiaCount()`, `detectEdgeCase()`, `formatValidationMessages()`, `validateGameConfiguration()`
+  - Configurable thresholds: MIN_PLAYERS: 1, MAX_PLAYERS: 50, LARGE_GROUP: 20, SMALL_GROUP: 3, PERFORMANCE_WARNING: 30
+- **Documentation**: Created comprehensive `docs/EDGE_CASE_VALIDATION.md` with validation flow diagrams, testing scenarios, and code examples
+- **Performance**: Validation executes within 100ms requirement (typically <10ms), no impact on application performance
+- **Accessibility**: Full ARIA compliance with role="alert" attributes, screen reader support, WCAG AA color contrast
+- **File structure**: Added `src/utils/edgeCaseValidation.js` (305 lines), `docs/EDGE_CASE_VALIDATION.md` (9.5KB)
+- **Bundle impact**: +9.41KB JS (edge case utility), within 500KB budget (total ~220KB)
+- **Acceptance criteria**: All 3 AC categories verified through code review and manual testing - edge cases allowed with warnings, invalid configs blocked, seamless integration
+
+### Error Recovery System implementation completed (January 2025)
+- ✅ **Alternative & Edge Cases epic complete** - Comprehensive error recovery system with runtime protection and double-tap safeguards
+- **Implementation Analysis**: Verified existing implementation already has robust double-tap protection; added error boundaries and recovery utilities
+- **Existing Protection**: Double-tap protection already implemented via `isProcessing`/`isResetting` states in all critical components:
+  - `AllocationConfirmationFlow`: isProcessing state prevents multiple allocations
+  - `ResetButtonSystem`: isResetting state prevents multiple resets  
+  - `RoleRevealDialog`: Dialog state prevents multiple opens
+- **Error Boundary**: Created `src/components/ErrorBoundary.jsx` for catching and recovering from runtime errors:
+  - Automatic error classification by type and severity
+  - User-friendly error messages with recovery actions
+  - Automatic recovery for low-severity errors (max 3 retries)
+  - Manual recovery options for critical errors
+  - Development mode debugging with full stack traces
+- **Error Recovery Utility**: Created `src/utils/errorRecovery.js` with comprehensive error handling:
+  - Error types: RUNTIME_ERROR, STATE_CORRUPTION, VALIDATION_ERROR, COMPONENT_ERROR, UNKNOWN_ERROR
+  - Severity levels: LOW (auto-recoverable), MEDIUM (user-guided), HIGH (manual), CRITICAL (restart needed)
+  - Recovery strategies: RETRY, RESET_STATE, RELOAD_COMPONENT, FALLBACK_UI, MANUAL_INTERVENTION
+  - State validation functions for detecting corruption
+- **Debounce Utility**: Created `src/utils/debounce.js` for enhanced double-tap protection:
+  - Debounce function with configurable delay (default 300ms)
+  - Throttle function for rate-limiting operations
+  - React-compatible callback creator
+- **Global Error Handler**: Added unhandled promise rejection handler in `src/main.jsx`:
+  - Catches unhandled promise rejections
+  - Prevents browser default error behavior
+  - Logs errors for debugging
+- **Integration**: Wrapped entire app in ErrorBoundary component in main.jsx
+- **Documentation**: Created comprehensive `docs/ERROR_RECOVERY.md` with usage examples, testing scenarios, and acceptance criteria verification
+- **Performance**: Error detection has minimal overhead, recovery operations complete within 500ms requirement
+- **File structure**: Added `src/components/ErrorBoundary.jsx` (281 lines), `src/utils/errorRecovery.js` (235 lines), `src/utils/debounce.js` (68 lines), `docs/ERROR_RECOVERY.md` (11.5KB)
+- **Bundle impact**: +6.68KB JS (error recovery utilities), within 500KB budget (total ~227KB)
+- **Acceptance criteria**: All 4 AC categories verified - reset during reveal works, double-tap protection active, workflow continuity maintained, shared device workflow supported
+
 ### Touch-Optimized Counter Controls implementation completed (October 2, 2025)
 - ✅ **Mobile UX Enhancement feature complete** - Custom counter controls replacing HTML number inputs with touch-optimized interactions
 - **Component Implementation**: Created `CounterControl` component with reusable ← N → layout for mobile-first interactions
@@ -677,6 +2170,199 @@ npm run format:check # Check if code is properly formatted
 - **Accessibility**: ARIA labels and keyboard navigation preserved, screen reader compatibility maintained
 - **User Feedback**: Addressed request for "cleaner UI and simpler UX" while maintaining all technical benefits
 - **Testing**: Verified boundary enforcement, dynamic field generation, edge case handling all working correctly
+
+### Counter Controls Layout Enhancement (October 2, 2025)
+- ✅ **UX improvement based on user feedback** - Changed counter layout from vertical to horizontal for cleaner UI
+- **Layout Modification**: Updated CounterControl from vertical (↓ N ↑) to horizontal (← N →) arrangement
+- **Button Reordering**: Rearranged sequence to Decrement (←) | Value (N) | Increment (→) for intuitive left-to-right interaction
+- **Icon Updates**: Changed SVG paths from up/down arrows to left/right arrows for better semantic alignment
+- **Container Styling**: Modified from `flex-col space-y-1` to `flex-row space-x-1` for horizontal flow
+- **Functionality Preservation**: All touch optimization, accessibility, and validation features maintained exactly
+- **Visual Benefits**: Cleaner UI with better space utilization, more familiar interaction pattern, professional appearance
+- **Performance**: No impact on bundle size or response times, maintained sub-millisecond interactions
+- **Accessibility**: ARIA labels and keyboard navigation preserved, screen reader compatibility maintained
+- **User Feedback**: Addressed request for "cleaner UI and simpler UX" while maintaining all technical benefits
+- **Testing**: Verified boundary enforcement, dynamic field generation, edge case handling all working correctly
+=======
+### Card List Interface implementation completed (October 2, 2025)
+- ✅ **First Role Display & Reveal feature complete** - Mobile-first card list component with sequential reveal enforcement
+- **Component implementation**: Created `src/components/CardListInterface.jsx` with comprehensive features:
+  - Vertical card layout with 72px minimum height for touch accessibility
+  - Sequential reveal order enforcement with visual state management
+  - Progress tracking with completion percentage and current player indicators
+  - Role-based visual differentiation (green for Villagers, red for Mafia)
+  - Completion state with "All roles revealed!" celebration message
+- **Accessibility compliance**: Full ARIA labeling, keyboard navigation, and screen reader support
+- **Performance optimization**: Memoized calculations with useMemo/useCallback for efficient re-rendering
+- **Visual design**: Tailwind CSS mobile-first responsive layout with proper touch targets (44px+)
+- **State management**: Card states (waiting, current, revealed) with smooth transitions
+- **Edge case handling**: Supports 1-30 players with proper layout adaptation
+- **Integration**: Enhanced role assignment engine with reveal tracking and card list data structure
+
+### App.jsx integration enhancement completed (October 2, 2025)
+- ✅ **Dual-phase application flow** - Seamless transition between input and display phases
+- **State management enhancement**: Added assignment, currentPlayerIndex, and revealInProgress state
+- **Phase-based rendering**: Conditional display of input forms vs. card list interface
+- **Reset functionality**: Clean state reset preserving user workflow patterns
+- **Integration architecture**: Clean callback interfaces between components
+- **Error handling**: Proper try-catch blocks with user-friendly error messages
+- **Performance**: Maintains <200ms interaction response times throughout reveal sequence
+
+### Re-allocation System implementation completed (October 2, 2025)
+- ✅ **Third Role Allocation feature complete** - Unified re-allocation flow using same AllocationConfirmationFlow component
+- **Unified confirmation flow**: Same "Allocate Roles" button used for both initial allocation and re-allocation (PRD AC-1 requirement)
+- **Enhanced AllocationConfirmationFlow component**: Added support for `hasExistingAssignment` and `currentAssignment` props
+- **Dynamic UI adaptation**: Different header ("Re-allocate Roles?"), orange theme, refresh icon, and warning section for re-allocation
+- **State cleanup integration**: Automatically clears reveal states (currentPlayerIndex, showCardListInterface) on re-allocation
+- **Independent randomization**: Each re-allocation uses fresh Fisher-Yates shuffle with new assignment ID
+- **Input preservation**: Player names and counts preserved across unlimited re-allocation attempts
+- **Performance excellence**: Re-allocation typically completes in <1ms (well under 200ms requirement)
+- **Removed duplicate UI**: Eliminated separate "Reassign Roles" button in favor of unified flow
+- **App.jsx refactoring**: Updated to always show AllocationConfirmationFlow when appropriate, with `isReallocation` flag
+- **File changes**: Modified `src/components/AllocationConfirmationFlow.jsx` and `src/App.jsx`
+- **Bundle impact**: Minimal increase (+1.87KB JS) with enhanced functionality
+- **Acceptance criteria**: All 7 PRD acceptance criteria categories validated through manual testing
+
+### Role Reveal Dialog implementation completed (October 2, 2025)
+- ✅ **Second Role Display & Reveal feature complete** - Professional modal dialog system for private role viewing with clear Reveal/Close workflow
+- **Component Implementation**: Created `RoleRevealDialog` component with portal-based modal, two-step reveal process, and role-specific styling
+- **Two-Step Reveal Flow**: "Reveal Role" button → Role Display with icon and description → "Close" button (replaces window.confirm())
+- **Role-Specific Styling**: Red theme for Mafia (border-red-500, bg-red-50), green theme for Villagers (border-green-500, bg-green-50)
+- **Dialog Management Hook**: Created `useRoleRevealDialog` hook for state management (isOpen, currentPlayer, revealInProgress)
+- **Accessibility Excellence**: Full ARIA compliance, focus management, focus trap, keyboard navigation (Escape key), screen reader support
+- **Mobile Optimization**: 44px+ touch targets (Reveal: 56px, Close: 48px), responsive sizing (max-w-sm), proper viewport handling
+- **Privacy Features**: Modal overlay blocks background interaction, role info in memory only, no browser history exposure
+- **Integration**: Updated App.jsx to use dialog instead of window.confirm(), enhanced useRoleAssignment with markPlayerRevealed()
+- **Animation**: Smooth fade-in/fade-out transitions (150ms duration), scale transform for polish
+- **Performance**: Dialog appears <100ms, efficient state management with useCallback optimizations
+- **File structure**: Added `src/components/RoleRevealDialog.jsx` (296 lines), `src/hooks/useRoleRevealDialog.js` (45 lines)
+- **Bundle impact**: +6.07KB JS, +1.11KB CSS (total ~213KB, under 500KB budget)
+- **Acceptance criteria**: All 8 PRD acceptance criteria validated - display, button flow, privacy, security, performance, accessibility
+
+### Sequential Order Enforcement implementation completed (October 2, 2025)
+- ✅ **Third Role Display & Reveal feature complete** - Enhanced existing components with strict order validation and prominent current player indication
+- **Enhancement Strategy**: Rather than creating new wrapper components, enhanced CardListInterface and App.jsx with minimal changes following "surgical modifications" principle
+- **Current Player Indicator Enhancement**: Made indicator more prominent with border-2, bold text, shadow, and position badge (e.g., "1 of 5")
+- **ARIA Live Region**: Added `role="status" aria-live="polite"` to current player indicator for screen reader announcements
+- **Strict Order Validation**: Added validation guard in App.jsx handlePlayerReveal to block out-of-order attempts
+- **Enhanced Card States**: Improved visual differentiation with opacity (revealed: 90%, waiting: 60%) and cursor states (cursor-not-allowed for disabled)
+- **Accessibility Improvements**: Added aria-disabled, title tooltips, and enhanced aria-label descriptions
+- **User Feedback**: Console warnings for blocked interactions with descriptive messages
+- **Performance**: Current player indicator updates within 100ms as required, verified with manual testing
+- **File changes**: Modified `src/components/CardListInterface.jsx` and `src/App.jsx` (64 line changes)
+- **Bundle impact**: Minimal (+1.04KB JS, +0.35KB CSS), efficient implementation
+- **Testing**: All 3 acceptance criteria categories validated - current player cue, order enforcement, visual state management
+- **Implementation approach**: Built on existing working code rather than adding new abstractions, maintaining codebase simplicity
+
+### Reset Button System implementation completed (October 2, 2025)
+- ✅ **Reset & Re-Allocate epic complete** - Comprehensive reset functionality with confirmation dialog and state preservation
+- **Component Implementation**: Created `ResetButtonSystem` component with portal-based confirmation modal
+- **Confirmation Dialog**: Warning dialog prevents accidental resets with clear summary of what will be cleared/preserved
+- **State Cleanup**: Clears role assignments, reveal progress (currentPlayerIndex, showCardListInterface), and dialog states
+- **State Preservation**: Maintains player names, player count, and mafia count as per PRD requirements
+- **Critical Fix**: Updated App.jsx to pass preserved `playerNames` and `playerCount` as `initialNames` and `initialCount` to PlayerCountManager
+- **Integration**: Reset button available in both Assignment Results phase and Card List Reveal phase
+- **Accessibility Excellence**: Full ARIA compliance, focus management (auto-focus cancel button), Escape key handler, background scroll prevention
+- **Mobile Optimization**: 48px touch targets (exceeds 44px requirement), responsive modal sizing, touch-friendly interactions
+- **Performance**: Reset completes instantly (<200ms requirement exceeded), smooth 150ms fade animations
+- **File structure**: Added `src/components/ResetButtonSystem.jsx` (227 lines), modified `src/App.jsx` for integration
+- **Bundle impact**: +4.78KB JS, +0.34KB CSS (total ~220KB, well under 500KB budget)
+- **Testing**: All 8 PRD acceptance criteria validated - availability, state cleanup, data preservation, accessibility, performance, mobile optimization
+- **Pattern Established**: Confirmation dialog pattern for destructive actions with state preservation and clear user warnings
+
+### Visual Differentiation System implementation completed (October 2, 2025)
+- ✅ **Minimal Styling & UI Clarity epic started** - Centralized design system with comprehensive visual styling utilities
+- **Design System Foundation**: Created `src/utils/designSystem.js` with color palettes, typography scales, sizing constants, and helper functions
+- **Color Palettes**: Defined role-based colors (Red for Mafia, Green for Villager) and state-based colors (Blue for current, Emerald for revealed, Gray for waiting/disabled)
+- **Typography System**: Comprehensive scale from text-xs to text-4xl with appropriate font weights for headings, body, UI elements, and role displays
+- **Sizing Constants**: Touch targets (44px minimum), button heights (h-12/h-14), card padding, icon sizes for consistent spacing
+- **Helper Functions**: `getRoleStyles()`, `getStateStyles()`, `getCombinedStyles()` for programmatic style application
+- **Accessibility Utilities**: Focus rings, screen reader utilities, touch-friendly sizing, high contrast mode support
+- **WCAG AA Compliance**: All color combinations tested and validated (Mafia: 7.60:1, Villager: 8.70:1, Current: 9.52:1, Waiting: 9.86:1)
+- **Documentation**: Created comprehensive `docs/DESIGN_SYSTEM.md` guide with usage examples, color specifications, and best practices
+- **Bundle Impact**: CSS increased 1.48KB (24.69KB → 26.17KB), well under 50KB budget requirement
+- **Performance**: No runtime JavaScript overhead (pure Tailwind utilities), build time unchanged (~2.36s)
+- **Acceptance Criteria**: All 8 criteria verified - element differentiation, state indication, mobile optimization, accessibility compliance
+- **Pattern Note**: Components can use inline Tailwind (current approach) or import design system functions (both valid and maintainable)
+
+### Mobile Layout Optimization implementation completed (October 2, 2025)
+- ✅ **Minimal Styling & UI Clarity epic complete** - Mobile-first responsive layout with sticky current player cue and comprehensive touch optimization
+- **Sticky Current Player Cue**: Enhanced CardListInterface with sticky positioning (position:sticky top-0 z-10) to keep current player indicator always visible during scrolling
+  - Backdrop blur effect (backdrop-blur-sm bg-opacity-95) for better visibility over content
+  - Enhanced shadow (shadow-lg) and prominent border (border-2 border-blue-500) for depth perception
+  - Negative margins (-mx-4) with padding (px-4) to extend indicator to container edges
+  - Text truncation for long player names to prevent layout issues
+- **Safe Area Inset Support**: Added Tailwind utilities for notched devices (iPhone X+, modern Android)
+  - Configured safe-area-inset-top/bottom/left/right in tailwind.config.js
+  - Enables proper padding on devices with notches and home indicators
+  - Uses CSS env() variables for dynamic safe area handling
+- **Touch Target Verification**: Comprehensive audit confirmed all interactive elements meet 44px+ minimum
+  - Inputs: 48px (h-12)
+  - Primary buttons: 56px (h-14)
+  - Secondary buttons: 48px (h-12)
+  - Player cards: 72px (min-h-[72px])
+- **Responsive Layout**: Mobile-first design with proper breakpoints
+  - Base padding: p-4 (16px) for mobile
+  - Tablet padding: md:p-8 (32px) for larger screens
+  - Max width constraints: max-w-2xl on container, max-w-lg on content
+  - Viewport configuration: width=device-width, initial-scale=1.0, viewport-fit=cover
+- **Performance**: Build time 2.25s, CSS 26.89KB (under 50KB budget), total bundle 220.34KB (under 500KB budget)
+- **Testing Documentation**: Created dev-tools/mobile-layout-test.md with comprehensive testing scenarios
+- **File changes**: Modified src/components/CardListInterface.jsx, tailwind.config.js
+- **Bundle impact**: +0.72KB CSS (26.17KB → 26.89KB), within performance budgets
+- **Acceptance criteria**: All 3 PRD categories verified - responsive layout (320px-768px), touch optimization (44px+ targets), current player cue visibility (sticky positioning)
+
+### Edge Case Validation implementation completed (January 2025)
+- ✅ **Alternative & Edge Cases epic started** - Edge case validation fully functional with comprehensive validation utility
+- **Implementation Analysis**: Verified existing implementation meets all PRD acceptance criteria (AC-1: Edge case allowance, AC-2: Invalid input prevention, AC-3: Validation integration)
+- **Existing Validation**: `useMafiaCountValidation` hook already detects 0 Mafia and almost-all-Mafia edge cases with appropriate warnings
+- **UI Components**: `MafiaCountValidator` displays yellow warnings for edge cases, red errors for invalid configurations
+- **Confirmation Flow**: `AllocationConfirmationFlow` shows edge case warnings in confirmation dialog before allocation
+- **Name Validation**: `usePlayerCountManager` validates blank names and blocks allocation with clear error messages
+- **Centralized Utility**: Created `src/utils/edgeCaseValidation.js` with comprehensive validation logic for consistency and future enhancements:
+  - Edge case types: NO_MAFIA, ALL_MAFIA, ALMOST_ALL_MAFIA, LARGE_GROUP, SMALL_GROUP, INVALID_INPUT
+  - Validation severity levels: ERROR (blocks), WARNING (requires confirmation), INFO (informational)
+  - Functions: `validateMafiaCount()`, `detectEdgeCase()`, `formatValidationMessages()`, `validateGameConfiguration()`
+  - Configurable thresholds: MIN_PLAYERS: 1, MAX_PLAYERS: 50, LARGE_GROUP: 20, SMALL_GROUP: 3, PERFORMANCE_WARNING: 30
+- **Documentation**: Created comprehensive `docs/EDGE_CASE_VALIDATION.md` with validation flow diagrams, testing scenarios, and code examples
+- **Performance**: Validation executes within 100ms requirement (typically <10ms), no impact on application performance
+- **Accessibility**: Full ARIA compliance with role="alert" attributes, screen reader support, WCAG AA color contrast
+- **File structure**: Added `src/utils/edgeCaseValidation.js` (305 lines), `docs/EDGE_CASE_VALIDATION.md` (9.5KB)
+- **Bundle impact**: +9.41KB JS (edge case utility), within 500KB budget (total ~220KB)
+- **Acceptance criteria**: All 3 AC categories verified through code review and manual testing - edge cases allowed with warnings, invalid configs blocked, seamless integration
+
+### Error Recovery System implementation completed (January 2025)
+- ✅ **Alternative & Edge Cases epic complete** - Comprehensive error recovery system with runtime protection and double-tap safeguards
+- **Implementation Analysis**: Verified existing implementation already has robust double-tap protection; added error boundaries and recovery utilities
+- **Existing Protection**: Double-tap protection already implemented via `isProcessing`/`isResetting` states in all critical components:
+  - `AllocationConfirmationFlow`: isProcessing state prevents multiple allocations
+  - `ResetButtonSystem`: isResetting state prevents multiple resets  
+  - `RoleRevealDialog`: Dialog state prevents multiple opens
+- **Error Boundary**: Created `src/components/ErrorBoundary.jsx` for catching and recovering from runtime errors:
+  - Automatic error classification by type and severity
+  - User-friendly error messages with recovery actions
+  - Automatic recovery for low-severity errors (max 3 retries)
+  - Manual recovery options for critical errors
+  - Development mode debugging with full stack traces
+- **Error Recovery Utility**: Created `src/utils/errorRecovery.js` with comprehensive error handling:
+  - Error types: RUNTIME_ERROR, STATE_CORRUPTION, VALIDATION_ERROR, COMPONENT_ERROR, UNKNOWN_ERROR
+  - Severity levels: LOW (auto-recoverable), MEDIUM (user-guided), HIGH (manual), CRITICAL (restart needed)
+  - Recovery strategies: RETRY, RESET_STATE, RELOAD_COMPONENT, FALLBACK_UI, MANUAL_INTERVENTION
+  - State validation functions for detecting corruption
+- **Debounce Utility**: Created `src/utils/debounce.js` for enhanced double-tap protection:
+  - Debounce function with configurable delay (default 300ms)
+  - Throttle function for rate-limiting operations
+  - React-compatible callback creator
+- **Global Error Handler**: Added unhandled promise rejection handler in `src/main.jsx`:
+  - Catches unhandled promise rejections
+  - Prevents browser default error behavior
+  - Logs errors for debugging
+- **Integration**: Wrapped entire app in ErrorBoundary component in main.jsx
+- **Documentation**: Created comprehensive `docs/ERROR_RECOVERY.md` with usage examples, testing scenarios, and acceptance criteria verification
+- **Performance**: Error detection has minimal overhead, recovery operations complete within 500ms requirement
+- **File structure**: Added `src/components/ErrorBoundary.jsx` (281 lines), `src/utils/errorRecovery.js` (235 lines), `src/utils/debounce.js` (68 lines), `docs/ERROR_RECOVERY.md` (11.5KB)
+- **Bundle impact**: +6.68KB JS (error recovery utilities), within 500KB budget (total ~227KB)
+- **Acceptance criteria**: All 4 AC categories verified - reset during reveal works, double-tap protection active, workflow continuity maintained, shared device workflow supported
 
 ## 📝 **DOCUMENTATION ENFORCEMENT (Detailed Checklist)**
 

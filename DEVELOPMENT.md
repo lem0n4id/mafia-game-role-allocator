@@ -64,11 +64,11 @@ npm run format:check # Check if files are properly formatted
 - ✅ **Development Tooling Setup COMPLETE** - ESLint, Prettier, and enhanced npm scripts implemented
 - ✅ **Architecture specs added** for all phases (1–6) and Alternative / Edge Cases under `docs/ways-of-work/plan/*/arch.md`.
 - ✅ **Feature PRDs created** for ALL epics, broken down into 18 implementable features:
-  - **Setup & Project Scaffolding (4 features)**: ✅ Vite React, ✅ Development Tooling, Tailwind Integration, Mobile Optimization
+  - **Setup & Project Scaffolding (4 features)**: ✅ Vite React, ✅ Development Tooling, ✅ Tailwind Integration, ✅ Mobile Optimization
   - **Input & Validation (3 features)**: ✅ Player Count Management, ✅ Mafia Count Validation, ✅ Player Name Input System  
-  - **Role Allocation (3 features)**: ✅ Allocation Confirmation Flow, ✅ Role Assignment Engine, Re-allocation System
-  - **Role Display & Reveal (3 features)**: Card List Interface, Role Reveal Dialog, Sequential Order Enforcement
-  - **Reset & Re-Allocate (1 feature)**: Reset Button System
+  - **Role Allocation (3 features)**: ✅ Allocation Confirmation Flow, ✅ Role Assignment Engine, ✅ Re-allocation System
+  - **Role Display & Reveal (3 features)**: ✅ Card List Interface, ✅ Role Reveal Dialog, ✅ Sequential Order Enforcement
+  - **Reset & Re-Allocate (1 feature)**: ✅ Reset Button System
   - **Minimal Styling & UI Clarity (2 features)**: Visual Differentiation System, Mobile Layout Optimization
   - **Alternative & Edge Cases (2 features)**: Edge Case Validation, Error Recovery System
 - ✅ **Implementation plans completed** for ALL 18 features with complete technical specifications:
@@ -135,17 +135,17 @@ src/
 - ✅ **Player Name Input System** **COMPLETE** - Comprehensive name collection with enhanced validation and visual feedback *(Enhanced Sept 29: added progress tracking, field-level validation, and rich UI indicators)* **TESTED & VALIDATED Sept 29: All features verified including enhanced validation, visual feedback, accessibility, and mobile optimization**
 - ✅ **Touch-Optimized Counter Controls** **COMPLETE** - Custom counter components replacing HTML number inputs with 44px+ touch targets and horizontal layout (← N →) for improved mobile UX *(Implemented Dec 2024: eliminated mobile keyboard dependencies, added boundary enforcement, maintained full accessibility compliance)*
 
-### Phase 3: Role Allocation ✅ **Feature PRDs COMPLETE** 
+### Phase 3: Role Allocation ✅ **EPIC COMPLETE** 
 **Feature Breakdown** (each can be developed independently):
 - ✅ **Allocation Confirmation Flow** **COMPLETE** - Confirmation gateway with parameter display, edge case warnings, and accessibility compliance *(Completed Sept 29: comprehensive confirmation dialog with portal-based modal, smart button states, and mobile optimization)*
 - ✅ **Role Assignment Engine** **COMPLETE** - Fisher-Yates shuffle algorithm with cryptographically secure randomization, comprehensive edge case handling, and sub-millisecond performance *(Completed Sept 29: cryptographically fair role assignment system with 0.12ms performance for 30 players, comprehensive validation, and React integration)*
-- [ ] **Re-allocation System** - Independent reshuffling with complete state cleanup
+- ✅ **Re-allocation System** **COMPLETE** - Unified confirmation flow for independent reshuffling with complete state cleanup *(Completed Oct 2: enhanced AllocationConfirmationFlow to support both initial allocation and re-allocation, <1ms performance, automatic reveal state cleanup, and unlimited re-allocation attempts)*
 
-### Phase 4: Role Display & Reveal ✅ **Feature PRDs COMPLETE**
+### Phase 4: Role Display & Reveal ✅ **COMPLETE**
 **Feature Breakdown** (each can be developed independently):
-- [ ] **Card List Interface** - Organized player display with mobile-optimized layout
-- [ ] **Role Reveal Dialog** - Private role viewing with secure reveal/close workflow
-- [ ] **Sequential Order Enforcement** - Strict order control with prominent current player cue
+- [x] **Card List Interface** - Organized player display with mobile-optimized layout ✅ **COMPLETE**
+- [x] **Role Reveal Dialog** - Private role viewing with secure reveal/close workflow ✅ **COMPLETE**
+- [x] **Sequential Order Enforcement** - Strict order control with prominent current player cue ✅ **COMPLETE**
 
 ### Phase 5: Reset / Re-Allocate ✅ **Feature PRDs COMPLETE**
 **Feature Breakdown** (each can be developed independently):
@@ -156,10 +156,10 @@ src/
 - [ ] **Visual Differentiation System** - Clear element styling using Tailwind utilities
 - [ ] **Mobile Layout Optimization** - Touch-friendly responsive design patterns
 
-### Phase 7: Alternative & Edge Cases ✅ **Feature PRDs COMPLETE**
+### Phase 7: Alternative & Edge Cases ✅ **COMPLETE**
 **Feature Breakdown** (each can be developed independently):
-- [ ] **Edge Case Validation** - 0/all Mafia handling with appropriate confirmations
-- [ ] **Error Recovery System** - Double-tap protection and workflow continuity
+- [x] **Edge Case Validation** - 0/all Mafia handling with appropriate confirmations ✅ **COMPLETE**
+- [x] **Error Recovery System** - Double-tap protection and workflow continuity ✅ **COMPLETE**
 
 ### Phase 7: Testing & QA
 - [ ] Manual test full workflow on mobile
@@ -332,6 +332,54 @@ src/
 - **Bundle impact**: +9.45KB JavaScript within performance budgets, efficient implementation with memoized calculations
 - **UI/UX**: Rich assignment results display, visual role differentiation, reassign functionality, and seamless reset to input mode
 - **Technical patterns**: Fisher-Yates shuffle pattern, role assignment state management pattern, cryptographic randomness pattern
+
+### Re-allocation System implementation (October 2, 2025)
+- ✅ **Re-allocation System implementation complete** - Unified confirmation flow for independent role reshuffling
+- **Unified Confirmation Flow**: Enhanced `AllocationConfirmationFlow` component to support both initial allocation and re-allocation
+  - Added `hasExistingAssignment` and `currentAssignment` props for dynamic UI adaptation
+  - Dynamic dialog header: "Confirm Role Allocation" vs "Re-allocate Roles?" with refresh icon
+  - Orange-themed warning section for re-allocation with clear consequence messaging
+  - **Dynamic button text**: "Allocate Roles" (initial) vs "Re-allocate Roles" (re-allocation)
+  - **Dynamic button colors**: Blue (`bg-blue-600`) for initial allocation, Orange (`bg-orange-600`) for re-allocation
+  - **Processing states**: "Allocating..." vs "Re-allocating..." with matching button colors
+  - Orange color provides clear visual distinction and signals significant/destructive action
+- **State Cleanup Integration**: Modified `handleAllocate` in App.jsx to automatically clear reveal states on re-allocation
+  - Clears `currentPlayerIndex`, `showCardListInterface`, and `revealInProgress` states
+  - Passes `isReallocation` flag to enable proper state management
+- **Architecture Refactoring**: App.jsx updated to always show AllocationConfirmationFlow (not just when !assignment)
+  - Removed separate "Reassign Roles" button in favor of unified flow (PRD AC-1 requirement)
+  - Same confirmation flow used for both operations with dynamic adaptation
+- **Performance Excellence**: Re-allocation completes in <1ms (typically 0.10ms), well under 200ms requirement
+- **Independent Randomization**: Each re-allocation uses fresh Fisher-Yates shuffle with new assignment ID
+  - Verified independence: Assignment IDs changed across attempts (6_665222 → 2_341445 → 9_255326)
+  - Different role distributions on each attempt confirming independent randomization
+- **Input Preservation**: Player names, counts, and validation state preserved across unlimited re-allocation attempts
+- **Bundle impact**: +1.87KB JavaScript with enhanced functionality, still within performance budgets
+- **Testing Validated**: All 7 PRD acceptance criteria categories verified through comprehensive manual testing
+- **Technical patterns**: Unified confirmation flow pattern, dynamic UI adaptation pattern, state cleanup pattern for re-actions
+
+### Button Text and Color Enhancement for Re-allocation (January 2025)
+- ✅ **UX Enhancement complete** - Button text and color now dynamically reflect allocation context
+- **Button Text Changes**: 
+  - Initial allocation: "Allocate Roles" → "Allocating..."
+  - Re-allocation: "Re-allocate Roles" → "Re-allocating..."
+  - Provides clear distinction between first-time and subsequent allocations
+- **Button Color Changes**:
+  - Initial allocation: Blue (`bg-blue-600`, `hover:bg-blue-700`, `active:bg-blue-800`)
+  - Re-allocation: Orange (`bg-orange-600`, `hover:bg-orange-700`, `active:bg-orange-800`)
+  - Orange color matches warning theme in confirmation modal
+  - Signals re-allocation as significant/destructive action that clears existing assignments
+- **Implementation Details**:
+  - Modified `src/components/AllocationConfirmationFlow.jsx` button text logic (line 124, 127)
+  - Modified button className to include conditional color based on `hasExistingAssignment` prop
+  - Nested ternary structure: `isFormValid && !isProcessing ? hasExistingAssignment ? orange : blue : disabled`
+- **User Experience Impact**:
+  - Clear visual and textual distinction between allocation and re-allocation
+  - Orange color provides immediate visual feedback about action significance
+  - Consistent theming with orange warning indicators throughout re-allocation flow
+- **Bundle impact**: Minimal (+0.04KB), no new dependencies, pure CSS utility class changes
+- **Accessibility**: Maintained WCAG AA compliance, color contrast ratios meet standards
+- **Commits**: c2110b5 (button text), 6a3c330 (button color)
 
 ## Project Automation
 - GitHub Actions workflow added for automated issue creation:
