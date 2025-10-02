@@ -91,6 +91,12 @@ function App() {
   const handlePlayerReveal = ({ playerName, playerIndex }) => {
     if (isDialogOpen || !assignment) return;
     
+    // Strict order enforcement: only allow current player to reveal
+    if (playerIndex !== currentPlayerIndex) {
+      console.warn(`Order enforcement: Cannot reveal player at index ${playerIndex}. Current player is at index ${currentPlayerIndex}`);
+      return;
+    }
+    
     console.log(`Opening reveal dialog for ${playerName} (index: ${playerIndex})`);
     
     // Get the player's data

@@ -44,16 +44,27 @@ const CardListInterface = ({
     return { completed, total, percentage };
   }, [cardStates]);
 
-  // Handle card click
+  // Handle card click with order enforcement
   const handleCardClick = useCallback((player, cardState) => {
-    if (!cardState.canReveal) return;
+    // Strict order enforcement: only allow current player to reveal
+    if (!cardState.canReveal) {
+      // Provide feedback for why interaction is blocked
+      if (cardState.isRevealed) {
+        console.log(`Player ${player.name} has already revealed their role`);
+      } else if (cardState.isUpcoming) {
+        console.warn(`Cannot reveal ${player.name} yet - wait for your turn (current player: index ${currentPlayerIndex})`);
+      } else if (cardState.isPast) {
+        console.warn(`Player ${player.name} was skipped in sequence`);
+      }
+      return;
+    }
     
     onPlayerReveal?.({
       playerId: player.id,
       playerName: player.name,
       playerIndex: player.index
     });
-  }, [onPlayerReveal]);
+  }, [onPlayerReveal, currentPlayerIndex]);
 
   if (!assignment || !assignment.players || cardStates.length === 0) {
     return (
@@ -84,16 +95,33 @@ const CardListInterface = ({
           />
         </div>
         
-        {/* Current Player Indicator */}
+        {/* Current Player Indicator - Prominent with ARIA live region */}
         {currentPlayerIndex < cardStates.length && progress.completed < progress.total && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-            <div className="flex items-center">
-              <div className="w-2 h-2 bg-blue-600 rounded-full mr-3 animate-pulse" />
-              <span className="text-sm font-medium text-blue-800">
-                {cardStates[currentPlayerIndex]?.isRevealed 
-                  ? `Current: ${cardStates[currentPlayerIndex].name} (tap to see role again)`
-                  : `Next: ${cardStates[currentPlayerIndex].name} (tap to reveal role)`}
-              </span>
+          <div 
+            className="bg-blue-50 border-2 border-blue-500 rounded-lg p-4 shadow-md"
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="w-3 h-3 bg-blue-600 rounded-full mr-3 animate-pulse" />
+                <div>
+                  <span className="text-base font-bold text-blue-900">
+                    {cardStates[currentPlayerIndex]?.isRevealed 
+                      ? `Current: ${cardStates[currentPlayerIndex].name}`
+                      : `Next: ${cardStates[currentPlayerIndex].name}`}
+                  </span>
+                  <p className="text-xs text-blue-700 mt-0.5">
+                    {cardStates[currentPlayerIndex]?.isRevealed 
+                      ? 'Tap card to see role again'
+                      : 'Tap card below to reveal role'}
+                  </p>
+                </div>
+              </div>
+              <div className="text-sm font-medium text-blue-700 bg-blue-100 rounded-full px-3 py-1">
+                {currentPlayerIndex + 1} of {cardStates.length}
+              </div>
             </div>
           </div>
         )}
@@ -117,21 +145,15 @@ const CardListInterface = ({
               onClick={() => handleCardClick(cardState, cardState)}
               className={`
                 relative p-4 rounded-xl border-2 transition-all duration-200
-                touch-manipulation cursor-pointer
-                min-h-[72px] flex items-center
+                touch-manipulation min-h-[72px] flex items-center
                 ${
                   state === 'current' && canReveal
-                    ? 'border-blue-500 bg-blue-50 shadow-lg hover:shadow-xl active:shadow-md'
+                    ? 'border-blue-500 bg-blue-50 shadow-lg hover:shadow-xl active:shadow-md cursor-pointer hover:scale-[1.02] active:scale-[0.98]'
                     : state === 'revealed'
-                    ? 'border-gray-500 bg-gray-50'
+                    ? 'border-gray-400 bg-gray-100 cursor-default opacity-90'
                     : state === 'completed'
-                    ? 'border-gray-300 bg-gray-50'
-                    : 'border-gray-200 bg-white'
-                }
-                ${
-                  canReveal 
-                    ? 'hover:scale-[1.02] active:scale-[0.98]' 
-                    : 'cursor-default'
+                    ? 'border-gray-300 bg-gray-50 cursor-not-allowed opacity-75'
+                    : 'border-gray-200 bg-white cursor-not-allowed opacity-60'
                 }
               `}
               role="button"
@@ -140,8 +162,20 @@ const CardListInterface = ({
                 isRevealed 
                   ? `${name}: Role has been revealed`
                   : isCurrent
-                  ? `${name}: Tap to reveal role`
+                  ? `${name}: Tap to reveal role - This is the current player`
+                  : cardState.isUpcoming
+                  ? `${name}: Waiting to reveal - Not your turn yet`
                   : `${name}: Waiting to reveal`
+              }
+              aria-disabled={!canReveal}
+              title={
+                isRevealed 
+                  ? 'Role already revealed'
+                  : isCurrent
+                  ? 'Tap to reveal your role'
+                  : cardState.isUpcoming
+                  ? 'Wait for your turn'
+                  : 'Waiting to reveal'
               }
               onKeyDown={(e) => {
                 if ((e.key === 'Enter' || e.key === ' ') && canReveal) {
