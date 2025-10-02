@@ -257,4 +257,4 @@ The design system has minimal performance impact:
 - [Implementation Plan](ways-of-work/plan/minimal-styling-and-ui-clarity/visual-differentiation-system/implementation-plan.md)
 - [PRD](ways-of-work/plan/minimal-styling-and-ui-clarity/visual-differentiation-system/prd.md)
 - [Tailwind Config](../tailwind.config.js)
-- [Mobile Layout Utilities](../src/utils/mobileLayout.js)
+- Mobile Layout Utilities (`../src/utils/mobileLayout.js`) — *planned for future addition*
