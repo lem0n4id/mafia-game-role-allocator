@@ -298,7 +298,17 @@ const RoleRevealDialog = ({
     }
   }, [isOpen, isRoleRevealed]);
 
-  // Escape key + background scroll prevention
+  // Background scroll prevention only (Escape key deliberately ignored for privacy)
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = '';
+      };
+    }
+  }, [isOpen]);
+
+  // Handle dialog close (called only by buttons)
   const handleClose = useCallback(() => {
     setIsClosing(true);
     setTimeout(() => {
@@ -306,20 +316,6 @@ const RoleRevealDialog = ({
       setIsClosing(false);
     }, 150);
   }, [onClose]);
-
-  useEffect(() => {
-    const handleEscape = (e) => {
-      if (e.key === 'Escape' && isOpen) handleClose();
-    };
-    if (isOpen) {
-      document.addEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'hidden';
-      return () => {
-        document.removeEventListener('keydown', handleEscape);
-        document.body.style.overflow = '';
-      };
-    }
-  }, [isOpen, handleClose]);
 
   if (!isOpen || !player) return null;
 
@@ -329,8 +325,8 @@ const RoleRevealDialog = ({
     <div
       className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50
         transition-opacity duration-150 ${isClosing ? 'opacity-0' : 'opacity-100'}`}
-      onClick={(e) => e.target === e.currentTarget && handleClose()}
       role="dialog" aria-modal="true"
+      // Overlay clicks intentionally do nothing; dialog closes via buttons only
     >
       <div ref={dialogRef} className={`bg-white rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl
         transform transition-all duration-150 ${isClosing ? 'scale-95 opacity-0' : 'scale-100 opacity-100'}`}
@@ -403,11 +399,11 @@ const RoleRevealDialog = ({
 - Role-specific styling (red for Mafia, green for Villager)
 - Focus management with auto-focus on appropriate button
 - Focus trap for accessibility (Tab/Shift+Tab cycling)
-- Escape key closes dialog
+- Escape key is ignored; dialog remains open until an action button is pressed (ensures privacy)
 - Background scroll prevention when open
 - Smooth fade/scale animations (150ms duration)
 - Touch-optimized buttons (56px Reveal, 48px Close)
-- Overlay click closes dialog
+- Overlay clicks are inert; only in-dialog buttons can dismiss it (prevents accidental closure)
 - State reset on player change
 
 ### **Card List Interface Pattern (CardListInterface)**
