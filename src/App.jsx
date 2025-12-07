@@ -9,7 +9,7 @@ import { useRoleAssignment } from './hooks/useRoleAssignment.js';
 import { useRoleRevealDialog } from './hooks/useRoleRevealDialog.js';
 
 function App() {
-  const [playerCount, setPlayerCount] = useState(5);
+  const [playerCount, setPlayerCount] = useState(8);
   const [playerNames, setPlayerNames] = useState([]);
   const [playerValidation, setPlayerValidation] = useState({ isValid: false });
   
