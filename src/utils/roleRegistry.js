@@ -43,7 +43,7 @@
  * @property {RoleConstraints} constraints - Count validation constraints
  * @property {string} description - Short description of role's objective
  * @property {number} displayOrder - Sort order for UI display (lower = earlier)
- * @property {boolean} isSpecialRole - True for non-standard roles (non-VILLAGER)
+ * @property {boolean} isSpecialRole - True for optional/advanced roles (Police, Doctor, etc.); false for core roles (MAFIA, VILLAGER)
  */
 
 /**
@@ -78,7 +78,7 @@ const ROLE_REGISTRY = {
     },
     description: 'Work with other Mafia players to eliminate Villagers',
     displayOrder: 1,
-    isSpecialRole: false
+    isSpecialRole: false // Core role (not optional), but needs special UI handling via getSpecialRoles()
   },
   
   VILLAGER: {
@@ -98,7 +98,7 @@ const ROLE_REGISTRY = {
     },
     description: 'Work with other Villagers to identify the Mafia',
     displayOrder: 2,
-    isSpecialRole: false
+    isSpecialRole: false // Core standard role requiring no special UI treatment
   },
   
   POLICE: {
@@ -199,13 +199,21 @@ export const getRolesByTeam = (team) => {
 
 /**
  * Get all special roles (non-VILLAGER roles)
- * Special roles are typically optional and add gameplay complexity
+ * 
+ * Returns roles that require special UI handling or are optional additions.
+ * Includes MAFIA (though marked isSpecialRole: false as it's a core role)
+ * because MAFIA requires distinct UI treatment from standard VILLAGER roles.
+ * 
+ * Note: isSpecialRole indicates "optional/advanced" roles (Police, Doctor),
+ * while this function returns "roles needing special UI" (MAFIA + special roles).
+ * 
  * @returns {RoleDefinition[]} Array of special role definitions
  * @example
  * const specialRoles = getSpecialRoles();
  * console.log(specialRoles.map(r => r.name)); // ['Mafia', 'Police', 'Doctor']
  */
 export const getSpecialRoles = () => {
+  // Include MAFIA explicitly as it needs special UI handling despite being a core role
   return getRoles().filter(role => role.isSpecialRole || role.id === 'MAFIA');
 };
 
