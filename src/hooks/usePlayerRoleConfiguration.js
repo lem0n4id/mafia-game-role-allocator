@@ -12,33 +12,14 @@ import { useState, useCallback, useMemo } from 'react';
 import { getSpecialRoles } from '../utils/roleRegistry.js';
 
 /**
- * Custom hook for managing player role configuration state.
- * 
- * Initializes role counts from registry defaults, provides update functions,
- * calculates villager count dynamically, and integrates with validation framework.
- * 
- * @param {number} totalPlayers - Total number of players in game
- * @returns {Object} Role configuration state and update functions
- * @property {Object} roleCounts - Current role count configuration (e.g., { MAFIA: 1, POLICE: 0, DOCTOR: 0 })
- * @property {Function} updateRoleCount - Update single role count: (roleId, count) => void
- * @property {number} villagerCount - Calculated villager count (totalPlayers - sum of special roles)
- * @property {Function} resetToDefaults - Reset all role counts to registry defaults
- * 
- * @example
- * const RoleConfigurationManager = ({ totalPlayers }) => {
- *   const { roleCounts, updateRoleCount, villagerCount, resetToDefaults } = 
- *     usePlayerRoleConfiguration(totalPlayers);
- *   
- *   return (
- *     <div>
- *       <p>Mafia: {roleCounts.MAFIA}</p>
- *       <button onClick={() => updateRoleCount('MAFIA', roleCounts.MAFIA + 1)}>
- *         Increase Mafia
- *       </button>
- *       <p>Villagers: {villagerCount}</p>
- *     </div>
- *   );
- * };
+ * Manage counts for special player roles and compute the villager count from total players.
+ *
+ * @param {number} totalPlayers - Total number of players in the game.
+ * @returns {Object} An API for reading and updating role configuration.
+ * @property {Object.<string, number>} roleCounts - Mapping of special role IDs to their current counts (e.g., { MAFIA: 1, POLICE: 0, DOCTOR: 0 }).
+ * @property {(roleId: string, count: number) => void} updateRoleCount - Update the count for a specific role.
+ * @property {number} villagerCount - Number of villagers calculated as totalPlayers minus the sum of all special-role counts.
+ * @property {() => void} resetToDefaults - Reset all role counts to their registry defaults.
  */
 export function usePlayerRoleConfiguration(totalPlayers) {
   // Get special roles from registry (Mafia, Police, Doctor - excludes Villager)

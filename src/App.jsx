@@ -8,6 +8,13 @@ import ResetButtonSystem from './components/ResetButtonSystem.jsx';
 import { useRoleAssignment } from './hooks/useRoleAssignment.js';
 import { useRoleRevealDialog } from './hooks/useRoleRevealDialog.js';
 
+/**
+ * Main application component that manages player input, role configuration, role assignment, and sequential role reveal flows for a Mafia game.
+ *
+ * This component coordinates state for player count/names, role configuration and validation, assignment creation and results, sequential reveal UI (card list and reveal dialog), and reset/re-allocation actions. It renders the input/validation phase, assignment results (with statistics and edge-case warnings), and the card-list reveal phase, along with actions for allocating, re-allocating, starting reveals, and resetting the game.
+ *
+ * @returns {JSX.Element} The root React element containing the full Mafia game role allocator UI.
+ */
 function App() {
   const [playerCount, setPlayerCount] = useState(5);
   const [playerNames, setPlayerNames] = useState([]);
