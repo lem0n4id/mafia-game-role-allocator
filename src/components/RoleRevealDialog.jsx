@@ -94,7 +94,15 @@ const RoleRevealDialog = ({
   if (!isOpen || !player) return null;
 
   const { name, role } = player;
-  const isMafia = role === ROLES.MAFIA;
+  // Handle both legacy string roles and new role objects
+  const roleId = typeof role === 'string' ? role : role.id;
+  const roleName = typeof role === 'string' ? role : role.name;
+  const roleDescription = typeof role === 'object' && role.description 
+    ? role.description 
+    : roleId === ROLES.MAFIA
+      ? 'Work with other Mafia players to eliminate Villagers'
+      : 'Work with other Villagers to identify the Mafia';
+  const isMafia = roleId === ROLES.MAFIA;
 
   return createPortal(
     <div
@@ -173,7 +181,7 @@ const RoleRevealDialog = ({
                 text-4xl font-bold mb-2
                 ${isMafia ? 'text-red-700' : 'text-green-700'}
               `}>
-                {role}
+                {roleName}
               </h3>
               
               {/* Role Description */}
@@ -181,10 +189,7 @@ const RoleRevealDialog = ({
                 text-sm font-medium
                 ${isMafia ? 'text-red-600' : 'text-green-600'}
               `}>
-                {isMafia 
-                  ? 'Work with other Mafia players to eliminate Villagers'
-                  : 'Work with other Villagers to identify the Mafia'
-                }
+                {roleDescription}
               </p>
             </div>
           ) : (

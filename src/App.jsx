@@ -280,12 +280,18 @@ function App() {
                   <div className="bg-white border border-gray-200 rounded-lg p-4">
                     <h3 className="text-lg font-medium text-gray-800 mb-4">Player Assignments</h3>
                     <div className="space-y-2">
-                      {assignment.players.map((player, index) => (
+                      {assignment.players.map((player, index) => {
+                        // Handle both legacy string roles and new role objects
+                        const roleId = typeof player.role === 'string' ? player.role : player.role.id;
+                        const roleName = typeof player.role === 'string' ? player.role : player.role.name;
+                        const isMafia = roleId === ROLES.MAFIA;
+                        
+                        return (
                         <div 
                           key={player.id}
                           className={`
                             flex items-center justify-between p-3 rounded-lg border
-                            ${player.role === ROLES.MAFIA 
+                            ${isMafia 
                               ? 'bg-red-50 border-red-200' 
                               : 'bg-blue-50 border-blue-200'}
                           `}
@@ -299,15 +305,16 @@ function App() {
                           <span 
                             className={`
                               px-3 py-1 rounded-full text-xs font-medium
-                              ${player.role === ROLES.MAFIA 
+                              ${isMafia 
                                 ? 'bg-red-100 text-red-800' 
                                 : 'bg-blue-100 text-blue-800'}
                             `}
                           >
-                            {player.role}
+                            {roleName}
                           </span>
                         </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
 

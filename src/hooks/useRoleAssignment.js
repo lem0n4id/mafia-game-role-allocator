@@ -32,21 +32,46 @@ export const useRoleAssignment = () => {
       return null;
     }
 
-    return {
+    // Handle both legacy and new assignment structures
+    const baseStats = {
       totalPlayers: assignment.metadata.totalPlayers,
+      assignmentId: assignment.metadata.assignmentId,
+      timestamp: assignment.metadata.timestamp
+    };
+    
+    // New structure has roleDistribution and teamDistribution
+    if (assignment.statistics.roleDistribution) {
+      return {
+        ...baseStats,
+        roleDistribution: assignment.statistics.roleDistribution,
+        teamDistribution: assignment.statistics.teamDistribution,
+        // Legacy fields for backward compatibility
+        mafiaCount: assignment.metadata.mafiaCount || assignment.statistics.roleDistribution[ROLES.MAFIA] || 0,
+        villagerCount: assignment.metadata.villagerCount || assignment.statistics.roleDistribution[ROLES.VILLAGER] || 0,
+        mafiaPlayers: assignment.statistics.mafiaPlayers || assignment.players.filter(p => 
+          (typeof p.role === 'string' ? p.role : p.role.id) === ROLES.MAFIA
+        ),
+        villagerPlayers: assignment.statistics.villagerPlayers || assignment.players.filter(p => 
+          (typeof p.role === 'string' ? p.role : p.role.id) === ROLES.VILLAGER
+        )
+      };
+    }
+    
+    // Legacy structure
+    return {
+      ...baseStats,
       mafiaCount: assignment.metadata.mafiaCount,
       villagerCount: assignment.metadata.villagerCount,
       mafiaPlayers: assignment.statistics.mafiaPlayers,
-      villagerPlayers: assignment.statistics.villagerPlayers,
-      assignmentId: assignment.metadata.assignmentId,
-      timestamp: assignment.metadata.timestamp
+      villagerPlayers: assignment.statistics.villagerPlayers
     };
   }, [assignment]);
 
   /**
    * Create new role assignment
+   * Supports both legacy (mafiaCount) and new (roleConfiguration) signatures
    */
-  const createAssignment = useCallback(async (playerNames, mafiaCount) => {
+  const createAssignment = useCallback(async (playerNames, mafiaCountOrConfig) => {
     setIsAssigning(true);
     setAssignmentError(null);
 
@@ -56,15 +81,19 @@ export const useRoleAssignment = () => {
         throw new Error('Valid player names array is required');
       }
 
-      if (typeof mafiaCount !== 'number' || mafiaCount < 0) {
+      if (typeof mafiaCountOrConfig === 'number' && mafiaCountOrConfig < 0) {
         throw new Error('Valid Mafia count is required');
+      }
+
+      if (typeof mafiaCountOrConfig === 'object' && !mafiaCountOrConfig) {
+        throw new Error('Valid role configuration is required');
       }
 
       // Performance timing for validation
       const startTime = performance.now();
       
       // Create assignment using the engine
-      const newAssignment = assignRoles(playerNames, mafiaCount);
+      const newAssignment = assignRoles(playerNames, mafiaCountOrConfig);
       
       const endTime = performance.now();
       const assignmentTime = endTime - startTime;
@@ -106,9 +135,11 @@ export const useRoleAssignment = () => {
     }
 
     const playerNames = assignment.players.map(p => p.name);
-    const mafiaCount = assignment.metadata.mafiaCount;
+    
+    // Use roleConfiguration if available (new structure), otherwise mafiaCount (legacy)
+    const config = assignment.metadata.roleConfiguration || assignment.metadata.mafiaCount;
 
-    return createAssignment(playerNames, mafiaCount);
+    return createAssignment(playerNames, config);
   }, [assignment, createAssignment]);
 
   /**
@@ -129,11 +160,17 @@ export const useRoleAssignment = () => {
   }, [assignment]);
 
   /**
-   * Get players by role
+   * Get players by role (supports both role ID string and role object)
    */
   const getPlayersByRole = useCallback((role) => {
     if (!assignment) return [];
-    return assignment.players.filter(p => p.role === role);
+    
+    // Handle both string role IDs and role objects
+    const roleId = typeof role === 'string' ? role : role.id;
+    
+    return assignment.players.filter(p => 
+      (typeof p.role === 'string' ? p.role : p.role.id) === roleId
+    );
   }, [assignment]);
 
   /**
@@ -162,8 +199,14 @@ export const useRoleAssignment = () => {
   const hasEdgeCases = useMemo(() => {
     if (!assignment) return false;
     
-    const { mafiaCount, totalPlayers } = assignment.metadata;
-    return mafiaCount === 0 || mafiaCount === totalPlayers || mafiaCount === totalPlayers - 1;
+    const { totalPlayers, roleConfiguration, mafiaCount } = assignment.metadata;
+    
+    // Get mafia count from either new or legacy structure
+    const actualMafiaCount = roleConfiguration 
+      ? (roleConfiguration[ROLES.MAFIA] || 0)
+      : mafiaCount;
+    
+    return actualMafiaCount === 0 || actualMafiaCount === totalPlayers || actualMafiaCount === totalPlayers - 1;
   }, [assignment]);
 
   /**
@@ -172,9 +215,12 @@ export const useRoleAssignment = () => {
   const edgeCaseInfo = useMemo(() => {
     if (!hasEdgeCases || !assignment) return null;
 
-    const { mafiaCount, totalPlayers } = assignment.metadata;
+    const { totalPlayers, roleConfiguration, mafiaCount } = assignment.metadata;
+    const actualMafiaCount = roleConfiguration 
+      ? (roleConfiguration[ROLES.MAFIA] || 0)
+      : mafiaCount;
     
-    if (mafiaCount === 0) {
+    if (actualMafiaCount === 0) {
       return {
         type: 'NO_MAFIA',
         description: 'All players are Villagers',
@@ -182,7 +228,7 @@ export const useRoleAssignment = () => {
       };
     }
     
-    if (mafiaCount === totalPlayers) {
+    if (actualMafiaCount === totalPlayers) {
       return {
         type: 'ALL_MAFIA',
         description: 'All players are Mafia',
@@ -190,7 +236,7 @@ export const useRoleAssignment = () => {
       };
     }
     
-    if (mafiaCount === totalPlayers - 1) {
+    if (actualMafiaCount === totalPlayers - 1) {
       return {
         type: 'ALMOST_ALL_MAFIA',
         description: 'Only one Villager player',
