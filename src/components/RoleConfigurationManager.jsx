@@ -138,15 +138,21 @@ export function RoleConfigurationManager({
             const count = roleCounts[role.id] || 0;
             if (count === 0) return null;
             
+            // Use predefined role-specific badge styles to avoid dynamic Tailwind classes
+            let badgeClassName = 'inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ';
+            if (role.id === 'MAFIA') {
+              badgeClassName += 'bg-red-50 text-red-800 border border-red-500';
+            } else if (role.id === 'POLICE') {
+              badgeClassName += 'bg-blue-50 text-blue-800 border border-blue-500';
+            } else if (role.id === 'DOCTOR') {
+              badgeClassName += 'bg-green-50 text-green-800 border border-green-500';
+            } else {
+              // Fallback for any future roles
+              badgeClassName += 'bg-gray-50 text-gray-800 border border-gray-300';
+            }
+            
             return (
-              <span
-                key={role.id}
-                className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-${role.color.secondary} text-${role.color.text} border border-${role.color.border}`}
-                style={{
-                  backgroundColor: `var(--tw-${role.color.secondary})`,
-                  color: `var(--tw-${role.color.text})`,
-                }}
-              >
+              <span key={role.id} className={badgeClassName}>
                 {count} {role.name}
               </span>
             );
@@ -154,13 +160,7 @@ export function RoleConfigurationManager({
           
           {/* Villager badge - only show if count > 0 */}
           {villagerCount > 0 && villagerRole && (
-            <span 
-              className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-${villagerRole.color.secondary} text-${villagerRole.color.text} border border-${villagerRole.color.border}`}
-              style={{
-                backgroundColor: `var(--tw-${villagerRole.color.secondary})`,
-                color: `var(--tw-${villagerRole.color.text})`,
-              }}
-            >
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-50 text-gray-800 border border-gray-300">
               {villagerCount} {villagerRole.name}
             </span>
           )}

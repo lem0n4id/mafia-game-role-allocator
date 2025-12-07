@@ -55,10 +55,10 @@ export const RoleInput = React.memo(({
 
   return (
     <div className="space-y-2">
-      {/* Role Label with role-specific color accent */}
+      {/* Role Label - use default color since dynamic Tailwind classes don't work */}
       <label 
         htmlFor={`role-${role.id}`}
-        className={`block text-sm font-medium text-${role.color.text}`}
+        className="block text-sm font-medium text-gray-700"
       >
         Number of {role.name} Players
       </label>
