@@ -221,7 +221,8 @@ src/
 - **Files**: `index.html`, `vite.config.js`, `.browserslistrc`, `src/utils/mobileLayout.js`, `src/utils/performance.js`, `src/styles/mobile.css`
 
 ## Contributing
-- Follow `copilot-instructions.md` for documentation updates and acceptance criteria
+- Follow `.github/copilot-instructions.md` for essential guidelines and quick reference
+- See `.github/COPILOT_DETAILED_GUIDE.md` for detailed patterns, code examples, and architectural decisions
 - Keep terminology consistent with UI ("Allocate Roles", "Reset", etc.)
  - Prompt library:
    - `.github/prompts/breakdown-feature-implementation.prompt.md` — implementation plans
@@ -446,7 +447,8 @@ src/
 - **Implementation**:
   - Added mandatory documentation protocol section to `.github/prompts/commit.prompt.md`
   - Enforced documentation verification before any commit is allowed
-  - Required updates to both `DEVELOPMENT.md` and `copilot-instructions.md` for code changes
+  - Required updates to both `DEVELOPMENT.md` and `.github/copilot-instructions.md` for code changes
+  - Detailed patterns and examples stored in `.github/COPILOT_DETAILED_GUIDE.md`
   - Established "zero commits without documentation" policy
 - **Technical changes**:
   - Enhanced execution steps to include documentation verification step

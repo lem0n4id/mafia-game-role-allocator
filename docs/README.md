@@ -17,5 +17,5 @@ Quick links
   - Git Workflow: `.github/prompts/commit.prompt.md` — Automated commit and push with conventional commit standards
 
 Notes
-- Keep docs updated per `.github/copilot-instructions.md` mandatory protocol.
+- Keep docs updated per `.github/copilot-instructions.md` and `.github/COPILOT_DETAILED_GUIDE.md` mandatory protocol.
 - Store Lighthouse artifacts under `performance/reports/`.
