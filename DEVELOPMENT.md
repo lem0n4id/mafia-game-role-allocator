@@ -231,13 +231,18 @@ src/
 - **Decision**: Implement single source of truth for all role definitions to enable data-driven UI and extensibility
 - **Context**: Current hardcoded role definitions (MAFIA, VILLAGER) in `roleAssignmentEngine.js` make adding special roles difficult, requiring extensive UI changes
 - **Architecture**: 
-  - Role metadata registry with complete type definitions (id, name, team, colors, constraints, description)
+  - Role metadata registry with complete type definitions (id, name, team, colors, constraints, description, priority, icon)
   - Clean API: `getRoles()`, `getRoleById()`, `getRolesByTeam()`, `getSpecialRoles()`, `validateRoleCount()`
-  - Constraint-based validation with dynamic max calculators for flexible rules
+  - Constraint-based validation with static RoleConstraints {min, max, default} for each role
+  - Object immutability enforced via Object.freeze() to prevent runtime mutation
   - Backward compatible ROLES export for existing code
 - **Implementation**:
   - Initial 4 roles: MAFIA, VILLAGER, POLICE (foundation), DOCTOR (foundation)
-  - Each role includes color scheme (hex colors), constraints (min/max/default), team affiliation
+  - Lowercase team values: 'mafia', 'special', 'villager' (POLICE/DOCTOR on 'special' team)
+  - 5-color palette using Tailwind CSS tokens (primary, secondary, border, text, accent)
+  - Constraints use Infinity for unlimited (MAFIA, VILLAGER) and specific limits (POLICE/DOCTOR max=2)
+  - Roles sorted by priority field (lower = higher precedence)
+  - getRoleById() returns null for missing roles (does not throw)
   - JSDoc type definitions for RoleDefinition, RoleColor, RoleConstraints, Team, ValidationResult
   - <0.1ms access time, ~40 bytes bundle impact (under 2KB target per role)
 - **Business Value**: 
@@ -245,7 +250,7 @@ src/
   - Zero UI code changes required for new roles
   - Data-driven rendering and validation
   - Foundation for Extensible Special Roles epic
-- **Testing**: Comprehensive manual verification of all API functions, validation edge cases, error handling
+- **Testing**: Comprehensive manual verification of all API functions, validation edge cases, error handling, immutability
 - **Documentation**: Complete usage guide at `docs/ways-of-work/plan/extensible-special-roles/role-registry-system/ROLE_REGISTRY.md`
 - **Files**: `src/utils/roleRegistry.js`, documentation in `docs/ways-of-work/plan/extensible-special-roles/role-registry-system/`
 
