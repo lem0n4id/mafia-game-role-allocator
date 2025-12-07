@@ -10,7 +10,8 @@ import { createPortal } from 'react-dom';
  */
 const AllocationConfirmationFlow = ({
   playerNames,
-  mafiaCount,
+  mafiaCount, // Legacy support - optional
+  roleConfiguration, // New support - role counts object
   isFormValid,
   onAllocate,
   disabled = false,
@@ -24,12 +25,34 @@ const AllocationConfirmationFlow = ({
   const [isProcessing, setIsProcessing] = useState(false);
 
   // Calculate allocation details with memoization
-  const allocationDetails = useMemo(() => ({
-    totalPlayers: playerNames.length,
-    mafiaCount: parseInt(mafiaCount) || 0,
-    villagerCount: playerNames.length - (parseInt(mafiaCount) || 0),
-    isEdgeCase: mafiaCount === 0 || mafiaCount >= playerNames.length - 1,
-  }), [playerNames.length, mafiaCount]);
+  // Support both legacy (mafiaCount) and new (roleConfiguration) signatures
+  const allocationDetails = useMemo(() => {
+    const totalPlayers = playerNames.length;
+    
+    if (roleConfiguration) {
+      // New signature: calculate from role configuration
+      const specialRoleSum = Object.values(roleConfiguration).reduce((sum, count) => sum + count, 0);
+      const villagerCount = totalPlayers - specialRoleSum;
+      const mafiaCountValue = roleConfiguration.MAFIA || 0;
+      
+      return {
+        totalPlayers,
+        mafiaCount: mafiaCountValue,
+        villagerCount,
+        isEdgeCase: mafiaCountValue === 0 || mafiaCountValue >= totalPlayers - 1,
+        roleConfiguration,
+      };
+    } else {
+      // Legacy signature: use mafiaCount
+      const mafiaCountValue = parseInt(mafiaCount) || 0;
+      return {
+        totalPlayers,
+        mafiaCount: mafiaCountValue,
+        villagerCount: totalPlayers - mafiaCountValue,
+        isEdgeCase: mafiaCountValue === 0 || mafiaCountValue >= totalPlayers - 1,
+      };
+    }
+  }, [playerNames.length, mafiaCount, roleConfiguration]);
 
   // Handle allocation button click with double-tap protection
   const handleAllocateClick = useCallback(() => {
@@ -41,12 +64,19 @@ const AllocationConfirmationFlow = ({
   const handleConfirm = useCallback(async () => {
     setIsProcessing(true);
     try {
-      await onAllocate({
+      const allocationParams = {
         playerNames: playerNames.filter(name => name.trim()),
-        mafiaCount: allocationDetails.mafiaCount,
-        villagerCount: allocationDetails.villagerCount,
         isReallocation: hasExistingAssignment,
-      });
+      };
+      
+      // Include either roleConfiguration or legacy mafiaCount
+      if (allocationDetails.roleConfiguration) {
+        allocationParams.roleConfiguration = allocationDetails.roleConfiguration;
+      } else {
+        allocationParams.mafiaCount = allocationDetails.mafiaCount;
+      }
+      
+      await onAllocate(allocationParams);
       setShowConfirmation(false);
     } catch (error) {
       console.error('Allocation failed:', error);
@@ -344,7 +374,8 @@ const AllocationConfirmationFlow = ({
 
 AllocationConfirmationFlow.propTypes = {
   playerNames: PropTypes.arrayOf(PropTypes.string).isRequired,
-  mafiaCount: PropTypes.number.isRequired,
+  mafiaCount: PropTypes.number, // Optional - legacy support
+  roleConfiguration: PropTypes.object, // Optional - new support
   isFormValid: PropTypes.bool.isRequired,
   onAllocate: PropTypes.func.isRequired,
   disabled: PropTypes.bool,

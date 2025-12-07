@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import PlayerCountManager from './components/PlayerCountManager.jsx';
-import MafiaCountValidator from './components/MafiaCountValidator.jsx';
+import RoleConfigurationManager from './components/RoleConfigurationManager.jsx';
 import AllocationConfirmationFlow from './components/AllocationConfirmationFlow.jsx';
 import CardListInterface from './components/CardListInterface.jsx';
 import RoleRevealDialog from './components/RoleRevealDialog.jsx';
@@ -9,13 +9,15 @@ import { useRoleAssignment } from './hooks/useRoleAssignment.js';
 import { useRoleRevealDialog } from './hooks/useRoleRevealDialog.js';
 
 function App() {
-  const [playerCount, setPlayerCount] = useState(5);
+  const [playerCount, setPlayerCount] = useState(8);
   const [playerNames, setPlayerNames] = useState([]);
   const [playerValidation, setPlayerValidation] = useState({ isValid: false });
-  const [mafiaCount, setMafiaCount] = useState(1);
-  const [mafiaValidation, setMafiaValidation] = useState({
-    isValid: true,
-    canProceed: true,
+  
+  // Role configuration state (replaces mafiaCount)
+  const [roleConfiguration, setRoleConfiguration] = useState(null);
+  const [roleValidation, setRoleValidation] = useState({
+    isValid: false,
+    hasErrors: false,
   });
 
   // Role assignment state (from useRoleAssignment hook)
@@ -45,6 +47,12 @@ function App() {
     handleRevealComplete
   } = useRoleRevealDialog();
 
+  // Handle role configuration changes from RoleConfigurationManager
+  const handleRoleConfigurationChange = (config) => {
+    setRoleConfiguration(config.roleCounts);
+    setRoleValidation(config.validation);
+  };
+
   // Handle allocation confirmation and trigger role assignment
   const handleAllocate = async allocationParams => {
     try {
@@ -59,16 +67,14 @@ function App() {
         console.log('Cleared reveal states for re-allocation');
       }
       
-      // Create role assignment using the hook
+      // Create role assignment using role configuration
       const newAssignment = await createAssignment(
         allocationParams.playerNames,
-        allocationParams.mafiaCount
+        allocationParams.roleConfiguration || allocationParams.mafiaCount // Support both legacy and new
       );
       
       console.log(`Role ${isReallocation ? 're-allocation' : 'allocation'} completed successfully:`, {
         assignmentId: newAssignment?.metadata?.assignmentId,
-        mafiaPlayers: statistics?.mafiaNames,
-        villagerPlayers: statistics?.villagerNames,
         hasEdgeCases,
         edgeCaseInfo
       });
@@ -144,10 +150,10 @@ function App() {
   const overallValidation = {
     isValid:
       playerValidation.isValid &&
-      mafiaValidation.isValid &&
-      mafiaValidation.canProceed,
+      roleValidation.isValid &&
+      !roleValidation.hasErrors,
     playerValidation,
-    mafiaValidation,
+    roleValidation,
   };
 
   return (
@@ -178,14 +184,13 @@ function App() {
                     onCountChange={setPlayerCount}
                     onNamesChange={setPlayerNames}
                     onValidationChange={setPlayerValidation}
-                    mafiaCountSection={
-                      <MafiaCountValidator
-                        playerCount={playerCount}
-                        initialMafiaCount={mafiaCount}
-                        onMafiaCountChange={setMafiaCount}
-                        onValidationChange={setMafiaValidation}
-                      />
-                    }
+                  />
+                  
+                  {/* Role Configuration Manager - replaces MafiaCountValidator */}
+                  <RoleConfigurationManager
+                    totalPlayers={playerCount}
+                    onConfigurationChange={handleRoleConfigurationChange}
+                    disabled={false}
                   />
                 </div>
               )}
@@ -195,7 +200,7 @@ function App() {
                 <>
                   <AllocationConfirmationFlow
                     playerNames={playerNames}
-                    mafiaCount={mafiaCount}
+                    roleConfiguration={roleConfiguration}
                     isFormValid={overallValidation.isValid}
                     onAllocate={handleAllocate}
                     disabled={isAssigning}
@@ -330,7 +335,7 @@ function App() {
                     {/* Re-allocation Button using AllocationConfirmationFlow */}
                     <AllocationConfirmationFlow
                       playerNames={playerNames}
-                      mafiaCount={mafiaCount}
+                      roleConfiguration={roleConfiguration}
                       isFormValid={overallValidation.isValid}
                       onAllocate={handleAllocate}
                       disabled={isAssigning}
@@ -395,10 +400,10 @@ function App() {
               <h4 className="font-medium mb-2">Debug Info:</h4>
               <p>Player Count: {playerCount}</p>
               <p>Names: {JSON.stringify(playerNames)}</p>
-              <p>Mafia Count: {mafiaCount}</p>
+              <p>Role Config: {JSON.stringify(roleConfiguration)}</p>
               <p>Player Valid: {playerValidation.isValid ? 'Yes' : 'No'}</p>
-              <p>Mafia Valid: {mafiaValidation.isValid ? 'Yes' : 'No'}</p>
-              <p>Can Proceed: {mafiaValidation.canProceed ? 'Yes' : 'No'}</p>
+              <p>Role Valid: {roleValidation.isValid ? 'Yes' : 'No'}</p>
+              <p>Has Errors: {roleValidation.hasErrors ? 'Yes' : 'No'}</p>
               <p>Overall Valid: {overallValidation.isValid ? 'Yes' : 'No'}</p>
               <p>Has Assignment: {assignment ? 'Yes' : 'No'}</p>
               <p>Is Assigning: {isAssigning ? 'Yes' : 'No'}</p>
