@@ -86,7 +86,7 @@
 - Renders RoleInput component dynamically for each special role (Mafia, Police, Doctor)
 - Manages role counts state via `usePlayerRoleConfiguration` custom hook
 - Calculates villager count: `totalPlayers - sum(specialRoleCounts)` with real-time updates
-- Renders role distribution summary with color-coded badges: "5 Mafia, 1 Police, 1 Doctor, 13 Villagers (20 total)"
+- Renders role distribution summary with color-coded badges using hex colors from registry (`role.color.secondary` background, `role.color.text` text)
 - Integrates validation framework via `useRoleValidation` displaying errors/warnings below inputs
 - Notifies parent (App.jsx) of state changes via callback: `onRoleConfigurationChange(roleConfiguration)`
 
@@ -94,15 +94,15 @@
 - Create `src/components/RoleInput.jsx` as reusable data-driven input component
 - Accept props: `role` (registry object), `value` (current count), `onChange` (callback), `totalPlayers`, `disabled`
 - Render role label from `role.name` (e.g., "Number of Police Players")
-- Render CounterControl component consuming role constraints: `min={role.constraints.min}`, `max={role.constraints.max}`
-- Apply role-specific color accents from `role.color.accent` for focus states (optional visual enhancement)
-- Display role constraint hints: "Max: 2" below input (read from `role.constraints.max`)
+- Render CounterControl component consuming role constraints: `min={role.constraints.min}`, `max={role.constraints.maxCalculator ? role.constraints.maxCalculator(totalPlayers) : role.constraints.max}`
+- Apply role-specific color accents from `role.color.text` (hex) for labels and focus states
+- Display role constraint hints: "Max: 2" below input (read from constraints)
 - Support accessibility: `aria-label={role.name}`, `aria-describedby` for validation messages
 - Component memoized with React.memo preventing unnecessary re-renders
 
 **usePlayerRoleConfiguration Hook:**
 - Create `src/hooks/usePlayerRoleConfiguration.js` custom hook for role configuration state management
-- Initialize state: `{ MAFIA: 1, POLICE: 0, DOCTOR: 0 }` reading defaults from registry
+- Initialize state: `{ [ROLES.MAFIA]: 1, [ROLES.POLICE]: 0, [ROLES.DOCTOR]: 0 }` reading defaults from registry
 - Provide update function: `updateRoleCount(roleId, newCount)` updating specific role count
 - Implement validation: Integrate `useRoleValidation` hook for real-time validation feedback
 - Calculate derived state: `villagerCount`, `totalRoles`, `isValid`, `validationErrors`
@@ -112,8 +112,8 @@
 **Role Distribution Summary:**
 - Render prominent summary section showing all role counts including Villagers
 - Format: "X Mafia, Y Police, Z Doctor, W Villagers (Total: N)"
-- Display role counts as color-coded badges using role colors from registry
-- Example: Mafia (red badge), Police (blue badge), Doctor (green badge), Villager (gray badge)
+- Display role counts as color-coded badges using role colors from registry (hex values)
+- Example: Mafia (red hex badge), Police (blue hex badge), Doctor (green hex badge), Villager (gray hex badge)
 - Summary updates in real-time as role counts change (<100ms response time)
 - Position summary between role inputs and player names section for logical flow
 
@@ -205,14 +205,15 @@
 - [ ] Component created at `src/components/RoleInput.jsx`
 - [ ] Accepts props: `role`, `value`, `onChange`, `totalPlayers`, `disabled`
 - [ ] Renders label from `role.name` (e.g., "Number of Police Players")
-- [ ] Renders CounterControl with constraints from `role.constraints` (min/max)
+- [ ] Renders CounterControl with constraints from `role.constraints` (min/max/maxCalculator)
 - [ ] Displays constraint hints: "Max: 2" below input
+- [ ] Uses hex colors from `role.color` for styling
 - [ ] Component memoized with React.memo
 - [ ] Full PropTypes validation for all props
 
 ### AC-3: usePlayerRoleConfiguration Hook
 - [ ] Hook created at `src/hooks/usePlayerRoleConfiguration.js`
-- [ ] Initializes state from registry defaults: `{MAFIA: 1, POLICE: 0, DOCTOR: 0}`
+- [ ] Initializes state from registry defaults: `{ [ROLES.MAFIA]: 1, [ROLES.POLICE]: 0, [ROLES.DOCTOR]: 0 }`
 - [ ] Provides `updateRoleCount(roleId, newCount)` function
 - [ ] Calculates `villagerCount = totalPlayers - sum(specialRoles)`
 - [ ] Integrates `useRoleValidation` for real-time validation
@@ -221,8 +222,8 @@
 
 ### AC-4: Role Distribution Summary
 - [ ] Summary displays all role counts: "5 Mafia, 1 Police, 1 Doctor, 13 Villagers (20 total)"
-- [ ] Roles displayed as color-coded badges using registry colors
-- [ ] Mafia badge red, Police badge blue, Doctor badge green, Villager badge gray
+- [ ] Roles displayed as color-coded badges using registry hex colors
+- [ ] Mafia badge red, Police badge blue, Doctor badge green, Villager badge gray (using hex values)
 - [ ] Summary updates in real-time (<100ms after role count changes)
 - [ ] Positioned between role inputs and player names section
 

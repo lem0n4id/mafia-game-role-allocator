@@ -14,7 +14,7 @@
 
 **Problem:** The current `roleAssignmentEngine.js` is hardcoded for exactly two role types (Mafia and Villagers), using boolean arrays (true=Mafia, false=Villager) for role assignment. This architecture cannot support special roles like Police or Doctor without complete refactoring. The engine lacks extensibility—adding a third role type requires rewriting the Fisher-Yates shuffle logic, assignment data structures, and verification functions. The tight coupling between role types and assignment logic creates a maintenance burden and prevents the application from scaling to support multiple special roles, limiting gameplay variety and market competitiveness.
 
-**Solution:** Refactor `roleAssignmentEngine.js` to a generic multi-role architecture that operates on role objects from the registry rather than boolean flags. Implement a role array builder that constructs a shuffleable array from role configuration dictionary (e.g., `{MAFIA: 5, POLICE: 1, DOCTOR: 1, VILLAGER: calculated}`), applies the existing Fisher-Yates shuffle once to randomize all roles, then assigns role objects to players. This approach maintains cryptographic randomization, preserves sub-millisecond performance, and supports unlimited role types without engine modifications. The enhanced assignment data structure will include complete role metadata (id, name, color, description) enabling downstream components to render role-specific UI.
+**Solution:** Refactor `roleAssignmentEngine.js` to a generic multi-role architecture that operates on role objects from the registry rather than boolean flags. Implement a role array builder that constructs a shuffleable array from role configuration dictionary (e.g., `{[ROLES.MAFIA]: 5, [ROLES.POLICE]: 1, [ROLES.DOCTOR]: 1, [ROLES.VILLAGER]: calculated}`), applies the existing Fisher-Yates shuffle once to randomize all roles, then assigns role objects to players. This approach maintains cryptographic randomization, preserves sub-millisecond performance, and supports unlimited role types without engine modifications. The enhanced assignment data structure will include complete role metadata (id, name, color, description) enabling downstream components to render role-specific UI.
 
 **Impact:** This refactoring establishes the core extensibility foundation for special roles, enabling:
 - **Zero Engine Changes:** New roles added via registry configuration without touching assignment engine code
@@ -71,7 +71,7 @@
 **Role Array Builder:**
 - Implement `buildRoleArray(roleConfiguration, totalPlayers, registry)` function converting role count dictionary to shuffleable array
 - Algorithm: For each role in configuration, push `count` instances of role object to array; fill remaining slots with Villager role
-- Example: `{MAFIA: 5, POLICE: 1, DOCTOR: 1}` with 20 players → array of 5 MAFIA objects, 1 POLICE object, 1 DOCTOR object, 13 VILLAGER objects
+- Example: `{[ROLES.MAFIA]: 5, [ROLES.POLICE]: 1, [ROLES.DOCTOR]: 1}` with 20 players → array of 5 MAFIA objects, 1 POLICE object, 1 DOCTOR object, 13 VILLAGER objects
 - Validate total role count equals total players before building array; throw error if mismatch detected
 - Return immutable array of role objects (frozen to prevent mutation during shuffle)
 
@@ -84,7 +84,7 @@
 
 **Enhanced Assignment Data Structure:**
 - Replace current structure: `{ id, name, role: 'MAFIA'|'VILLAGER', index, revealed }` 
-- New structure: `{ id, name, role: {id, name, team, color, description}, index, revealed }`
+- New structure: `{ id, name, role: {id, name, team, color, description, displayOrder, isSpecialRole}, index, revealed }`
 - `id`: Player index (0-based integer)
 - `name`: Player name (string from input)
 - `role`: Complete role object from registry including metadata

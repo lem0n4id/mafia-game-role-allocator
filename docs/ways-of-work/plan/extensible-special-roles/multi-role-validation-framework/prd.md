@@ -88,14 +88,14 @@
 
 **Built-In Validation Rules:**
 - **TotalRoleCountRule:** Validates `sum(all role counts) ≤ totalPlayers`, ERROR severity if exceeded, message: "Total roles ({sum}) cannot exceed total players ({totalPlayers})"
-- **IndividualMinMaxRule:** Validates each role count against registry `constraints.min` and `constraints.max`, ERROR severity if violated, message: "{roleName} count must be between {min} and {max}"
+- **IndividualMinMaxRule:** Validates each role count against registry `constraints.min` and `constraints.max` (or `constraints.maxCalculator`), ERROR severity if violated, message: "{roleName} count must be between {min} and {max}"
 - **MinimumVillagersRule:** Validates `villagerCount ≥ configurable minimum (default: 1)`, WARNING severity if 0 villagers, ERROR if negative, message: "Configuration leaves {villagerCount} villagers. Consider reducing special roles."
 - **NegativeCountRule:** Validates all role counts ≥ 0, ERROR severity, message: "{roleName} count cannot be negative"
 - **AllSpecialRolesRule:** Detects when all players are special roles (0 villagers), WARNING severity, message: "All players assigned special roles. No villagers remaining."
 
 **Villager Count Calculation:**
 - Implement `calculateVillagerCount(roleConfiguration, totalPlayers)` function: `totalPlayers - sum(specialRoleCounts)`
-- Support dynamic calculation based on role registry: iterate special roles, sum counts, subtract from total
+- Support dynamic calculation based on role registry: use `getSpecialRoles()` to identify non-Villager roles, sum counts, subtract from total
 - Handle edge cases: negative villager counts (validation error), zero villagers (validation warning), fractional players (impossible state caught earlier)
 - Expose villager count in validation result for UI display
 - Memoize calculation to prevent unnecessary recomputation on unchanged inputs
@@ -112,7 +112,7 @@
 - Include specific constraint values in messages: "Police count must be between 0 and 2 (currently: 3)"
 - Provide actionable suggestions: "Reduce special role counts to leave at least 1 villager"
 - Support multi-line messages for complex errors listing all violations
-- Color-code messages by severity: red for ERROR, yellow for WARNING, blue for INFO
+- Color-code messages by severity: red for ERROR, yellow for WARNING, blue for INFO (using hex colors from registry)
 
 **Integration with Existing Validation:**
 - Extend existing `edgeCaseValidation.js` patterns for consistency (severity levels, message formatting)
@@ -212,6 +212,7 @@
 - [ ] Configuration: 20 players, Police count = 3 (max: 2) → ERROR
 - [ ] Configuration: 5 players, 0 Mafia, 2 Police, 2 Doctor (1 villager) → VALID with WARNING
 - [ ] Configuration: negative role counts → ERROR (blocked at input level, validated here)
+- [ ] All examples use `ROLES` constants and `getSpecialRoles()` for validation logic
 
 ### AC-7: Integration with Existing Patterns
 - [ ] Validation result structure compatible with `AllocationConfirmationFlow` component

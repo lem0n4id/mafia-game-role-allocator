@@ -155,9 +155,11 @@ graph TB
 **Upstream Dependency (Required):**
 
 **Role Registry System (Feature 1):**
-- Validation framework reads role constraints via `getRoles()`, `getRoleById()`
-- Rules access `role.constraints.min`, `role.constraints.max`, `role.team` properties
-- calculateVillagerCount() uses registry to identify special roles dynamically
+- Validation framework reads role constraints via `getRoles()`, `getRoleById()` from `src/utils/roleRegistry.js`
+- Rules access `role.constraints.min`, `role.constraints.max`, `role.constraints.maxCalculator`, `role.team` properties
+- calculateVillagerCount() uses `getSpecialRoles()` to identify non-Villager roles dynamically
+- Validates role counts using `validateRoleCount(roleId, count, totalPlayers)` registry function
+- Uses `TEAMS.MAFIA` and `TEAMS.VILLAGE` constants for team validation
 
 **Downstream Consumers (Features using Validation):**
 
@@ -175,9 +177,14 @@ graph TB
 ```javascript
 // Example: RoleConfigurationManager integration
 import { useRoleValidation } from '@/hooks/useRoleValidation';
+import { ROLES } from '@/utils/roleRegistry';
 
 function RoleConfigurationManager({ totalPlayers }) {
-  const [roleCounts, setRoleCounts] = useState({ MAFIA: 1, POLICE: 0, DOCTOR: 0 });
+  const [roleCounts, setRoleCounts] = useState({ 
+    [ROLES.MAFIA]: 1, 
+    [ROLES.POLICE]: 0, 
+    [ROLES.DOCTOR]: 0 
+  });
   
   const validation = useRoleValidation(roleCounts, totalPlayers);
   
@@ -251,12 +258,15 @@ erDiagram
 #### Type Definitions
 
 ```javascript
+import { ROLES } from './utils/roleRegistry';
+
 /**
  * @typedef {Object} RoleConfiguration
- * @property {number} MAFIA - Mafia player count
- * @property {number} POLICE - Police player count
- * @property {number} DOCTOR - Doctor player count
+ * @property {number} [MAFIA] - Mafia player count (using ROLES.MAFIA constant)
+ * @property {number} [POLICE] - Police player count (using ROLES.POLICE constant)
+ * @property {number} [DOCTOR] - Doctor player count (using ROLES.DOCTOR constant)
  * @description Object mapping role IDs to counts (extensible for future roles)
+ * @example { [ROLES.MAFIA]: 5, [ROLES.POLICE]: 1, [ROLES.DOCTOR]: 1 }
  */
 
 /**
@@ -301,8 +311,9 @@ erDiagram
  * @returns {AggregatedValidationState} Aggregated validation state
  * 
  * @example
+ * import { ROLES } from './utils/roleRegistry';
  * const validation = validateRoleConfiguration(
- *   { MAFIA: 5, POLICE: 1, DOCTOR: 1 },
+ *   { [ROLES.MAFIA]: 5, [ROLES.POLICE]: 1, [ROLES.DOCTOR]: 1 },
  *   20
  * );
  * 
@@ -347,14 +358,16 @@ export function validateRoleConfiguration(roleConfig, totalPlayers) {
 ```javascript
 /**
  * Calculate remaining villager count after special roles assigned.
+ * Uses Role Registry's getSpecialRoles() to identify non-Villager roles dynamically.
  * 
  * @param {RoleConfiguration} roleConfig - Role count configuration
  * @param {number} totalPlayers - Total players in game
  * @returns {number} Calculated villager count (may be negative if over-allocated)
  * 
  * @example
+ * import { ROLES } from './roleRegistry';
  * const villagerCount = calculateVillagerCount(
- *   { MAFIA: 5, POLICE: 1, DOCTOR: 1 },
+ *   { [ROLES.MAFIA]: 5, [ROLES.POLICE]: 1, [ROLES.DOCTOR]: 1 },
  *   20
  * );
  * // Returns: 13 (20 - 5 - 1 - 1)
@@ -362,7 +375,7 @@ export function validateRoleConfiguration(roleConfig, totalPlayers) {
 export function calculateVillagerCount(roleConfig, totalPlayers) {
   const { getSpecialRoles } = require('./roleRegistry');
   
-  const specialRoles = getSpecialRoles(); // Excludes VILLAGER
+  const specialRoles = getSpecialRoles(); // Returns MAFIA, POLICE, DOCTOR (excludes VILLAGER)
   const specialRoleSum = specialRoles.reduce((sum, role) => {
     return sum + (roleConfig[role.id] || 0);
   }, 0);
@@ -414,6 +427,7 @@ function TotalRoleCountRule(roleConfig, totalPlayers) {
 ```javascript
 /**
  * Validates each role count against its registry-defined min/max constraints.
+ * Supports both static max values and dynamic maxCalculator functions.
  * 
  * @param {RoleConfiguration} roleConfig - Role count configuration
  * @param {number} totalPlayers - Total players in game
@@ -421,14 +435,17 @@ function TotalRoleCountRule(roleConfig, totalPlayers) {
  * @returns {ValidationResult|null} Error if any role violates constraints
  */
 function IndividualMinMaxRule(roleConfig, totalPlayers, registry) {
-  const { getRoles } = registry;
+  const { getRoles, ROLES } = registry;
   const roles = getRoles();
   
   for (const role of roles) {
-    if (role.id === 'VILLAGER') continue; // Villager count calculated, not configured
+    if (role.id === ROLES.VILLAGER) continue; // Villager count calculated, not configured
     
     const count = roleConfig[role.id] || 0;
-    const { min, max } = role.constraints;
+    const { min, max, maxCalculator } = role.constraints;
+    
+    // Calculate dynamic max if maxCalculator provided
+    const effectiveMax = maxCalculator ? maxCalculator(totalPlayers) : max;
     
     if (count < min) {
       return {
@@ -436,17 +453,17 @@ function IndividualMinMaxRule(roleConfig, totalPlayers, registry) {
         severity: 'ERROR',
         type: 'IndividualMinMaxRule',
         message: `${role.name} count (${count}) is below minimum (${min})`,
-        details: { roleId: role.id, count, min, max }
+        details: { roleId: role.id, count, min, max: effectiveMax }
       };
     }
     
-    if (count > max) {
+    if (effectiveMax !== -1 && count > effectiveMax) {
       return {
         isValid: false,
         severity: 'ERROR',
         type: 'IndividualMinMaxRule',
-        message: `${role.name} count (${count}) exceeds maximum (${max}). Reduce ${role.name} count by ${count - max}.`,
-        details: { roleId: role.id, count, min, max }
+        message: `${role.name} count (${count}) exceeds maximum (${effectiveMax}). Reduce ${role.name} count by ${count - effectiveMax}.`,
+        details: { roleId: role.id, count, min, max: effectiveMax }
       };
     }
   }
