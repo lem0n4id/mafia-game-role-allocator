@@ -783,38 +783,50 @@ import {
   getRolesByTeam,
   getSpecialRoles,
   validateRoleCount,
-  ROLES,
-  TEAMS
+  ROLES  // Backward compatibility only (deprecated)
 } from '../utils/roleRegistry';
 
-// Get all roles for iteration
-const allRoles = getRoles(); // Returns: [MAFIA, VILLAGER, POLICE, DOCTOR]
+// Get all roles for iteration (sorted by priority)
+const allRoles = getRoles(); // Returns: [MAFIA, POLICE, DOCTOR, VILLAGER]
 
-// Get specific role with complete metadata
+// Get specific role with complete metadata (returns null if not found)
 const mafiaRole = getRoleById('MAFIA');
-console.log(mafiaRole);
-// {
-//   id: 'MAFIA',
-//   name: 'Mafia',
-//   team: 'MAFIA',
-//   color: { primary: '#dc2626', secondary: '#fef2f2', text: '#991b1b' },
-//   constraints: { min: 0, max: -1, default: 1, maxCalculator: fn },
-//   description: 'Work with other Mafia players to eliminate Villagers',
-//   displayOrder: 1,
-//   isSpecialRole: false
-// }
+if (mafiaRole) {
+  console.log(mafiaRole);
+  // {
+  //   id: 'MAFIA',
+  //   name: 'Mafia',
+  //   team: 'mafia',  // lowercase: 'mafia', 'special', or 'villager'
+  //   color: {
+  //     primary: 'red-600',    // Tailwind CSS token
+  //     secondary: 'red-50',
+  //     border: 'red-500',
+  //     text: 'red-800',
+  //     accent: 'red-700'
+  //   },
+  //   constraints: { min: 0, max: Infinity, default: 1 },
+  //   description: 'Eliminate villagers to win',
+  //   priority: 1,
+  //   icon: null
+  // }
+}
 
-// Use role colors for UI rendering
+// Handle null return for missing roles
+const invalidRole = getRoleById('INVALID');
+console.log(invalidRole); // null (does not throw)
+
+// Use role colors for UI rendering (Tailwind CSS tokens)
 const RoleCard = ({ player }) => {
   const role = getRoleById(player.role);
+  if (!role) return null;
   
   return (
     <div 
-      style={{
-        backgroundColor: role.color.secondary,
-        color: role.color.text,
-        borderColor: role.color.primary
-      }}
+      className={`
+        bg-${role.color.secondary} 
+        text-${role.color.text}
+        border-${role.color.border}
+      `}
     >
       <h3>{role.name}</h3>
       <p>{role.description}</p>
@@ -826,33 +838,37 @@ const RoleCard = ({ player }) => {
 const validation = validateRoleCount('MAFIA', 3, 10);
 if (!validation.isValid) {
   console.error(validation.error);
-  // Example: "Mafia count cannot exceed 9 for 10 players"
+  // Example: "Mafia count (3) cannot exceed total players (10)"
 }
 
-// Get roles by team affiliation
-const villageRoles = getRolesByTeam('VILLAGE');
-console.log(villageRoles.map(r => r.name)); // ['Villager', 'Police', 'Doctor']
+// Get roles by team affiliation (lowercase team values)
+const specialRoles = getRolesByTeam('special');
+console.log(specialRoles.map(r => r.name)); // ['Police', 'Doctor']
 
-// Get special roles for UI rendering
-const specialRoles = getSpecialRoles();
-// Returns non-VILLAGER roles: MAFIA, POLICE, DOCTOR
+const villagerRoles = getRolesByTeam('villager');
+console.log(villagerRoles.map(r => r.name)); // ['Villager']
+
+// Get special roles for UI rendering (excludes villager team)
+const nonVillagerRoles = getSpecialRoles();
+console.log(nonVillagerRoles.map(r => r.name)); // ['Mafia', 'Police', 'Doctor']
 ```
 
 **Role Registry Pattern Key Points:**
 - **Single source of truth**: All role metadata in `src/utils/roleRegistry.js`
-- **Complete metadata**: id, name, team, colors (hex), constraints, description, displayOrder
+- **Complete metadata**: id, name, team (lowercase), 5-color palette (Tailwind tokens), constraints, description, priority, icon
 - **Type-safe API**: JSDoc types (RoleDefinition, RoleColor, RoleConstraints, Team)
-- **Dynamic validation**: `maxCalculator` functions enable complex constraint rules
-- **Team constants**: `TEAMS.MAFIA`, `TEAMS.VILLAGE` for type safety
-- **Backward compatible**: `ROLES` export maintains existing code compatibility
+- **Lowercase teams**: 'mafia', 'special', 'villager' (not uppercase constants)
+- **Immutability**: All role definitions frozen with Object.freeze()
+- **Null-safe**: getRoleById() returns null (not throws) for missing roles
+- **Backward compatible**: `ROLES` export maintains existing code compatibility (deprecated)
 - **Performance**: <0.1ms access time, minimal bundle impact (~40 bytes per role)
 - **Extensible design**: Add new roles without UI code changes
 
 **Registry API Functions:**
-- `getRoles()` - All roles sorted by displayOrder
-- `getRoleById(id)` - Specific role (throws if not found, case-insensitive)
-- `getRolesByTeam(team)` - Filter by MAFIA or VILLAGE team
-- `getSpecialRoles()` - Non-VILLAGER roles for UI
+- `getRoles()` - All roles sorted by priority (ascending)
+- `getRoleById(id)` - Specific role or null if not found (case-insensitive)
+- `getRolesByTeam(team)` - Filter by 'mafia', 'special', or 'villager' team
+- `getSpecialRoles()` - Non-villager team roles (MAFIA + special team)
 - `validateRoleCount(roleId, count, totalPlayers)` - Constraint validation
 
 **Validation Result Structure:**
@@ -874,17 +890,17 @@ const specialRoles = getSpecialRoles();
 validateRoleCount('MAFIA', 2, 10)
 // { isValid: true, details: { role: 'Mafia', count: 2, totalPlayers: 10 } }
 
-// Invalid: 10 Mafia in 10 players (max is 9 via maxCalculator)
-validateRoleCount('MAFIA', 10, 10)
-// { isValid: false, error: 'Mafia count cannot exceed 9 for 10 players' }
-
-// Invalid: 0 Villagers (min is 1)
-validateRoleCount('VILLAGER', 0, 10)
-// { isValid: false, error: 'Villager count must be at least 1' }
-
-// Invalid: 2 Police (max is 1)
+// Valid: 2 Police in 10 players (max is 2)
 validateRoleCount('POLICE', 2, 10)
-// { isValid: false, error: 'Police count cannot exceed 1 for 10 players' }
+// { isValid: true, details: { role: 'Police', count: 2, totalPlayers: 10 } }
+
+// Invalid: 3 Police (exceeds max of 2)
+validateRoleCount('POLICE', 3, 10)
+// { isValid: false, error: 'Police count cannot exceed 2 for 10 players' }
+
+// Invalid: 11 Mafia in 10 players (exceeds total)
+validateRoleCount('MAFIA', 11, 10)
+// { isValid: false, error: 'Mafia count (11) cannot exceed total players (10)' }
 ```
 
 **Usage Pattern for New Roles:**
