@@ -158,12 +158,18 @@ import { CounterControl } from './CounterControl';
  * @param {boolean} props.disabled - Whether input is disabled
  */
 export function RoleInput({ role, value, onChange, totalPlayers, disabled = false }) {
+  // Calculate effective max (dynamic or static)
+  const effectiveMax = role.constraints.maxCalculator 
+    ? role.constraints.maxCalculator(totalPlayers) 
+    : role.constraints.max;
+
   return (
     <div className="space-y-2">
       {/* Role Label */}
       <label 
         htmlFor={`role-${role.id}`}
-        className="block text-sm font-medium text-gray-700"
+        className="block text-sm font-medium"
+        style={{ color: role.color.text }}
       >
         Number of {role.name} Players
       </label>
@@ -173,7 +179,7 @@ export function RoleInput({ role, value, onChange, totalPlayers, disabled = fals
         id={`role-${role.id}`}
         value={value}
         min={role.constraints.min}
-        max={role.constraints.max}
+        max={effectiveMax}
         onChange={onChange}
         label={role.name}
         disabled={disabled}
@@ -181,9 +187,9 @@ export function RoleInput({ role, value, onChange, totalPlayers, disabled = fals
       />
       
       {/* Constraint Hint */}
-      {role.constraints.max !== Infinity && (
+      {effectiveMax !== -1 && (
         <p className="text-xs text-gray-500">
-          Max: {role.constraints.max}
+          Max: {effectiveMax}
         </p>
       )}
       
@@ -200,7 +206,7 @@ export function RoleInput({ role, value, onChange, totalPlayers, disabled = fals
 ```javascript
 // src/components/RoleConfigurationManager.jsx
 import React from 'react';
-import { getSpecialRoles, getRoleById } from '../utils/roleRegistry';
+import { getSpecialRoles, getRoleById, ROLES } from '../utils/roleRegistry';
 import { usePlayerRoleConfiguration } from '../hooks/usePlayerRoleConfiguration';
 import { useRoleValidation } from '../hooks/useRoleValidation';
 import { RoleInput } from './RoleInput';
@@ -232,7 +238,7 @@ export function RoleConfigurationManager({
     }
   });
   
-  const villagerRole = getRoleById('VILLAGER');
+  const villagerRole = getRoleById(ROLES.VILLAGER);
   
   return (
     <div className="space-y-6">
@@ -283,8 +289,9 @@ export function RoleConfigurationManager({
                 key={role.id}
                 className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium"
                 style={{
-                  backgroundColor: `var(--tw-${role.color.secondary})`,
-                  color: `var(--tw-${role.color.text})`
+                  backgroundColor: role.color.secondary,
+                  color: role.color.text,
+                  border: `1px solid ${role.color.primary}`
                 }}
               >
                 {count} {role.name}
@@ -292,7 +299,14 @@ export function RoleConfigurationManager({
             );
           })}
           {villagerCount > 0 && (
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700">
+            <span 
+              className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium"
+              style={{
+                backgroundColor: villagerRole.color.secondary,
+                color: villagerRole.color.text,
+                border: `1px solid ${villagerRole.color.primary}`
+              }}
+            >
               {villagerCount} {villagerRole.name}
             </span>
           )}

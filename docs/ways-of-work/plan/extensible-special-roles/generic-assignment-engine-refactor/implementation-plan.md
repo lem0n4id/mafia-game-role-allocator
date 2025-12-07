@@ -77,12 +77,12 @@ graph TB
 
 **Step 1.1: Implement buildRoleArray()**
 ```javascript
-import { getRoleById, getSpecialRoles } from './roleRegistry';
+import { getRoleById, getSpecialRoles, ROLES } from './roleRegistry';
 
 /**
  * Build array of role objects from role configuration for shuffling.
  * 
- * @param {Object} roleConfiguration - Role count dictionary {MAFIA: 5, POLICE: 1, ...}
+ * @param {Object} roleConfiguration - Role count dictionary {[ROLES.MAFIA]: 5, ...}
  * @param {number} totalPlayers - Total players in game
  * @returns {Object[]} Array of role objects ready for shuffle
  */
@@ -99,7 +99,7 @@ export function buildRoleArray(roleConfiguration, totalPlayers) {
   }
   
   // Calculate and add villagers
-  const villagerRole = getRoleById('VILLAGER');
+  const villagerRole = getRoleById(ROLES.VILLAGER);
   const villagerCount = totalPlayers - roleArray.length;
   
   if (villagerCount < 0) {
@@ -270,6 +270,8 @@ export function assignRoles(playerNames, roleConfiguration) {
 
 **Step 5.2: Create Backward Compatibility Adapter**
 ```javascript
+import { ROLES } from './roleRegistry';
+
 /**
  * Legacy adapter supporting old assignRoles(playerNames, mafiaCount) signature.
  * 
@@ -281,9 +283,9 @@ export function assignRolesAdapter(playerNames, mafiaCountOrConfig) {
   if (typeof mafiaCountOrConfig === 'number') {
     // Legacy signature: convert mafiaCount to configuration
     const roleConfiguration = {
-      MAFIA: mafiaCountOrConfig,
-      POLICE: 0,
-      DOCTOR: 0
+      [ROLES.MAFIA]: mafiaCountOrConfig,
+      [ROLES.POLICE]: 0,
+      [ROLES.DOCTOR]: 0
       // Villagers calculated automatically
     };
     return assignRoles(playerNames, roleConfiguration);
