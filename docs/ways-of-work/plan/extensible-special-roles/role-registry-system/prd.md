@@ -1,314 +1,261 @@
-# Product Requirements Document: Role Registry System
+# Feature PRD: Role Registry System
 
-## Overview
+## 1. Feature Name
 
-### Feature Name
-Role Registry System
+**Role Registry System**
 
-### Version
-1.0.0
+## 2. Epic
 
-### Status
-✅ Implemented
+- **Parent Epic PRD:** [Extensible Special Roles System](../epic.md)
+- **Architecture Specification:** [Epic Architecture](../arch.md)
 
-### Date
-December 7, 2024
+## 3. Goal
 
-## Executive Summary
+**Problem:** The current Mafia Game Role Allocator hardcodes role logic (Mafia vs. Villagers) throughout the codebase, making it extremely difficult to add new roles. Adding a single role requires modifying the assignment engine, validation logic, UI components, and state management—a 2-week refactoring effort with high regression risk. There's no centralized source of truth for role metadata (colors, descriptions, constraints), leading to scattered and inconsistent role definitions. This architectural limitation blocks the ability to support special roles like Police and Doctor, limiting the application's value proposition and market competitiveness.
 
-The Role Registry System provides a centralized registry serving as the single source of truth for all role definitions in the Mafia Game Role Allocator. It stores comprehensive metadata including role identifiers, display names, team affiliations, color schemes, count constraints, and descriptions. The system exposes a clean JavaScript API enabling data-driven UI rendering and validation, acting as the foundation layer for extensible special roles support.
+**Solution:** Implement a centralized Role Registry System (`src/utils/roleRegistry.js`) that serves as the single source of truth for all role metadata. The registry will define roles as immutable configuration objects containing: id, name, team, color palette, description, and constraints (min/max/default counts). The system will provide a clean API (`getRoles()`, `getRoleById()`, `getRolesByTeam()`) for accessing role data throughout the application. By externalizing role definitions from code logic, the registry enables a plugin-like architecture where new roles can be added through simple configuration without modifying existing components.
 
-## Business Context
+**Impact:** This feature establishes the architectural foundation for the extensible special roles system, enabling:
+- **Developer Velocity:** Reduce time to add new roles from 2 weeks to 4 hours (95% reduction)
+- **Code Maintainability:** Eliminate 15+ hardcoded role conditionals across codebase, reducing cyclomatic complexity by 40%
+- **Future Extensibility:** Support unlimited role types (tested conceptually to 50+ roles) without performance degradation
+- **Technical Debt Reduction:** Centralize role definitions preventing scattered inconsistent implementations
+- **Zero Breaking Changes:** Maintain backward compatibility with existing two-role workflows
 
-### Problem Statement
-Currently, role information (MAFIA, VILLAGER) is hardcoded throughout the application in `roleAssignmentEngine.js`. Adding new special roles (Police, Doctor, Detective, etc.) would require extensive changes across multiple UI components, validation logic, and rendering code. This tight coupling makes the system difficult to extend and maintain.
+## 4. User Personas
 
-### Business Value
-- **Extensibility**: New roles can be added in <4 hours (down from 40+ hours)
-- **Maintainability**: Single source of truth eliminates inconsistencies
-- **UI Flexibility**: Data-driven rendering requires zero UI code changes for new roles
-- **Performance**: <1ms registry access maintains real-time responsiveness
-- **Bundle Size**: <2KB impact per role keeps app lightweight
+**Primary Persona - Future Developers (Internal):**
+- **Context:** Developers tasked with adding new role types (Detective, Serial Killer, Cupid, etc.) to expand gameplay variety
+- **Pain Points:** Current hardcoded architecture requires deep codebase knowledge and extensive refactoring to add single role
+- **Goals:** Add new roles quickly with minimal code changes, understand role integration points easily, avoid breaking existing functionality
+- **Technical Comfort:** Experienced React developers familiar with modern JavaScript patterns
 
-### Success Metrics
-- Role additions take <4 hours (10x improvement)
-- Zero UI code changes required when adding new roles
-- <1ms registry access time
-- <2KB bundle size impact per new role
-- 100% test coverage for registry functions
+**Secondary Persona - Advanced Game Facilitator (External - Indirect Benefit):**
+- **Context:** Experienced Mafia players who want to configure games with special roles (Police, Doctor)
+- **Pain Points:** Current app only supports Mafia/Villagers, forcing manual tracking of special roles
+- **Goals:** Configure complex game setups with multiple role types through intuitive interface
+- **Technical Comfort:** High mobile literacy but non-technical (doesn't interact with registry directly)
 
-## Goals & Non-Goals
+**Note:** This is primarily an **internal infrastructure feature** enabling future user-facing features. End users benefit indirectly through faster delivery of new role types.
 
-### Goals
-- Create centralized role registry with complete metadata
-- Implement type-safe API for role queries and validation
-- Support dynamic role additions without code changes
-- Provide UI-ready data (colors, constraints, descriptions)
-- Maintain backward compatibility with existing code
+## 5. User Stories
 
-### Non-Goals
-- Implementing special role game mechanics (deferred to future features)
-- Modifying existing role assignment engine (no breaking changes)
-- Persisting role configurations (still in-memory only)
-- Adding role selection UI (future enhancement)
-- Advanced role balancing algorithms
+**US-31: As a developer, I want a centralized role registry so that I can add new roles without modifying core engine logic**
+- **Benefit:** Eliminates need to refactor assignment engine, validation framework, or state management when adding roles
+- **Acceptance:** New role added via registry entry, no changes to `roleAssignmentEngine.js` required
 
-## Requirements
+**US-32: As a developer, I want role metadata (colors, descriptions, constraints) in one location so that I can maintain consistent role definitions**
+- **Benefit:** Prevents scattered inconsistent role configurations across components
+- **Acceptance:** All role properties defined in single registry object, accessed via API functions
+
+**US-33: As a developer, I want immutable role configurations so that runtime corruption cannot occur**
+- **Benefit:** Prevents accidental mutation bugs that could break role assignment logic
+- **Acceptance:** Registry objects frozen with `Object.freeze()`, mutation attempts throw errors in strict mode
+
+**US-34: As a developer, I want clear registry API functions so that I can access role data easily in components**
+- **Benefit:** Simplifies component integration with standardized access patterns
+- **Acceptance:** `getRoles()`, `getRoleById()`, `getRolesByTeam()` functions documented and tested
+
+**US-35: As a developer, I want JSDoc type annotations on registry schema so that I get IDE autocomplete and type checking**
+- **Benefit:** Improves development experience with inline documentation and compile-time validation
+- **Acceptance:** All registry functions and schemas have comprehensive JSDoc comments with examples
+
+**US-36: As a developer, I want predefined roles (Mafia, Police, Doctor, Villager) in the registry so that I have working examples to follow**
+- **Benefit:** Provides templates for adding new roles with proper metadata structure
+- **Acceptance:** Four initial roles defined with complete metadata including colors, descriptions, constraints
+
+**US-37: As a developer, I want role priority ordering so that UI renders roles in logical sequence (Mafia, Police, Doctor, Villagers)**
+- **Benefit:** Ensures consistent role presentation order across UI components
+- **Acceptance:** Registry supports optional `priority` field for sort ordering
+
+## 6. Requirements
 
 ### Functional Requirements
 
-#### FR-1: Role Registry Structure (AC-1)
-**Status:** ✅ Implemented
+**Registry Core Structure:**
+- Define role schema with required fields: `id` (string, unique, uppercase), `name` (string, display name), `team` (enum: 'mafia' | 'special' | 'villager')
+- Include color palette for each role: `color: { primary, secondary, border, text, accent }` matching Tailwind CSS color codes
+- Store role description (string, 1-2 sentences) explaining role ability for reveal dialog display
+- Define role constraints: `constraints: { min: number, max: number, default: number }` for validation framework
+- Support optional fields: `icon` (string, SVG path or icon identifier), `priority` (number, sort order)
+- Implement role configuration as frozen JavaScript objects preventing runtime mutation
 
-Role registry created at `src/utils/roleRegistry.js` with initial role definitions:
-- MAFIA
-- VILLAGER  
-- POLICE (foundation for future)
-- DOCTOR (foundation for future)
+**Predefined Role Definitions:**
+- **MAFIA Role:** id='MAFIA', name='Mafia', team='mafia', color palette (red-600, red-50, red-500, red-800, red-700), description="Eliminate villagers to win", constraints (min: 0, max: Infinity, default: 1), priority: 1
+- **POLICE Role:** id='POLICE', name='Police', team='special', color palette (blue-600, blue-50, blue-500, blue-800, blue-700), description="Investigate one player each night", constraints (min: 0, max: 2, default: 0), priority: 2
+- **DOCTOR Role:** id='DOCTOR', name='Doctor', team='special', color palette (green-600, green-50, green-500, green-800, green-700), description="Protect one player each night", constraints (min: 0, max: 2, default: 0), priority: 3
+- **VILLAGER Role:** id='VILLAGER', name='Villager', team='villager', color palette (gray-500, gray-50, gray-300, gray-700, gray-600), description="Work with others to identify Mafia", constraints (min: 0, max: Infinity, default: calculated), priority: 4
 
-#### FR-2: Role Metadata Schema (AC-2)
-**Status:** ✅ Implemented
+**Registry API Functions:**
+- `getRoles()`: Returns array of all role definitions sorted by priority (ascending order)
+- `getRoleById(id)`: Returns specific role definition object or null if not found, case-insensitive lookup
+- `getRolesByTeam(team)`: Returns array of roles filtered by team ('mafia', 'special', 'villager')
+- `getSpecialRoles()`: Returns array of roles excluding Villager (convenience function for UI rendering)
+- `validateRoleCount(roleId, count, totalPlayers)`: Validates proposed count against role constraints and total player limit, returns validation result object
 
-Each role includes complete metadata:
-- `id`: Unique identifier (string, uppercase)
-- `name`: Display name for UI
-- `team`: Team affiliation (MAFIA or VILLAGE)
-- `color`: Color scheme object
-  - `primary`: Primary color (hex)
-  - `secondary`: Background color (hex)
-  - `text`: Text color for contrast (hex)
-- `constraints`: Validation constraints
-  - `min`: Minimum count
-  - `max`: Maximum count (-1 for unlimited)
-  - `default`: Default/recommended count
-  - `maxCalculator`: Optional function for dynamic max
-- `description`: Role objective description
-- `displayOrder`: Sort order for UI rendering
-- `isSpecialRole`: Boolean flag for non-standard roles
-
-#### FR-3: getRoles() Function (AC-3)
-**Status:** ✅ Implemented
-
-```javascript
-getRoles(): RoleDefinition[]
-```
-Returns all roles sorted by `displayOrder`.
-
-**Verification:** Returns 4 roles in order: MAFIA, VILLAGER, POLICE, DOCTOR
-
-#### FR-4: getRoleById() Function (AC-4)
-**Status:** ✅ Implemented
-
-```javascript
-getRoleById(id: string): RoleDefinition
-```
-Returns specific role by ID (case-insensitive).
-
-**Error Handling:** Throws error if role not found
-
-**Verification:** Successfully retrieves all roles; throws error for invalid IDs
-
-#### FR-5: getRolesByTeam() Function (AC-5)
-**Status:** ✅ Implemented
-
-```javascript
-getRolesByTeam(team: Team): RoleDefinition[]
-```
-Filters roles by team affiliation (MAFIA or VILLAGE).
-
-**Error Handling:** Throws error if team is invalid
-
-**Verification:** 
-- MAFIA team returns 1 role
-- VILLAGE team returns 3 roles (VILLAGER, POLICE, DOCTOR)
-
-#### FR-6: getSpecialRoles() Function (AC-6)
-**Status:** ✅ Implemented
-
-```javascript
-getSpecialRoles(): RoleDefinition[]
-```
-Returns non-VILLAGER roles for UI rendering.
-
-**Verification:** Returns 3 roles (MAFIA, POLICE, DOCTOR)
-
-#### FR-7: validateRoleCount() Function (AC-7)
-**Status:** ✅ Implemented
-
-```javascript
-validateRoleCount(roleId: string, count: number, totalPlayers: number): ValidationResult
-```
-
-Validates role count against:
-- Minimum/maximum constraints
-- Total player count
-- Dynamic max calculations (via maxCalculator)
-
-**Returns:**
-```javascript
-{
-  isValid: boolean,
-  error?: string,
-  details?: Object
-}
-```
-
-**Verification:**
-- ✅ Validates MAFIA < total players (9/10 valid, 10/10 invalid)
-- ✅ Enforces VILLAGER min=1 (0/10 invalid)
-- ✅ Enforces POLICE max=1 (2/10 invalid)
-- ✅ Rejects negative counts
-- ✅ Provides descriptive error messages
-
-#### FR-8: Type Definitions (AC-8)
-**Status:** ✅ Implemented
-
-JSDoc type definitions created:
-- `RoleDefinition`: Complete role structure
-- `RoleColor`: Color scheme structure
-- `RoleConstraints`: Validation constraints structure
-- `Team`: Team enumeration type
-- `ValidationResult`: Validation return type
-
-**Verification:** All functions have complete JSDoc with types
+**Registry Initialization:**
+- Export registry as named constant `ROLE_REGISTRY` for direct access in tests/debugging
+- Freeze all role definition objects on module load to ensure immutability
+- Initialize registry synchronously (no async loading) for immediate availability in React components
+- Validate registry structure on module load throwing descriptive errors if schema violations detected
 
 ### Non-Functional Requirements
 
-#### NFR-1: Performance (AC-9)
-**Status:** ✅ Verified
+**Performance:**
+- Registry access functions (`getRoles()`, `getRoleById()`) execute in <1ms (O(1) or O(n) with small n)
+- Registry loaded once at application initialization, cached in memory throughout session
+- No runtime overhead from registry lookups; memoization not required due to small dataset (4-10 roles)
+- Bundle size impact: Registry file <2KB minified (currently 4 roles × ~0.5KB each)
 
-- Registry access time: <0.1ms (target: <1ms) ✅
-- In-memory object lookups with no database calls
-- Memoization not required for current scale
+**Maintainability:**
+- Registry schema documented with comprehensive JSDoc comments including @typedef definitions
+- Each role definition includes inline comments explaining color choices and constraint rationale
+- Registry file structured for readability: clear sections, consistent formatting, logical role ordering
+- Unit tests cover all API functions, edge cases (invalid IDs, null checks), and schema validation
+- Developer guide (`docs/ROLE_EXTENSIBILITY.md`) includes step-by-step instructions for adding roles
 
-**Measurement:** Manual timing tests confirm <0.1ms per operation
+**Type Safety (via JSDoc):**
+- Define `@typedef {Object} RoleDefinition` with all required and optional properties
+- Define `@typedef {Object} RoleColor` describing color palette structure
+- Define `@typedef {Object} RoleConstraints` for min/max/default validation rules
+- All API functions annotated with `@param`, `@returns`, and `@throws` JSDoc tags
+- Include usage examples in JSDoc comments for each function
 
-#### NFR-2: Bundle Size (AC-10)
-**Status:** ✅ Verified
+**Extensibility:**
+- Registry structure supports future fields (e.g., `icon`, `soundEffect`, `animationClass`) without breaking changes
+- API functions handle unknown role IDs gracefully returning null rather than throwing errors
+- Schema validation extensible via optional `validateRole()` function for custom validation rules
+- Registry supports 50+ roles without performance degradation (tested conceptually)
 
-- Bundle impact: ~40 bytes CSS increase (target: <2KB per role) ✅
-- Total registry size: ~10KB uncompressed
-- Gzipped impact: <2KB for entire registry
+**Backward Compatibility:**
+- Registry includes existing MAFIA and VILLAGER roles with identical behavior to current implementation
+- Role IDs match current `ROLES.MAFIA` and `ROLES.VILLAGER` constants ensuring seamless migration
+- Components using legacy role constants continue to work during transition period
+- No breaking changes to existing assignment engine or validation logic during registry integration
 
-**Measurement:** 
-- Before: `dist/assets/index-MA2N-CeV.css   28.46 kB`
-- After: `dist/assets/index-DeZFVi8q.css   28.50 kB`
-- Delta: 40 bytes
+**Testing & Validation:**
+- Unit tests achieve 100% coverage of registry API functions and schema validation
+- Tests verify immutability: mutation attempts on role objects throw errors or fail silently
+- Tests validate all predefined roles conform to schema (required fields present, correct types)
+- Integration tests verify registry data flows correctly to dependent components (engine, UI, validation)
+- Performance tests measure registry access times ensuring <1ms execution
 
-#### NFR-3: Code Quality
-**Status:** ✅ Verified
+## 7. Acceptance Criteria
 
-- ESLint: Passes with zero warnings ✅
-- Prettier: Code formatted consistently ✅
-- JSDoc: Complete type documentation ✅
-- Manual testing: All API functions verified ✅
+### AC-1: Registry Schema & Structure
+- [ ] Role schema defined with all required fields: `id`, `name`, `team`, `color`, `description`, `constraints`
+- [ ] Optional fields supported: `icon`, `priority`
+- [ ] Color palette includes five properties: `primary`, `secondary`, `border`, `text`, `accent`
+- [ ] Constraints include three properties: `min`, `max`, `default`
+- [ ] Team enum validated to only allow: 'mafia', 'special', 'villager'
+- [ ] Registry file located at `src/utils/roleRegistry.js`
 
-#### NFR-4: Backward Compatibility
-**Status:** ✅ Implemented
+### AC-2: Predefined Role Definitions
+- [ ] MAFIA role defined with correct metadata (red color palette, team='mafia', priority=1)
+- [ ] POLICE role defined with correct metadata (blue color palette, team='special', max=2, priority=2)
+- [ ] DOCTOR role defined with correct metadata (green color palette, team='special', max=2, priority=3)
+- [ ] VILLAGER role defined with correct metadata (gray color palette, team='villager', priority=4)
+- [ ] All role descriptions are 1-2 sentences explaining role ability
+- [ ] All roles include complete color palettes with Tailwind CSS color codes
 
-- `ROLES` export maintained for existing code
-- `getRoleIds()` function provides legacy support
-- No breaking changes to existing consumers
+### AC-3: Registry API Functions
+- [ ] `getRoles()` returns all roles sorted by priority (Mafia, Police, Doctor, Villager order)
+- [ ] `getRoleById('MAFIA')` returns MAFIA role definition object
+- [ ] `getRoleById('invalid')` returns null (not undefined or error)
+- [ ] `getRoleById()` is case-insensitive: 'mafia', 'MAFIA', 'Mafia' all work
+- [ ] `getRolesByTeam('special')` returns array containing Police and Doctor roles only
+- [ ] `getSpecialRoles()` returns all non-villager roles (Mafia, Police, Doctor)
+- [ ] `validateRoleCount('POLICE', 3, 20)` returns validation error (exceeds max=2)
+- [ ] `validateRoleCount('POLICE', 1, 20)` returns valid result
 
-**Verification:** Existing `roleAssignmentEngine.js` imports still work
+### AC-4: Immutability & Data Integrity
+- [ ] All role definition objects frozen with `Object.freeze()` on module load
+- [ ] Attempting to modify role properties (e.g., `role.name = 'New Name'`) fails silently or throws error
+- [ ] Registry array itself immutable; `ROLE_REGISTRY.push(newRole)` prevented
+- [ ] Role definitions validated on module load; invalid schema throws descriptive error
+- [ ] Registry initialization is synchronous (no async/await required)
 
-#### NFR-5: Documentation (AC-11)
-**Status:** ✅ Completed
+### AC-5: JSDoc Type Annotations
+- [ ] `@typedef RoleDefinition` defined with all properties and types documented
+- [ ] `@typedef RoleColor` defined describing color palette structure
+- [ ] `@typedef RoleConstraints` defined for validation rules
+- [ ] All API functions include `@param` annotations with types and descriptions
+- [ ] All API functions include `@returns` annotations describing return values
+- [ ] Each function includes usage example in JSDoc comments
 
-Created comprehensive documentation:
-- ✅ `ROLE_REGISTRY.md`: Usage guide with examples
-- ✅ `prd.md`: This requirements document
-- ✅ `implementation-plan.md`: Step-by-step execution
-- ✅ Inline JSDoc: All functions and types documented
-- ✅ Manual test script: Verification examples
+### AC-6: Performance Requirements
+- [ ] `getRoles()` executes in <1ms (average over 1000 calls)
+- [ ] `getRoleById()` executes in <1ms (average over 1000 calls)
+- [ ] Registry file size <2KB minified and gzipped
+- [ ] No runtime performance impact on existing assignment engine (<0.12ms maintained)
+- [ ] Registry supports 50 roles without performance degradation (stress tested)
 
-## Acceptance Criteria
+### AC-7: Testing Coverage
+- [ ] Unit tests achieve 100% code coverage for registry module
+- [ ] Tests verify all API functions return expected data structures
+- [ ] Tests validate immutability (mutation attempts properly handled)
+- [ ] Tests confirm all predefined roles conform to schema
+- [ ] Tests verify role priority sorting works correctly
+- [ ] Tests validate constraint checking in `validateRoleCount()`
+- [ ] Tests confirm graceful handling of invalid inputs (null, undefined, empty strings)
 
-| ID | Criteria | Status | Notes |
-|----|----------|--------|-------|
-| AC-1 | Role registry created at `src/utils/roleRegistry.js` | ✅ | Complete with 4 roles |
-| AC-2 | Each role includes complete metadata schema | ✅ | All 8 required fields |
-| AC-3 | `getRoles()` returns sorted roles | ✅ | Sorted by displayOrder |
-| AC-4 | `getRoleById()` returns specific role or throws | ✅ | Case-insensitive |
-| AC-5 | `getRolesByTeam()` filters by team | ✅ | Validates team input |
-| AC-6 | `getSpecialRoles()` returns non-VILLAGER roles | ✅ | Returns 3 roles |
-| AC-7 | `validateRoleCount()` validates against constraints | ✅ | All edge cases tested |
-| AC-8 | JSDoc type definitions created | ✅ | 5 types defined |
-| AC-9 | Performance benchmarks <1ms | ✅ | <0.1ms measured |
-| AC-10 | Bundle impact <2KB per role | ✅ | 40 bytes measured |
-| AC-11 | Documentation created | ✅ | 4 docs created |
+### AC-8: Documentation & Developer Experience
+- [ ] `docs/ROLE_EXTENSIBILITY.md` includes "Adding a New Role" section with step-by-step guide
+- [ ] Developer guide includes copy-paste template for new role definition
+- [ ] Registry schema fully documented with field explanations and examples
+- [ ] JSDoc comments provide IDE autocomplete for all API functions
+- [ ] Code comments explain design decisions (why frozen objects, priority ordering rationale)
 
-**Overall Status:** ✅ ALL ACCEPTANCE CRITERIA MET (11/11)
+## 8. Out of Scope
 
-## Implementation Notes
+**Explicitly NOT included in this feature:**
 
-### Technical Approach
-- Pure JavaScript module with no external dependencies
-- Static object registry with dynamic API functions
-- Constraint-based validation with custom calculator support
-- Hex color values for universal compatibility
+**Role Assignment Logic:**
+- Actual role assignment algorithm (handled by separate Assignment Engine refactor feature)
+- Fisher-Yates shuffle implementation or modifications
+- Player-to-role mapping logic
+- Assignment validation or verification
 
-### Key Design Decisions
-1. **Static Registry:** Roles defined at build time for performance
-2. **Hex Colors:** Universal format works with any styling approach
-3. **Max Calculators:** Dynamic constraints support complex rules
-4. **Team Constants:** Prevent typos and enable type safety
-5. **Backward Compatibility:** Gradual migration path for existing code
+**UI Components:**
+- Role input components or controls
+- Role display in card list interface
+- Role reveal dialog enhancements
+- Visual styling or color application in components
 
-### Future Enhancements
-- Runtime role registration for plugins/extensions
-- Role dependency validation (e.g., Doctor requires Mafia)
-- Role balancing recommendations based on player count
-- Localization support for multi-language role names
-- Role ability definitions for game mechanics integration
+**State Management:**
+- React hooks for managing role configurations
+- Application state structure for role counts
+- Integration with App.jsx or component state
+- State persistence or cleanup logic
 
-## Dependencies
+**Validation Framework:**
+- Multi-role validation rules or framework
+- Cross-role constraint checking (mutual exclusivity, dependencies)
+- Edge case detection for role configurations
+- Validation error messaging or UI feedback
 
-### Internal Dependencies
-- None (foundation feature)
+**Advanced Role Features:**
+- Custom user-defined roles
+- Role editing or customization interface
+- Dynamic role loading from external sources
+- Role localization or internationalization
 
-### External Dependencies  
-- None (pure JavaScript, no external packages)
+**Gameplay Mechanics:**
+- Role-specific abilities or actions
+- Night/day phase management
+- Role interaction rules or effects
+- Win condition calculations
 
-### Dependent Features
-- **Role Selection UI** (future): Will use `getSpecialRoles()` and color schemes
-- **Game Configuration** (future): Will use `validateRoleCount()`
-- **Role Assignment Engine** (current): Can optionally migrate to use registry
+**Performance Optimization:**
+- Component memoization strategies
+- Lazy loading of role definitions
+- Dynamic imports or code splitting
+- Cache invalidation or refresh mechanisms
 
-## Risks & Mitigations
+**Testing Infrastructure:**
+- Integration test setup or framework
+- E2E testing scenarios
+- Performance benchmarking tools
+- Test data generation utilities
 
-| Risk | Impact | Probability | Mitigation | Status |
-|------|--------|-------------|------------|--------|
-| Breaking existing code | High | Low | Maintain ROLES export | ✅ Mitigated |
-| Performance degradation | Medium | Low | Use in-memory lookups | ✅ Verified |
-| Bundle size increase | Medium | Low | Keep metadata minimal | ✅ Within target |
-| Type safety issues | Low | Low | Comprehensive JSDoc | ✅ Complete |
-
-## Timeline
-
-- **Estimated:** 2-3 days (5 story points)
-- **Actual:** 1 day
-- **Status:** ✅ Completed ahead of schedule
-
-## Sign-off
-
-### Implementation Complete
-- [x] All functional requirements met
-- [x] All acceptance criteria verified
-- [x] Performance targets achieved
-- [x] Documentation completed
-- [x] Code review ready
-
-### Next Steps
-1. ✅ Create pull request
-2. ⏳ Code review
-3. ⏳ Security scan (CodeQL)
-4. ⏳ Merge to main branch
-5. ⏳ Update project tracking
-
-## References
-
-- Implementation Plan: `implementation-plan.md`
-- Usage Guide: `ROLE_REGISTRY.md`
-- Parent Epic: Extensible Special Roles (#53)
-- Code Location: `src/utils/roleRegistry.js`
+This feature is purely the **foundational data layer** (registry + API) that other features will consume. It does not include any UI, state management, or business logic beyond data access.
