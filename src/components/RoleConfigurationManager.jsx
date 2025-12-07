@@ -12,7 +12,7 @@
  * @module RoleConfigurationManager
  */
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { getSpecialRoles, getRoleById, ROLES } from '../utils/roleRegistry.js';
 import { usePlayerRoleConfiguration } from '../hooks/usePlayerRoleConfiguration.js';
@@ -61,16 +61,22 @@ export function RoleConfigurationManager({
   // Get villager role metadata for display
   const villagerRole = getRoleById(ROLES.VILLAGER);
   
-  // Notify parent of configuration changes
+  // Store the latest callback in a ref to avoid effect re-runs on callback changes
+  const onConfigurationChangeRef = useRef(onConfigurationChange);
   useEffect(() => {
-    if (onConfigurationChange) {
-      onConfigurationChange({
+    onConfigurationChangeRef.current = onConfigurationChange;
+  }, [onConfigurationChange]);
+  
+  // Notify parent of configuration changes using stable ref
+  useEffect(() => {
+    if (onConfigurationChangeRef.current) {
+      onConfigurationChangeRef.current({
         roleCounts,
         villagerCount,
         validation
       });
     }
-  }, [roleCounts, villagerCount, validation, onConfigurationChange]);
+  }, [roleCounts, villagerCount, validation]);
   
   // Determine villager count color coding
   const getVillagerColorClass = () => {
