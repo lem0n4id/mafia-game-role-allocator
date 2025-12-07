@@ -541,11 +541,20 @@ export const testDistribution = (playerNames, mafiaCountOrConfig, iterations = 1
     distributionStats[name] = {};
     
     roleIds.forEach(roleId => {
-      const roleCount = typeof mafiaCountOrConfig === 'number' && roleId === ROLES.MAFIA
-        ? mafiaCountOrConfig
-        : typeof mafiaCountOrConfig === 'object' && mafiaCountOrConfig[roleId]
-          ? mafiaCountOrConfig[roleId]
-          : 0;
+      let roleCount;
+      if (roleId === ROLES.VILLAGER) {
+        // Villagers are auto-calculated: totalPlayers - sum of all special roles
+        const specialTotal = typeof mafiaCountOrConfig === 'number' 
+          ? mafiaCountOrConfig 
+          : Object.values(mafiaCountOrConfig).reduce((a, b) => a + b, 0);
+        roleCount = playerNames.length - specialTotal;
+      } else if (typeof mafiaCountOrConfig === 'number' && roleId === ROLES.MAFIA) {
+        roleCount = mafiaCountOrConfig;
+      } else if (typeof mafiaCountOrConfig === 'object') {
+        roleCount = mafiaCountOrConfig[roleId] || 0;
+      } else {
+        roleCount = 0;
+      }
       
       const expectedRate = roleCount > 0 ? roleCount / playerNames.length : 0;
       const actualRate = playerCounts[name][roleId] / iterations;
