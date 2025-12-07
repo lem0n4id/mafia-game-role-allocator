@@ -933,6 +933,184 @@ No UI code changes needed - registry provides all metadata for data-driven rende
 - PRD and requirements: `docs/ways-of-work/plan/extensible-special-roles/role-registry-system/prd.md`
 - Implementation plan: `docs/ways-of-work/plan/extensible-special-roles/role-registry-system/implementation-plan.md`
 
+### **Multi-Role Validation Pattern (Composable Validation Framework)**
+**Follow this pattern for validating complex multi-role configurations:**
+
+```javascript
+// Import validation framework
+import { useRoleValidation } from '@/hooks/useRoleValidation';
+import { validateRoleConfiguration, calculateVillagerCount, VALIDATION_SEVERITY } from '@/utils/roleValidation';
+
+// React Hook Pattern for Component Integration
+const RoleConfigurationManager = ({ totalPlayers }) => {
+  const [roleCounts, setRoleCounts] = useState({ 
+    MAFIA: 1, 
+    POLICE: 0, 
+    DOCTOR: 0 
+  });
+  
+  // Use validation hook with debouncing (100ms) and memoization
+  const validation = useRoleValidation(roleCounts, totalPlayers, {
+    debounceMs: 100,
+    onValidationChange: (state) => {
+      // Optional callback for parent notification
+      console.log('Validation changed:', state);
+    }
+  });
+  
+  return (
+    <div>
+      {/* Display validation errors (red, blocks allocation) */}
+      {validation.errors.map((error, index) => (
+        <div key={index} className="text-red-600 text-sm" role="alert">
+          ❌ {error.message}
+        </div>
+      ))}
+      
+      {/* Display validation warnings (yellow, requires confirmation) */}
+      {validation.warnings.map((warning, index) => (
+        <div key={index} className="text-yellow-600 text-sm" role="alert">
+          ⚠️ {warning.message}
+        </div>
+      ))}
+      
+      {/* Display calculated villager count */}
+      <div className="mt-4">
+        <span>Villagers: </span>
+        <span className={validation.villagerCount < 3 ? 'text-yellow-600' : 'text-green-600'}>
+          {validation.villagerCount}
+        </span>
+      </div>
+      
+      {/* Allocation button - disabled when invalid */}
+      <button 
+        disabled={!validation.isValid}
+        onClick={() => validation.requiresConfirmation ? showConfirmationDialog() : allocateRoles()}
+        className={validation.isValid ? 'bg-blue-600' : 'bg-gray-300 cursor-not-allowed'}
+      >
+        Allocate Roles
+      </button>
+    </div>
+  );
+};
+
+// Direct Validation Function (without React hook)
+const result = validateRoleConfiguration(
+  { MAFIA: 5, POLICE: 1, DOCTOR: 1 },
+  20
+);
+// Returns: { isValid: true, hasErrors: false, hasWarnings: false, 
+//            errors: [], warnings: [], villagerCount: 13, requiresConfirmation: false }
+
+// Calculate villager count helper
+const villagers = calculateVillagerCount({ MAFIA: 5, POLICE: 1 }, 20); // Returns: 14
+```
+
+**Multi-Role Validation Pattern Key Points:**
+- **Composable Rules**: Five built-in rules (TotalRoleCountRule, IndividualMinMaxRule, MinimumVillagersRule, NegativeCountRule, AllSpecialRolesRule)
+- **Data-Driven**: Rules read constraints from Role Registry (no hardcoded validation logic)
+- **Performance**: <10ms validation execution (typically ~0.008ms), 100ms debouncing for UI
+- **Severity Levels**: ERROR (blocks allocation), WARNING (requires confirmation), INFO (informational)
+- **React Hook**: `useRoleValidation` with debouncing, memoization, and optional callbacks
+- **Villager Calculation**: Dynamic calculation based on `getSpecialRoles()` from registry
+- **User-Friendly**: Clear messages with role names, specific values, and actionable guidance
+- **Extensible**: New validation rules added to `VALIDATION_RULES` array without framework modifications
+
+**Built-In Validation Rules:**
+1. **NegativeCountRule** (ERROR): Validates no role has negative count
+   - Example: `{ MAFIA: -5 }` → "Mafia count cannot be negative (currently: -5)"
+
+2. **TotalRoleCountRule** (ERROR): Validates sum of roles ≤ total players
+   - Example: 21 roles with 20 players → "Total roles (21) cannot exceed total players (20). Reduce role counts by 1."
+
+3. **IndividualMinMaxRule** (ERROR): Validates each role against registry constraints
+   - Example: `{ POLICE: 3 }` (max is 2) → "Police count (3) exceeds maximum (2). Reduce Police count by 1."
+
+4. **MinimumVillagersRule** (WARNING/ERROR): Validates villager count ≥ 1
+   - WARNING: 0 villagers → "Configuration leaves 0 villagers. All players assigned special roles. Consider adding villagers for balanced gameplay."
+   - ERROR: Negative villagers → "Configuration allocates 9 more roles than players. Reduce special role counts."
+
+5. **AllSpecialRolesRule** (WARNING): Detects 0 villagers edge case
+   - Example: All special roles → "All players assigned special roles. No villagers in game. This configuration may affect gameplay balance."
+
+**Validation State Structure:**
+```javascript
+{
+  isValid: boolean,              // Overall validity (no ERRORs)
+  hasErrors: boolean,            // Whether ERROR results exist
+  hasWarnings: boolean,          // Whether WARNING results exist
+  errors: ValidationResult[],    // Array of ERROR-severity results
+  warnings: ValidationResult[],  // Array of WARNING-severity results
+  villagerCount: number,         // Calculated villager count (may be negative)
+  requiresConfirmation: boolean  // True if warnings exist but no errors
+}
+```
+
+**Adding Custom Validation Rules:**
+```javascript
+// Example: Mutual Exclusivity Rule
+function MutualExclusivityRule(roleConfig, totalPlayers, registry) {
+  const policeCount = roleConfig['POLICE'] || 0;
+  const corruptPoliceCount = roleConfig['CORRUPT_POLICE'] || 0;
+  
+  if (policeCount > 0 && corruptPoliceCount > 0) {
+    return {
+      isValid: false,
+      severity: 'ERROR',
+      type: 'MutualExclusivityRule',
+      message: 'Police and Corrupt Police cannot coexist in the same game',
+      details: { policeCount, corruptPoliceCount }
+    };
+  }
+  
+  return null; // Rule passes
+}
+
+// Add to validation rules array
+import { VALIDATION_RULES } from '@/utils/roleValidation';
+VALIDATION_RULES.push(MutualExclusivityRule);
+```
+
+**Integration with Confirmation Flow:**
+```javascript
+const AllocationConfirmationFlow = ({ roleCounts, totalPlayers, onAllocate }) => {
+  const validation = useRoleValidation(roleCounts, totalPlayers);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  
+  const handleAllocateClick = () => {
+    if (!validation.isValid) return; // Block if errors
+    
+    if (validation.requiresConfirmation) {
+      setShowConfirmation(true); // Show warnings in dialog
+    } else {
+      onAllocate(roleCounts); // Proceed directly
+    }
+  };
+  
+  return (
+    <>
+      <button disabled={!validation.isValid} onClick={handleAllocateClick}>
+        Allocate Roles
+      </button>
+      
+      {showConfirmation && (
+        <ConfirmationDialog 
+          warnings={validation.warnings}
+          villagerCount={validation.villagerCount}
+          onConfirm={() => onAllocate(roleCounts)}
+          onCancel={() => setShowConfirmation(false)}
+        />
+      )}
+    </>
+  );
+};
+```
+
+**Documentation:**
+- Full usage guide: `docs/VALIDATION_FRAMEWORK.md`
+- PRD and requirements: `docs/ways-of-work/plan/extensible-special-roles/multi-role-validation-framework/prd.md`
+- Implementation plan: `docs/ways-of-work/plan/extensible-special-roles/multi-role-validation-framework/implementation-plan.md`
+
 ### **Sticky Positioning Pattern (Mobile Layout Optimization)**
 **Follow this pattern for keeping important UI elements visible during scrolling:**
 
