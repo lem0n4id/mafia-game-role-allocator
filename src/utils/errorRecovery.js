@@ -191,10 +191,12 @@ export const validateApplicationState = (state) => {
             message: `Player at index ${index} has invalid name`
           });
         }
-        if (!['MAFIA', 'VILLAGER'].includes(player.role)) {
+        // Handle both legacy string roles and new role objects
+        const roleId = typeof player.role === 'string' ? player.role : player.role?.id;
+        if (!roleId) {
           issues.push({
             type: 'INVALID_PLAYER_ROLE',
-            message: `Player at index ${index} has invalid role`
+            message: `Player at index ${index} has invalid role (missing role or role.id)`
           });
         }
       });
