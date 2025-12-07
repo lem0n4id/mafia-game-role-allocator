@@ -253,7 +253,17 @@ RoleRevealDialog.propTypes = {
   player: PropTypes.shape({
     id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
     name: PropTypes.string.isRequired,
-    role: PropTypes.oneOf([ROLES.MAFIA, ROLES.VILLAGER]).isRequired,
+    // Role can be either a string (legacy) or an object (new multi-role support)
+    role: PropTypes.oneOfType([
+      PropTypes.oneOf([ROLES.MAFIA, ROLES.VILLAGER]), // Legacy string format
+      PropTypes.shape({ // New role object format
+        id: PropTypes.string.isRequired,
+        name: PropTypes.string.isRequired,
+        team: PropTypes.string,
+        color: PropTypes.object,
+        description: PropTypes.string
+      })
+    ]).isRequired,
     revealed: PropTypes.bool
   }),
   onClose: PropTypes.func.isRequired,
