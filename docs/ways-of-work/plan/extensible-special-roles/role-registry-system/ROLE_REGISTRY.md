@@ -8,8 +8,9 @@ The Role Registry System provides a centralized, single source of truth for all 
 
 - **Centralized Role Definitions**: All role metadata in one place
 - **Type-Safe API**: Comprehensive JSDoc type definitions
-- **Flexible Validation**: Constraint-based validation with custom calculators
-- **UI-Ready Data**: Color schemes and display order for rendering
+- **Immutable Data**: All role definitions frozen with Object.freeze()
+- **Null-Safe API**: Functions return null instead of throwing errors
+- **UI-Ready Data**: Tailwind CSS color tokens and priority sorting for rendering
 - **Extensible Design**: Add new roles with minimal code changes
 - **Backward Compatible**: ROLES export maintains compatibility with existing code
 
@@ -22,29 +23,38 @@ import {
   getRolesByTeam,
   getSpecialRoles,
   validateRoleCount,
-  ROLES,
-  TEAMS
+  ROLES  // Backward compatibility only (deprecated)
 } from './utils/roleRegistry';
 
-// Get all roles sorted by display order
+// Get all roles sorted by priority
 const allRoles = getRoles();
-console.log(allRoles); // [MAFIA, VILLAGER, POLICE, DOCTOR]
+console.log(allRoles); // [MAFIA, POLICE, DOCTOR, VILLAGER]
 
-// Get a specific role
+// Get a specific role (returns null if not found)
 const mafiaRole = getRoleById('MAFIA');
-console.log(mafiaRole.name); // 'Mafia'
-console.log(mafiaRole.color.primary); // '#dc2626'
+if (mafiaRole) {
+  console.log(mafiaRole.name); // 'Mafia'
+  console.log(mafiaRole.color.primary); // 'red-600' (Tailwind token)
+  console.log(mafiaRole.team); // 'mafia' (lowercase)
+}
 
-// Get roles by team
-const villageRoles = getRolesByTeam('VILLAGE');
-console.log(villageRoles.map(r => r.name)); // ['Villager', 'Police', 'Doctor']
+// Handle missing roles safely
+const invalidRole = getRoleById('INVALID');
+console.log(invalidRole); // null
 
-// Get special roles (non-standard roles)
-const specialRoles = getSpecialRoles();
-console.log(specialRoles.map(r => r.name)); // ['Mafia', 'Police', 'Doctor']
+// Get roles by team (lowercase strings)
+const specialRoles = getRolesByTeam('special');
+console.log(specialRoles.map(r => r.name)); // ['Police', 'Doctor']
+
+const villagerRoles = getRolesByTeam('villager');
+console.log(villagerRoles.map(r => r.name)); // ['Villager']
+
+// Get non-villager roles for UI
+const nonVillagerRoles = getSpecialRoles();
+console.log(nonVillagerRoles.map(r => r.name)); // ['Mafia', 'Police', 'Doctor']
 
 // Validate role counts
-const validation = validateRoleCount('MAFIA', 3, 10);
+const validation = validateRoleCount('POLICE', 2, 10);
 if (!validation.isValid) {
   console.error(validation.error);
 }
@@ -55,7 +65,7 @@ if (!validation.isValid) {
 ### Core Functions
 
 #### `getRoles()`
-Returns all registered roles sorted by `displayOrder`.
+Returns all registered roles sorted by `priority` (ascending order).
 
 **Returns:** `RoleDefinition[]`
 
@@ -63,30 +73,36 @@ Returns all registered roles sorted by `displayOrder`.
 ```javascript
 const roles = getRoles();
 roles.forEach(role => {
-  console.log(`${role.name} (${role.team})`);
+  console.log(`${role.name} (team: ${role.team}, priority: ${role.priority})`);
 });
+// Output:
+// Mafia (team: mafia, priority: 1)
+// Police (team: special, priority: 2)
+// Doctor (team: special, priority: 3)
+// Villager (team: villager, priority: 4)
 ```
 
 ---
 
 #### `getRoleById(id)`
-Returns a specific role by its identifier.
+Returns a specific role by its identifier. Lookup is case-insensitive.
 
 **Parameters:**
-- `id` (string): Role identifier (case-insensitive)
+- `id` (string): Role identifier (e.g., 'MAFIA', 'mafia', 'Mafia')
 
-**Returns:** `RoleDefinition`
-
-**Throws:** `Error` if role not found
+**Returns:** `RoleDefinition | null` - Role definition or null if not found
 
 **Example:**
 ```javascript
-try {
-  const role = getRoleById('POLICE');
+const role = getRoleById('POLICE');
+if (role) {
   console.log(role.description);
-} catch (error) {
-  console.error(error.message);
+} else {
+  console.log('Role not found');
 }
+
+// Case-insensitive
+const same = getRoleById('police'); // Also works
 ```
 
 ---
@@ -95,29 +111,40 @@ try {
 Returns all roles belonging to a specific team.
 
 **Parameters:**
-- `team` (Team): Team identifier ('MAFIA' or 'VILLAGE')
+- `team` (string): Team identifier - 'mafia', 'special', or 'villager' (lowercase)
 
-**Returns:** `RoleDefinition[]`
-
-**Throws:** `Error` if team is invalid
+**Returns:** `RoleDefinition[]` - Empty array if team is invalid
 
 **Example:**
 ```javascript
-const mafiaTeam = getRolesByTeam('MAFIA');
-const villageTeam = getRolesByTeam('VILLAGE');
+const mafiaTeam = getRolesByTeam('mafia');
+console.log(mafiaTeam.map(r => r.name)); // ['Mafia']
+
+const specialTeam = getRolesByTeam('special');
+console.log(specialTeam.map(r => r.name)); // ['Police', 'Doctor']
+
+const villagerTeam = getRolesByTeam('villager');
+console.log(villagerTeam.map(r => r.name)); // ['Villager']
+
+// Invalid team returns empty array
+const invalid = getRolesByTeam('INVALID');
+console.log(invalid); // []
 ```
 
 ---
 
 #### `getSpecialRoles()`
-Returns all special roles (non-standard roles including MAFIA).
+Returns all special roles (non-villager team roles). Includes MAFIA and special team roles.
 
 **Returns:** `RoleDefinition[]`
 
 **Example:**
 ```javascript
 const specialRoles = getSpecialRoles();
-// Use for UI rendering of optional roles
+console.log(specialRoles.map(r => r.name));
+// ['Mafia', 'Police', 'Doctor']
+
+// Use for UI rendering of roles that need special treatment
 ```
 
 ---
@@ -127,129 +154,221 @@ Validates a role count against constraints and total player count.
 
 **Parameters:**
 - `roleId` (string): Role identifier
-- `count` (number): Proposed count for this role
-- `totalPlayers` (number): Total number of players
+- `count` (number): Proposed count for this role (must be non-negative integer)
+- `totalPlayers` (number): Total number of players (must be positive integer)
 
 **Returns:** `ValidationResult`
 ```typescript
 {
   isValid: boolean,
   error?: string,
-  details?: Object
+  details?: {
+    role: string,
+    count: number,
+    totalPlayers: number,
+    min?: number,
+    max?: number
+  }
 }
 ```
 
 **Example:**
 ```javascript
-const result = validateRoleCount('MAFIA', 5, 10);
-if (!result.isValid) {
-  alert(result.error);
-} else {
-  // Proceed with allocation
-}
+// Valid: 2 Police in 10-player game (max is 2)
+const result1 = validateRoleCount('POLICE', 2, 10);
+console.log(result1);
+// { isValid: true, details: { role: 'Police', count: 2, totalPlayers: 10 } }
+
+// Invalid: 3 Police exceeds max of 2
+const result2 = validateRoleCount('POLICE', 3, 10);
+console.log(result2);
+// { 
+//   isValid: false, 
+//   error: 'Police count cannot exceed 2 for 10 players',
+//   details: { max: 2, actual: 3, totalPlayers: 10 }
+// }
+
+// Invalid: count exceeds total players
+const result3 = validateRoleCount('MAFIA', 11, 10);
+console.log(result3);
+// {
+//   isValid: false,
+//   error: 'Mafia count (11) cannot exceed total players (10)',
+//   details: { count: 11, totalPlayers: 10 }
+// }
 ```
 
-### Type Definitions
+## Type Definitions
 
-#### `RoleDefinition`
-```javascript
+### `RoleDefinition`
+Complete role metadata structure.
+
+```typescript
 {
-  id: string,              // Unique identifier (e.g., 'MAFIA')
+  id: string,              // Unique identifier (uppercase, e.g., 'MAFIA')
   name: string,            // Display name (e.g., 'Mafia')
-  team: Team,              // 'MAFIA' or 'VILLAGE'
-  color: RoleColor,        // Color scheme for UI
+  team: Team,              // 'mafia' | 'special' | 'villager' (lowercase)
+  color: RoleColor,        // 5-color palette for UI
   constraints: RoleConstraints, // Validation constraints
-  description: string,     // Role description
-  displayOrder: number,    // Sort order for UI
-  isSpecialRole: boolean   // True for non-standard roles
+  description: string,     // Role description (1-2 sentences)
+  priority: number,        // Sort order (lower = higher precedence)
+  icon: string | null      // Optional SVG path or icon identifier
 }
 ```
 
-#### `RoleColor`
-```javascript
+### `RoleColor`
+UI color scheme using Tailwind CSS tokens.
+
+```typescript
 {
-  primary: string,    // Primary color (hex or Tailwind)
-  secondary: string,  // Background color
-  text: string        // Text color for contrast
+  primary: string,    // Primary color (e.g., 'red-600')
+  secondary: string,  // Background color (e.g., 'red-50')
+  border: string,     // Border color (e.g., 'red-500')
+  text: string,       // Text color (e.g., 'red-800')
+  accent: string      // Accent/highlight color (e.g., 'red-700')
 }
 ```
 
-#### `RoleConstraints`
-```javascript
+### `RoleConstraints`
+Role count validation constraints.
+
+```typescript
 {
-  min: number,                    // Minimum count (0 for optional)
-  max: number,                    // Maximum count (-1 = unlimited)
-  default: number,                // Recommended default
-  maxCalculator?: (total) => max  // Dynamic max based on total players
+  min: number,     // Minimum count (0 for optional roles)
+  max: number,     // Maximum count (Infinity for unlimited, or specific limit)
+  default: number  // Recommended default (-1 for calculated values like Villager)
 }
+```
+
+### `Team`
+Team affiliation type (lowercase strings).
+
+```typescript
+type Team = 'mafia' | 'special' | 'villager';
 ```
 
 ## Registered Roles
 
 ### MAFIA
-- **Team:** MAFIA
-- **Colors:** Red theme (`#dc2626`, `#fef2f2`, `#991b1b`)
-- **Constraints:** min=0, max=totalPlayers-1, default=1
-- **Description:** Work with other Mafia players to eliminate Villagers
-
-### VILLAGER
-- **Team:** VILLAGE
-- **Colors:** Green theme (`#16a34a`, `#f0fdf4`, `#166534`)
-- **Constraints:** min=1, max=unlimited, default=fill remaining
-- **Description:** Work with other Villagers to identify the Mafia
+- **ID:** 'MAFIA'
+- **Team:** 'mafia'
+- **Colors:** Red theme
+  - primary: 'red-600' (#dc2626)
+  - secondary: 'red-50' (#fef2f2)
+  - border: 'red-500' (#ef4444)
+  - text: 'red-800' (#991b1b)
+  - accent: 'red-700' (#b91c1c)
+- **Constraints:** min=0, max=Infinity, default=1
+- **Priority:** 1
+- **Description:** Eliminate villagers to win
 
 ### POLICE (Special Role)
-- **Team:** VILLAGE
-- **Colors:** Blue theme (`#2563eb`, `#eff6ff`, `#1e40af`)
-- **Constraints:** min=0, max=1, default=0
-- **Description:** Investigate one player each night to learn their true identity
+- **ID:** 'POLICE'
+- **Team:** 'special'
+- **Colors:** Blue theme
+  - primary: 'blue-600' (#2563eb)
+  - secondary: 'blue-50' (#eff6ff)
+  - border: 'blue-500' (#3b82f6)
+  - text: 'blue-800' (#1e40af)
+  - accent: 'blue-700' (#1d4ed8)
+- **Constraints:** min=0, max=2, default=0
+- **Priority:** 2
+- **Description:** Investigate one player each night
 
 ### DOCTOR (Special Role)
-- **Team:** VILLAGE
-- **Colors:** Violet theme (`#7c3aed`, `#f5f3ff`, `#5b21b6`)
-- **Constraints:** min=0, max=1, default=0
-- **Description:** Protect one player each night from elimination
+- **ID:** 'DOCTOR'
+- **Team:** 'special'
+- **Colors:** Green theme
+  - primary: 'green-600' (#16a34a)
+  - secondary: 'green-50' (#f0fdf4)
+  - border: 'green-500' (#22c55e)
+  - text: 'green-800' (#166534)
+  - accent: 'green-700' (#15803d)
+- **Constraints:** min=0, max=2, default=0
+- **Priority:** 3
+- **Description:** Protect one player each night
+
+### VILLAGER
+- **ID:** 'VILLAGER'
+- **Team:** 'villager'
+- **Colors:** Gray theme
+  - primary: 'gray-500' (#6b7280)
+  - secondary: 'gray-50' (#f9fafb)
+  - border: 'gray-300' (#d1d5db)
+  - text: 'gray-700' (#374151)
+  - accent: 'gray-600' (#4b5563)
+- **Constraints:** min=0, max=Infinity, default=-1 (calculated)
+- **Priority:** 4
+- **Description:** Work with others to identify Mafia
 
 ## Usage Patterns
 
-### UI Rendering with Color Schemes
+### UI Rendering with Tailwind CSS
 
 ```javascript
 const role = getRoleById('MAFIA');
+if (!role) return null;
 
-// In your component
-<div 
-  style={{ 
-    backgroundColor: role.color.secondary,
-    color: role.color.text,
-    borderColor: role.color.primary 
-  }}
->
-  {role.name}
-</div>
+// Use Tailwind utility classes directly
+return (
+  <div className={`
+    bg-${role.color.secondary} 
+    text-${role.color.text}
+    border-2 border-${role.color.border}
+  `}>
+    <h3>{role.name}</h3>
+    <p>{role.description}</p>
+  </div>
+);
 
-// Or with Tailwind (convert hex to Tailwind classes)
-<div className={`bg-red-50 text-red-900 border-red-600`}>
-  {role.name}
-</div>
+// Or for dynamic styling
+return (
+  <div 
+    className="p-4 rounded-lg"
+    style={{
+      backgroundColor: `var(--color-${role.color.secondary})`,
+      color: `var(--color-${role.color.text})`
+    }}
+  >
+    {role.name}
+  </div>
+);
+```
+
+### Safe Role Access Pattern
+
+```javascript
+// Always check for null before using role
+const role = getRoleById(roleId);
+if (!role) {
+  console.error(`Role ${roleId} not found`);
+  return <div>Unknown role</div>;
+}
+
+// Now safe to use role properties
+return <RoleCard role={role} />;
 ```
 
 ### Dynamic Role Selection UI
 
 ```javascript
+// Get special roles for optional role selection
 const specialRoles = getSpecialRoles();
 
 return (
   <div>
-    <h3>Optional Roles</h3>
+    <h3>Choose Roles for Your Game</h3>
     {specialRoles.map(role => (
-      <div key={role.id}>
+      <div key={role.id} className="flex items-center gap-2">
         <input 
-          type="checkbox" 
+          type="number" 
+          min={role.constraints.min}
+          max={role.constraints.max === Infinity ? 99 : role.constraints.max}
+          defaultValue={role.constraints.default}
           id={role.id}
-          onChange={(e) => handleRoleToggle(role.id, e.target.checked)}
+          onChange={(e) => handleRoleCountChange(role.id, parseInt(e.target.value))}
         />
-        <label htmlFor={role.id}>
+        <label htmlFor={role.id} className={`text-${role.color.text}`}>
           {role.name} - {role.description}
         </label>
       </div>
@@ -264,6 +383,7 @@ return (
 const validateGameSetup = (roleConfig, totalPlayers) => {
   const errors = [];
   
+  // Validate each role count
   Object.entries(roleConfig).forEach(([roleId, count]) => {
     const validation = validateRoleCount(roleId, count, totalPlayers);
     if (!validation.isValid) {
@@ -271,125 +391,224 @@ const validateGameSetup = (roleConfig, totalPlayers) => {
     }
   });
   
-  // Also check total doesn't exceed players
+  // Check total roles match total players
   const totalRoles = Object.values(roleConfig).reduce((sum, count) => sum + count, 0);
   if (totalRoles !== totalPlayers) {
     errors.push(`Total roles (${totalRoles}) must equal total players (${totalPlayers})`);
   }
   
-  return errors;
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
 };
+
+// Usage
+const config = { MAFIA: 2, POLICE: 1, VILLAGER: 7 };
+const result = validateGameSetup(config, 10);
+if (!result.isValid) {
+  alert(`Setup errors:\n${result.errors.join('\n')}`);
+}
+```
+
+### Team-Based Filtering
+
+```javascript
+// Get all roles that can investigate or have special abilities
+const investigativeRoles = getRolesByTeam('special').filter(role => 
+  role.description.toLowerCase().includes('investigate')
+);
+
+// Build UI sections by team
+const teams = ['mafia', 'special', 'villager'];
+return (
+  <div>
+    {teams.map(team => {
+      const teamRoles = getRolesByTeam(team);
+      return (
+        <section key={team}>
+          <h2>{team.charAt(0).toUpperCase() + team.slice(1)} Team</h2>
+          <ul>
+            {teamRoles.map(role => (
+              <li key={role.id}>{role.name}</li>
+            ))}
+          </ul>
+        </section>
+      );
+    })}
+  </div>
+);
 ```
 
 ## Adding New Roles
 
 To add a new role to the registry:
 
-1. Add role definition to `ROLE_REGISTRY` in `src/utils/roleRegistry.js`:
+1. **Add role definition** to `ROLE_REGISTRY` in `src/utils/roleRegistry.js`:
 
 ```javascript
-DETECTIVE: {
+DETECTIVE: deepFreeze({
   id: 'DETECTIVE',
   name: 'Detective',
-  team: TEAMS.VILLAGE,
+  team: 'special',
   color: {
-    primary: '#f59e0b',  // amber-500
-    secondary: '#fffbeb', // amber-50
-    text: '#92400e'      // amber-800
+    primary: 'amber-600',    // #d97706
+    secondary: 'amber-50',   // #fffbeb
+    border: 'amber-500',     // #f59e0b
+    text: 'amber-800',       // #92400e
+    accent: 'amber-700'      // #b45309
   },
   constraints: {
     min: 0,
     max: 1,
-    default: 0,
-    maxCalculator: (totalPlayers) => totalPlayers >= 7 ? 1 : 0
+    default: 0
   },
   description: 'Gather clues to identify the Mafia',
-  displayOrder: 5,
-  isSpecialRole: true
-}
+  priority: 5,
+  icon: null
+}),
 ```
 
-2. No UI code changes required! The registry automatically provides:
-   - Color schemes for rendering
-   - Validation constraints
-   - Display order
-   - Team affiliation
-
-3. New role is immediately available through all API functions.
-
-## Performance Characteristics
-
-- **Access Time:** < 0.1ms per operation (in-memory object lookups)
-- **Bundle Impact:** ~2KB per role (including metadata)
-- **Memory Usage:** Minimal (static object in memory)
-- **Scalability:** Supports 10+ roles without performance impact
-
-## Backward Compatibility
-
-The registry maintains backward compatibility with existing code:
+2. **Test the new role**:
 
 ```javascript
-// Old pattern (still works)
-import { ROLES } from './utils/roleAssignmentEngine';
-console.log(ROLES.MAFIA); // 'MAFIA'
+const detective = getRoleById('DETECTIVE');
+console.log(detective.name); // 'Detective'
+console.log(detective.team); // 'special'
 
-// New pattern (recommended)
-import { getRoleById } from './utils/roleRegistry';
-const role = getRoleById('MAFIA');
-console.log(role.name); // 'Mafia'
-console.log(role.color.primary); // '#dc2626'
+const validation = validateRoleCount('DETECTIVE', 1, 10);
+console.log(validation.isValid); // true
 ```
 
-## Migration Guide
-
-To migrate existing code to use the new registry:
-
-### Before:
-```javascript
-const role = player.role; // 'MAFIA' or 'VILLAGER'
-const color = role === 'MAFIA' ? 'red' : 'green';
-```
-
-### After:
-```javascript
-import { getRoleById } from './utils/roleRegistry';
-
-const roleDefinition = getRoleById(player.role);
-const color = roleDefinition.color.primary;
-```
+3. **No UI changes needed** - The role automatically appears in:
+   - `getRoles()` output (sorted by priority)
+   - `getRolesByTeam('special')` output
+   - `getSpecialRoles()` output
+   - Data-driven components using these functions
 
 ## Best Practices
 
-1. **Use `getRoles()` for iteration**: Always get roles dynamically rather than hardcoding
-2. **Validate before allocation**: Use `validateRoleCount()` for all user inputs
-3. **Leverage color schemes**: Use registry colors for consistent UI
-4. **Handle errors**: Always wrap `getRoleById()` in try-catch
-5. **Use type hints**: JSDoc types provide autocomplete in VS Code
+### 1. Always Check for Null
+
+```javascript
+// ✓ Good
+const role = getRoleById(roleId);
+if (role) {
+  useRole(role);
+}
+
+// ✗ Bad - will crash if role not found
+const role = getRoleById(roleId);
+useRole(role); // Potential null reference error
+```
+
+### 2. Use Lowercase Team Values
+
+```javascript
+// ✓ Good
+const specialRoles = getRolesByTeam('special');
+const villagers = getRolesByTeam('villager');
+
+// ✗ Bad - will return empty array
+const specialRoles = getRolesByTeam('SPECIAL');
+const villagers = getRolesByTeam('VILLAGE'); // Wrong team name
+```
+
+### 3. Handle Validation Errors Gracefully
+
+```javascript
+// ✓ Good
+const validation = validateRoleCount(roleId, count, totalPlayers);
+if (!validation.isValid) {
+  showError(validation.error);
+  return;
+}
+proceedWithAllocation();
+
+// ✗ Bad - doesn't check validation
+validateRoleCount(roleId, count, totalPlayers);
+proceedWithAllocation(); // May proceed with invalid data
+```
+
+### 4. Use Constraints for UI Limits
+
+```javascript
+// ✓ Good - respects role constraints
+const role = getRoleById('POLICE');
+<input 
+  type="number"
+  min={role.constraints.min}
+  max={role.constraints.max === Infinity ? 99 : role.constraints.max}
+/>
+
+// ✗ Bad - hardcoded limits
+<input type="number" min="0" max="1" />
+```
+
+### 5. Leverage Priority for Sorting
+
+```javascript
+// ✓ Good - uses built-in priority sorting
+const roles = getRoles(); // Already sorted
+
+// ✗ Bad - manual sorting when not needed
+const roles = getRoles().sort((a, b) => a.priority - b.priority);
+```
+
+## Performance
+
+- **Access Time:** <0.1ms per operation (in-memory lookups)
+- **Bundle Impact:** ~40 bytes per role definition
+- **Immutability:** All objects frozen, zero mutation overhead
+- **Memory:** Minimal - single registry instance, no duplication
+
+## Migration from Legacy Code
+
+If you're migrating from hardcoded ROLES constants:
+
+```javascript
+// Old code (deprecated but still works)
+import { ROLES } from './utils/roleRegistry';
+const roleId = ROLES.MAFIA; // Still returns 'MAFIA'
+
+// New code (recommended)
+import { getRoleById } from './utils/roleRegistry';
+const role = getRoleById('MAFIA');
+if (role) {
+  // Use role.name, role.color, etc.
+}
+```
 
 ## Troubleshooting
 
-### "Role with ID not found"
-- Check role ID spelling (case-insensitive but must match)
-- Verify role is registered in `ROLE_REGISTRY`
+### Role Not Found
+```javascript
+const role = getRoleById('DETECTIVE');
+if (!role) {
+  console.log('Role DETECTIVE not registered yet');
+}
+```
 
-### "Invalid team"
-- Team must be 'MAFIA' or 'VILLAGE' (use `TEAMS` constant)
+### Invalid Team
+```javascript
+const roles = getRolesByTeam('village'); // Wrong - should be 'villager'
+console.log(roles); // Returns [] (empty array)
 
-### Validation fails unexpectedly
-- Check `maxCalculator` for role-specific constraints
-- Verify total players count is correct
-- Review constraint logic in role definition
+// Correct:
+const roles = getRolesByTeam('villager');
+```
+
+### Validation Failing
+```javascript
+const result = validateRoleCount('POLICE', 3, 10);
+console.log(result.error); 
+// 'Police count cannot exceed 2 for 10 players'
+console.log(result.details.max); // 2
+```
 
 ## Related Documentation
 
-- [Role Assignment Engine](../../../role-allocation/role-assignment-engine/prd.md) - Uses registry for role allocation
-- [Development Guide](../../../../DEVELOPMENT.md) - Architecture decisions
-- [Design System](../../../../DESIGN_SYSTEM.md) - Color system integration
-
-## Support
-
-For questions or issues with the Role Registry System:
-1. Check this documentation
-2. Review JSDoc comments in `src/utils/roleRegistry.js`
-3. Run manual verification test: `node /tmp/test-role-registry.js`
-4. Consult architecture decision records in DEVELOPMENT.md
+- **PRD:** `prd.md` - Requirements and acceptance criteria
+- **Implementation Plan:** `implementation-plan.md` - Step-by-step guide
+- **Architectural Decision:** `DEVELOPMENT.md` - ADL entry for Role Registry System
+- **Copilot Instructions:** `.github/copilot-instructions.md` - Usage patterns for development
