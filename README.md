@@ -2,6 +2,9 @@
 
 A minimal, mobile-first web application for allocating roles in Mafia games. Built with React 18 and Vite for fast development and optimal performance.
 
+<img width="382" height="756" alt="image" src="https://github.com/user-attachments/assets/77a6d43a-e65a-4051-b896-866f9f4cdfb4" />
+
+
 ## Features
 
 - **Mobile-First Design**: Portrait layout optimized for mobile devices
