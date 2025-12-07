@@ -16,7 +16,7 @@ function App() {
   // Role configuration state (replaces mafiaCount)
   const [roleConfiguration, setRoleConfiguration] = useState(null);
   const [roleValidation, setRoleValidation] = useState({
-    isValid: true,
+    isValid: false,
     hasErrors: false,
   });
 
