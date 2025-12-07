@@ -145,7 +145,7 @@ const ROLE_REGISTRY = {
     constraints: {
       min: 0,
       max: Infinity,
-      default: -1 // Calculated as remaining players
+      default: -1 // Special value: calculated as (totalPlayers - sum of other roles)
     },
     description: 'Work with others to identify Mafia',
     priority: 4,
@@ -157,6 +157,12 @@ const ROLE_REGISTRY = {
 Object.freeze(ROLE_REGISTRY);
 
 /**
+ * Default priority for roles without explicit priority value
+ * @constant {number}
+ */
+const DEFAULT_PRIORITY = 999;
+
+/**
  * Get all registered roles sorted by priority
  * @returns {RoleDefinition[]} Array of all role definitions sorted by priority (ascending)
  * @example
@@ -164,7 +170,7 @@ Object.freeze(ROLE_REGISTRY);
  * // Returns: [MAFIA, POLICE, DOCTOR, VILLAGER] sorted by priority
  */
 export const getRoles = () => {
-  return Object.values(ROLE_REGISTRY).sort((a, b) => (a.priority || 999) - (b.priority || 999));
+  return Object.values(ROLE_REGISTRY).sort((a, b) => (a.priority || DEFAULT_PRIORITY) - (b.priority || DEFAULT_PRIORITY));
 };
 
 /**
@@ -295,9 +301,13 @@ export const validateRoleCount = (roleId, count, totalPlayers) => {
   const effectiveMax = constraints.max;
   
   if (effectiveMax !== Infinity && count > effectiveMax) {
+    const errorMessage = totalPlayers 
+      ? `${role.name} count cannot exceed ${effectiveMax} for ${totalPlayers} players`
+      : `${role.name} count cannot exceed ${effectiveMax}`;
+    
     return {
       isValid: false,
-      error: `${role.name} count cannot exceed ${effectiveMax}${totalPlayers ? ` for ${totalPlayers} players` : ''}`,
+      error: errorMessage,
       details: {
         max: effectiveMax,
         actual: count,
