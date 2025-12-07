@@ -13,24 +13,25 @@
 
 /**
  * Team enumeration for role affiliations
- * @typedef {'MAFIA' | 'VILLAGE'} Team
+ * @typedef {'mafia' | 'special' | 'villager'} Team
  */
 
 /**
  * Role color scheme for UI rendering
  * @typedef {Object} RoleColor
- * @property {string} primary - Primary color for role display (hex or Tailwind class)
- * @property {string} secondary - Secondary/accent color for backgrounds
+ * @property {string} primary - Primary color for role display (Tailwind CSS code)
+ * @property {string} secondary - Secondary/background color
+ * @property {string} border - Border color for role elements
  * @property {string} text - Text color for optimal contrast
+ * @property {string} accent - Accent color for highlights
  */
 
 /**
  * Role count constraints for validation
  * @typedef {Object} RoleConstraints
  * @property {number} min - Minimum allowed count (0 for optional roles)
- * @property {number} max - Maximum allowed count (-1 for unlimited, or specific limit)
+ * @property {number} max - Maximum allowed count (Infinity for unlimited, or specific limit)
  * @property {number} default - Recommended/default count for this role
- * @property {Function} [maxCalculator] - Optional function to calculate max based on total players
  */
 
 /**
@@ -38,160 +39,175 @@
  * @typedef {Object} RoleDefinition
  * @property {string} id - Unique role identifier (uppercase, used in code)
  * @property {string} name - Display name for UI rendering
- * @property {Team} team - Team affiliation (MAFIA or VILLAGE)
+ * @property {Team} team - Team affiliation ('mafia', 'special', or 'villager')
  * @property {RoleColor} color - Color scheme for UI rendering
  * @property {RoleConstraints} constraints - Count validation constraints
  * @property {string} description - Short description of role's objective
- * @property {number} displayOrder - Sort order for UI display (lower = earlier)
- * @property {boolean} isSpecialRole - True for optional/advanced roles (Police, Doctor, etc.); false for core roles (MAFIA, VILLAGER)
+ * @property {number} priority - Sort order for UI display (lower = higher priority)
+ * @property {string} [icon] - Optional SVG path or icon identifier
  */
 
 /**
- * Team constants for role affiliations
- * @constant {Object}
+ * Deep freeze helper to ensure immutability
+ * @param {Object} obj - Object to freeze
+ * @returns {Object} Frozen object
  */
-export const TEAMS = {
-  MAFIA: 'MAFIA',
-  VILLAGE: 'VILLAGE'
-};
+function deepFreeze(obj) {
+  Object.freeze(obj);
+  Object.values(obj).forEach(value => {
+    if (typeof value === 'object' && value !== null && !Object.isFrozen(value)) {
+      deepFreeze(value);
+    }
+  });
+  return obj;
+}
 
 /**
  * Role registry containing all role definitions
- * Ordered by displayOrder for consistent UI rendering
+ * All role objects are deeply frozen to prevent runtime mutation
  * @constant {Object<string, RoleDefinition>}
  */
 const ROLE_REGISTRY = {
-  MAFIA: {
+  MAFIA: deepFreeze({
     id: 'MAFIA',
     name: 'Mafia',
-    team: TEAMS.MAFIA,
+    team: 'mafia',
     color: {
-      primary: '#dc2626', // red-600
-      secondary: '#fef2f2', // red-50
-      text: '#991b1b' // red-800
+      primary: 'red-600',      // #dc2626
+      secondary: 'red-50',     // #fef2f2
+      border: 'red-500',       // #ef4444
+      text: 'red-800',         // #991b1b
+      accent: 'red-700'        // #b91c1c
     },
     constraints: {
       min: 0,
-      max: -1, // Unlimited, but validated against total players
-      default: 1,
-      maxCalculator: (totalPlayers) => Math.max(0, totalPlayers - 1) // At least one non-Mafia player
+      max: Infinity,
+      default: 1
     },
-    description: 'Work with other Mafia players to eliminate Villagers',
-    displayOrder: 1,
-    isSpecialRole: false // Core role (not optional), but needs special UI handling via getSpecialRoles()
-  },
+    description: 'Eliminate villagers to win',
+    priority: 1,
+    icon: null
+  }),
   
-  VILLAGER: {
-    id: 'VILLAGER',
-    name: 'Villager',
-    team: TEAMS.VILLAGE,
-    color: {
-      primary: '#16a34a', // green-600
-      secondary: '#f0fdf4', // green-50
-      text: '#166534' // green-800
-    },
-    constraints: {
-      min: 1, // At least one villager required
-      max: -1, // Unlimited
-      default: -1, // Fill remaining slots
-      maxCalculator: (totalPlayers) => totalPlayers
-    },
-    description: 'Work with other Villagers to identify the Mafia',
-    displayOrder: 2,
-    isSpecialRole: false // Core standard role requiring no special UI treatment
-  },
-  
-  POLICE: {
+  POLICE: deepFreeze({
     id: 'POLICE',
     name: 'Police',
-    team: TEAMS.VILLAGE,
+    team: 'special',
     color: {
-      primary: '#2563eb', // blue-600
-      secondary: '#eff6ff', // blue-50
-      text: '#1e40af' // blue-800
+      primary: 'blue-600',     // #2563eb
+      secondary: 'blue-50',    // #eff6ff
+      border: 'blue-500',      // #3b82f6
+      text: 'blue-800',        // #1e40af
+      accent: 'blue-700'       // #1d4ed8
     },
     constraints: {
       min: 0,
-      max: 1, // Typically one police per game
-      default: 0,
-      maxCalculator: (totalPlayers) => totalPlayers >= 5 ? 1 : 0
+      max: 2,
+      default: 0
     },
-    description: 'Investigate one player each night to learn their true identity',
-    displayOrder: 3,
-    isSpecialRole: true
-  },
+    description: 'Investigate one player each night',
+    priority: 2,
+    icon: null
+  }),
   
-  DOCTOR: {
+  DOCTOR: deepFreeze({
     id: 'DOCTOR',
     name: 'Doctor',
-    team: TEAMS.VILLAGE,
+    team: 'special',
     color: {
-      primary: '#7c3aed', // violet-600
-      secondary: '#f5f3ff', // violet-50
-      text: '#5b21b6' // violet-800
+      primary: 'green-600',    // #16a34a
+      secondary: 'green-50',   // #f0fdf4
+      border: 'green-500',     // #22c55e
+      text: 'green-800',       // #166534
+      accent: 'green-700'      // #15803d
     },
     constraints: {
       min: 0,
-      max: 1, // Typically one doctor per game
-      default: 0,
-      maxCalculator: (totalPlayers) => totalPlayers >= 5 ? 1 : 0
+      max: 2,
+      default: 0
     },
-    description: 'Protect one player each night from elimination',
-    displayOrder: 4,
-    isSpecialRole: true
-  }
+    description: 'Protect one player each night',
+    priority: 3,
+    icon: null
+  }),
+  
+  VILLAGER: deepFreeze({
+    id: 'VILLAGER',
+    name: 'Villager',
+    team: 'villager',
+    color: {
+      primary: 'gray-500',     // #6b7280
+      secondary: 'gray-50',    // #f9fafb
+      border: 'gray-300',      // #d1d5db
+      text: 'gray-700',        // #374151
+      accent: 'gray-600'       // #4b5563
+    },
+    constraints: {
+      min: 0,
+      max: Infinity,
+      default: -1 // Calculated as remaining players
+    },
+    description: 'Work with others to identify Mafia',
+    priority: 4,
+    icon: null
+  })
 };
 
+// Freeze the registry itself to prevent adding/removing roles at runtime
+Object.freeze(ROLE_REGISTRY);
+
 /**
- * Get all registered roles sorted by displayOrder
- * @returns {RoleDefinition[]} Array of all role definitions
+ * Get all registered roles sorted by priority
+ * @returns {RoleDefinition[]} Array of all role definitions sorted by priority (ascending)
  * @example
  * const roles = getRoles();
- * console.log(roles); // [MAFIA, VILLAGER, POLICE, DOCTOR]
+ * // Returns: [MAFIA, POLICE, DOCTOR, VILLAGER] sorted by priority
  */
 export const getRoles = () => {
-  return Object.values(ROLE_REGISTRY).sort((a, b) => a.displayOrder - b.displayOrder);
+  return Object.values(ROLE_REGISTRY).sort((a, b) => (a.priority || 999) - (b.priority || 999));
 };
 
 /**
  * Get a specific role by its ID
- * @param {string} id - Role identifier (e.g., 'MAFIA', 'VILLAGER')
- * @returns {RoleDefinition} Role definition
- * @throws {Error} If role ID is not found in registry
+ * Lookup is case-insensitive
+ * @param {string} id - Role identifier (e.g., 'MAFIA', 'mafia', 'Mafia')
+ * @returns {RoleDefinition|null} Role definition or null if not found
  * @example
  * const mafiaRole = getRoleById('MAFIA');
- * console.log(mafiaRole.name); // 'Mafia'
+ * if (mafiaRole) {
+ *   console.log(mafiaRole.name); // 'Mafia'
+ * }
+ * 
+ * const invalid = getRoleById('INVALID');
+ * console.log(invalid); // null
  */
 export const getRoleById = (id) => {
   if (!id || typeof id !== 'string') {
-    throw new Error('Role ID must be a non-empty string');
+    return null;
   }
   
   const role = ROLE_REGISTRY[id.toUpperCase()];
-  if (!role) {
-    throw new Error(`Role with ID "${id}" not found in registry`);
-  }
-  
-  return role;
+  return role || null;
 };
 
 /**
  * Get all roles belonging to a specific team
- * @param {Team} team - Team identifier ('MAFIA' or 'VILLAGE')
- * @returns {RoleDefinition[]} Array of roles for the specified team
- * @throws {Error} If team is invalid
+ * @param {'mafia'|'special'|'villager'} team - Team identifier
+ * @returns {RoleDefinition[]} Array of roles for the specified team, sorted by priority
  * @example
- * const villageRoles = getRolesByTeam('VILLAGE');
- * console.log(villageRoles.map(r => r.name)); // ['Villager', 'Police', 'Doctor']
+ * const specialRoles = getRolesByTeam('special');
+ * console.log(specialRoles.map(r => r.name)); // ['Police', 'Doctor']
  */
 export const getRolesByTeam = (team) => {
   if (!team || typeof team !== 'string') {
-    throw new Error('Team must be a non-empty string');
+    return [];
   }
   
-  const normalizedTeam = team.toUpperCase();
-  if (!Object.values(TEAMS).includes(normalizedTeam)) {
-    throw new Error(`Invalid team: "${team}". Must be one of: ${Object.values(TEAMS).join(', ')}`);
+  const normalizedTeam = team.toLowerCase();
+  const validTeams = ['mafia', 'special', 'villager'];
+  
+  if (!validTeams.includes(normalizedTeam)) {
+    return [];
   }
   
   return getRoles().filter(role => role.team === normalizedTeam);
@@ -199,22 +215,14 @@ export const getRolesByTeam = (team) => {
 
 /**
  * Get all special roles (non-VILLAGER roles)
- * 
- * Returns roles that require special UI handling or are optional additions.
- * Includes MAFIA (though marked isSpecialRole: false as it's a core role)
- * because MAFIA requires distinct UI treatment from standard VILLAGER roles.
- * 
- * Note: isSpecialRole indicates "optional/advanced" roles (Police, Doctor),
- * while this function returns "roles needing special UI" (MAFIA + special roles).
- * 
+ * Convenience function for UI rendering that returns MAFIA and special team roles
  * @returns {RoleDefinition[]} Array of special role definitions
  * @example
  * const specialRoles = getSpecialRoles();
  * console.log(specialRoles.map(r => r.name)); // ['Mafia', 'Police', 'Doctor']
  */
 export const getSpecialRoles = () => {
-  // Include MAFIA explicitly as it needs special UI handling despite being a core role
-  return getRoles().filter(role => role.isSpecialRole || role.id === 'MAFIA');
+  return getRoles().filter(role => role.team !== 'villager');
 };
 
 /**
@@ -261,13 +269,11 @@ export const validateRoleCount = (roleId, count, totalPlayers) => {
   }
   
   // Get role definition
-  let role;
-  try {
-    role = getRoleById(roleId);
-  } catch (error) {
+  const role = getRoleById(roleId);
+  if (!role) {
     return {
       isValid: false,
-      error: error.message
+      error: `Role with ID "${roleId}" not found in registry`
     };
   }
   
@@ -286,15 +292,12 @@ export const validateRoleCount = (roleId, count, totalPlayers) => {
   }
   
   // Check maximum constraint
-  let effectiveMax = constraints.max;
-  if (constraints.maxCalculator) {
-    effectiveMax = constraints.maxCalculator(totalPlayers);
-  }
+  const effectiveMax = constraints.max;
   
-  if (effectiveMax !== -1 && count > effectiveMax) {
+  if (effectiveMax !== Infinity && count > effectiveMax) {
     return {
       isValid: false,
-      error: `${role.name} count cannot exceed ${effectiveMax} for ${totalPlayers} players`,
+      error: `${role.name} count cannot exceed ${effectiveMax}${totalPlayers ? ` for ${totalPlayers} players` : ''}`,
       details: {
         max: effectiveMax,
         actual: count,
@@ -348,5 +351,8 @@ export const getRoleIds = () => {
  */
 export const ROLES = getRoleIds();
 
-// Export registry for advanced use cases
+/**
+ * Export registry for advanced use cases and testing
+ * @constant {Object<string, RoleDefinition>}
+ */
 export default ROLE_REGISTRY;
