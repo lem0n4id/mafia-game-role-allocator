@@ -115,6 +115,10 @@ src/
 - Interaction latency: < 200ms
 - Bundle size: < 500KB
 
+## Creator
+
+creator: lenin
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
