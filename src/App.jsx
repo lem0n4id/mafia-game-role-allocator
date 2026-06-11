@@ -47,6 +47,23 @@ function App() {
     handleRevealComplete
   } = useRoleRevealDialog();
 
+  const getFirstUnrevealedIndex = (players) => {
+    if (!Array.isArray(players) || players.length === 0) return 0;
+    const firstUnrevealed = players.findIndex(player => !player.revealed);
+    return firstUnrevealed === -1 ? 0 : firstUnrevealed;
+  };
+
+  const getNextUnrevealedIndex = (players, currentIndex) => {
+    if (!Array.isArray(players) || players.length === 0) return 0;
+    for (let i = currentIndex + 1; i < players.length; i += 1) {
+      if (!players[i].revealed) return i;
+    }
+    for (let i = 0; i < currentIndex; i += 1) {
+      if (!players[i].revealed) return i;
+    }
+    return currentIndex;
+  };
+
   // Handle role configuration changes from RoleConfigurationManager
   const handleRoleConfigurationChange = (config) => {
     setRoleConfiguration(config.roleCounts);
@@ -89,8 +106,9 @@ function App() {
   const handleStartReveal = () => {
     if (assignment) {
       setShowCardListInterface(true);
-      setCurrentPlayerIndex(0);
-      console.log('Switched to card list reveal interface');
+      const nextIndex = getFirstUnrevealedIndex(assignment.players);
+      setCurrentPlayerIndex(nextIndex);
+      console.log('Switched to card list reveal interface', { nextIndex });
     }
   };
 
@@ -120,13 +138,13 @@ function App() {
     const playerIndex = assignment.players.findIndex(p => p.id === dialogPlayer.id);
     
     if (playerIndex !== -1) {
+      const updatedPlayers = assignment.players.map((player, index) =>
+        index === playerIndex ? { ...player, revealed: true } : player
+      );
+      const nextIndex = getNextUnrevealedIndex(updatedPlayers, playerIndex);
       // Mark player as revealed in the assignment
       markPlayerRevealed(playerIndex);
-      
-      // Advance to next player if not at the end
-      if (playerIndex < assignment.players.length - 1) {
-        setCurrentPlayerIndex(playerIndex + 1);
-      }
+      setCurrentPlayerIndex(nextIndex);
       
       console.log(`Role revealed for ${dialogPlayer.name}: ${dialogPlayer.role}`);
     }

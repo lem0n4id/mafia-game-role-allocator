@@ -45,7 +45,7 @@ const CardListInterface = ({
   }, [cardStates]);
 
   // Handle card click with order enforcement
-  const handleCardClick = useCallback((player, cardState) => {
+  const handleCardClick = useCallback((player, cardState, playerIndex) => {
     // Strict order enforcement: only allow current player to reveal
     if (!cardState.canReveal) {
       // Provide feedback for why interaction is blocked
@@ -62,7 +62,7 @@ const CardListInterface = ({
     onPlayerReveal?.({
       playerId: player.id,
       playerName: player.name,
-      playerIndex: player.index
+      playerIndex
     });
   }, [onPlayerReveal, currentPlayerIndex]);
 
@@ -142,7 +142,7 @@ const CardListInterface = ({
           return (
             <div
               key={id}
-              onClick={() => handleCardClick(cardState, cardState)}
+              onClick={() => handleCardClick(cardState, cardState, index)}
               className={`
                 relative p-4 rounded-xl border-2 transition-all duration-200
                 touch-manipulation min-h-[72px] flex items-center
@@ -180,7 +180,7 @@ const CardListInterface = ({
               onKeyDown={(e) => {
                 if ((e.key === 'Enter' || e.key === ' ') && canReveal) {
                   e.preventDefault();
-                  handleCardClick(cardState, cardState);
+                  handleCardClick(cardState, cardState, index);
                 }
               }}
             >
